@@ -43,25 +43,30 @@ Alpine.data('qrCodePanel', (url) => ({
     open: false,
     rendered: false,
     copied: false,
-    toggle() {
+    async toggle() {
         this.open = !this.open;
 
         if (this.open && !this.rendered) {
-            QRCode.toCanvas(this.$refs.canvas, this.url);
+            await QRCode.toCanvas(this.$refs.canvas, this.url);
             this.rendered = true;
         }
     },
     async share() {
-        if (navigator.share) {
-            await navigator.share({ url: this.url });
-            return;
-        }
+        try {
+            if (navigator.share) {
+                await navigator.share({ url: this.url });
+                return;
+            }
 
-        await navigator.clipboard.writeText(this.url);
-        this.copied = true;
-        setTimeout(() => {
-            this.copied = false;
-        }, 2000);
+            await navigator.clipboard.writeText(this.url);
+            this.copied = true;
+            setTimeout(() => {
+                this.copied = false;
+            }, 2000);
+        } catch {
+            // User cancelled the native share sheet, or the clipboard write
+            // was rejected (e.g. non-secure context) — no action needed.
+        }
     },
     download() {
         const link = document.createElement('a');
