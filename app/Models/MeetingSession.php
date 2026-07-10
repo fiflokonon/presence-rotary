@@ -6,6 +6,7 @@ use Database\Factories\MeetingSessionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 class MeetingSession extends Model
 {
@@ -38,7 +39,9 @@ class MeetingSession extends Model
 
     public function activate(): void
     {
-        static::where('is_active', true)->update(['is_active' => false]);
-        $this->update(['is_active' => true]);
+        DB::transaction(function (): void {
+            static::where('is_active', true)->update(['is_active' => false]);
+            $this->update(['is_active' => true]);
+        });
     }
 }
