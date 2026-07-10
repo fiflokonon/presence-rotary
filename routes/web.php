@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\MeetingSessionController;
 use App\Http\Controllers\AttendanceFormController;
 use Illuminate\Support\Facades\Route;
 
@@ -15,5 +16,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     Route::middleware('auth')->group(function () {
         Route::post('logout', [AuthController::class, 'destroy'])->name('logout');
+        Route::get('sessions', [MeetingSessionController::class, 'index'])->name('sessions.index');
+        Route::post('sessions', [MeetingSessionController::class, 'store'])->name('sessions.store');
+        Route::post('sessions/{meetingSession}/toggle-open', [MeetingSessionController::class, 'toggleOpen'])->name('sessions.toggle-open');
     });
 });
