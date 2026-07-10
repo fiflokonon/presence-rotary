@@ -44,3 +44,13 @@ it('requires authentication to toggle presence', function () {
 
     expect($attendance->fresh()->present)->toBeTrue();
 });
+
+it('exposes a QR code panel for sharing the public form link', function () {
+    $meetingSession = MeetingSession::factory()->create();
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.sessions.show', $meetingSession))
+        ->assertOk()
+        ->assertSee('QR code')
+        ->assertSee('qrCodePanel(', false);
+});

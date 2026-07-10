@@ -21,6 +21,28 @@
                     <p class="text-[15px] text-[#6B6558]">{{ $meetingSession->date->translatedFormat('d F Y') }}</p>
                 </div>
                 <div class="flex items-center gap-3">
+                    <div x-data="qrCodePanel(@js(route('attendance.show')))" class="relative">
+                        <button type="button" @click="toggle()"
+                            class="rounded-lg border border-[#DEDAD0] px-4 py-2 text-sm font-bold text-[#12213D] hover:bg-[#F5F3EE]">
+                            QR code
+                        </button>
+                        <div x-show="open" x-cloak @click.outside="open = false"
+                            class="absolute right-0 top-full z-10 mt-2 w-72 rounded-xl border border-[#EDEAE2] bg-white p-4 shadow-[0_2px_10px_rgba(20,30,50,.06)]">
+                            <canvas x-ref="canvas" class="mx-auto"></canvas>
+                            <p class="mt-3 break-all text-center text-xs text-[#8A8474]" x-text="url"></p>
+                            <div class="mt-3 flex gap-2">
+                                <button type="button" @click="share()"
+                                    class="flex-1 rounded-lg bg-[#12213D] px-3 py-2 text-xs font-bold text-white">
+                                    <span x-show="!copied">Partager le lien</span>
+                                    <span x-show="copied" x-cloak>Lien copié ✓</span>
+                                </button>
+                                <button type="button" @click="download()"
+                                    class="flex-1 rounded-lg border border-[#DEDAD0] px-3 py-2 text-xs font-bold text-[#12213D]">
+                                    Télécharger
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                     <a href="{{ route('admin.sessions.export-pdf', $meetingSession) }}"
                         class="rounded-lg bg-[#12213D] px-4 py-2 text-sm font-bold text-white hover:bg-[#1c3559]">
                         Exporter en PDF
