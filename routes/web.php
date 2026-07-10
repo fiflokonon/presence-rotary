@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\MeetingSessionController;
 use App\Http\Controllers\AttendanceFormController;
@@ -19,5 +20,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('sessions', [MeetingSessionController::class, 'index'])->name('sessions.index');
         Route::post('sessions', [MeetingSessionController::class, 'store'])->name('sessions.store');
         Route::post('sessions/{meetingSession}/toggle-open', [MeetingSessionController::class, 'toggleOpen'])->name('sessions.toggle-open');
+        Route::get('sessions/{meetingSession}', [MeetingSessionController::class, 'show'])->name('sessions.show');
+        Route::patch('attendances/{attendance}/toggle-present', [AttendanceController::class, 'togglePresent'])->name('attendances.toggle-present');
     });
 });

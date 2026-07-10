@@ -37,6 +37,14 @@ class MeetingSessionController extends Controller
         return $this->redirectToSession($meetingSession);
     }
 
+    public function show(MeetingSession $meetingSession): View
+    {
+        return view('admin.sessions.show', [
+            'meetingSession' => $meetingSession,
+            'attendances' => $meetingSession->attendances,
+        ]);
+    }
+
     /**
      * Redirect to the session detail page (Task 9). Falls back to the
      * sessions index until `admin.sessions.show` is registered, since
