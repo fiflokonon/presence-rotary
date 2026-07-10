@@ -34,15 +34,9 @@
         <ul class="mt-6 divide-y divide-[#EDEAE2]">
             @foreach ($meetingSessions as $meetingSession)
                 <li class="flex items-center justify-between py-3">
-                    @if (Route::has('admin.sessions.show'))
-                        <a href="{{ route('admin.sessions.show', $meetingSession) }}" class="text-sm font-semibold text-[#12213D] hover:underline">
-                            {{ $meetingSession->title }} — {{ $meetingSession->date->format('d/m/Y') }}
-                        </a>
-                    @else
-                        <span class="text-sm font-semibold text-[#12213D]">
-                            {{ $meetingSession->title }} — {{ $meetingSession->date->format('d/m/Y') }}
-                        </span>
-                    @endif
+                    <a href="{{ route('admin.sessions.show', $meetingSession) }}" class="text-sm font-semibold text-[#12213D] hover:underline">
+                        {{ $meetingSession->title }} — {{ $meetingSession->date->format('d/m/Y') }}
+                    </a>
                     <span class="flex items-center gap-2">
                         @if ($meetingSession->is_active)
                             <span class="rounded-full bg-[#E7F5F1] px-2 py-0.5 text-[11px] font-semibold uppercase text-[#0E7C66]">Active</span>

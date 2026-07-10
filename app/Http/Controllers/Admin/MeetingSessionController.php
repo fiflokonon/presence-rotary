@@ -8,7 +8,6 @@ use App\Models\MeetingSession;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Route;
 use Illuminate\View\View;
 
 class MeetingSessionController extends Controller
@@ -29,14 +28,14 @@ class MeetingSessionController extends Controller
 
         $meetingSession->activate();
 
-        return $this->redirectToSession($meetingSession);
+        return redirect()->route('admin.sessions.show', $meetingSession);
     }
 
     public function toggleOpen(MeetingSession $meetingSession): RedirectResponse
     {
         $meetingSession->update(['is_open' => ! $meetingSession->is_open]);
 
-        return $this->redirectToSession($meetingSession);
+        return redirect()->route('admin.sessions.show', $meetingSession);
     }
 
     public function show(MeetingSession $meetingSession): View
@@ -55,18 +54,5 @@ class MeetingSessionController extends Controller
         ]);
 
         return $pdf->download("liste-presence-{$meetingSession->id}.pdf");
-    }
-
-    /**
-     * Redirect to the session detail page (Task 9). Falls back to the
-     * sessions index until `admin.sessions.show` is registered, since
-     * resolving a redirect to an unregistered named route throws
-     * immediately rather than only when followed.
-     */
-    private function redirectToSession(MeetingSession $meetingSession): RedirectResponse
-    {
-        return Route::has('admin.sessions.show')
-            ? redirect()->route('admin.sessions.show', $meetingSession)
-            : redirect()->route('admin.sessions.index');
     }
 }

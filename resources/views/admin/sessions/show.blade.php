@@ -21,12 +21,10 @@
                     <p class="text-[15px] text-[#6B6558]">{{ $meetingSession->date->translatedFormat('d F Y') }}</p>
                 </div>
                 <div class="flex items-center gap-3">
-                    @if (Route::has('admin.sessions.export-pdf'))
-                        <a href="{{ route('admin.sessions.export-pdf', $meetingSession) }}"
-                            class="rounded-lg bg-[#12213D] px-4 py-2 text-sm font-bold text-white hover:bg-[#1c3559]">
-                            Exporter en PDF
-                        </a>
-                    @endif
+                    <a href="{{ route('admin.sessions.export-pdf', $meetingSession) }}"
+                        class="rounded-lg bg-[#12213D] px-4 py-2 text-sm font-bold text-white hover:bg-[#1c3559]">
+                        Exporter en PDF
+                    </a>
                     <span class="rounded-full {{ $meetingSession->is_open ? 'bg-[#E7F5F1] text-[#0E7C66]' : 'bg-[#F1EFEA] text-[#6B6558]' }} px-3 py-1 text-xs font-semibold">
                         ● {{ $meetingSession->is_open ? 'Séance ouverte' : 'Séance clôturée' }}
                     </span>
