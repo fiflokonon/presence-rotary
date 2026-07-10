@@ -8,3 +8,7 @@
         'Segoe UI Symbol', 'Noto Color Emoji';
     --font-display: 'Libre Franklin', ui-sans-serif, system-ui, sans-serif;
 }
+
+[x-cloak] {
+    display: none !important;
+}
