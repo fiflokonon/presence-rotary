@@ -48,3 +48,16 @@ it('toggles a session open state', function () {
 
     expect($meetingSession->fresh()->is_open)->toBeFalse();
 });
+
+it('exposes a title filter with every session in the client-side payload', function () {
+    MeetingSession::factory()->create(['title' => 'Réunion hebdomadaire']);
+    MeetingSession::factory()->create(['title' => 'Assemblée annuelle']);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.sessions.index'))
+        ->assertOk()
+        ->assertSee('sessionsList(', false)
+        ->assertSee('Rechercher un titre…')
+        ->assertSee('Réunion hebdomadaire')
+        ->assertSee('Assemblée annuelle');
+});

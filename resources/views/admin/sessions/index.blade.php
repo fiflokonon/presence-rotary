@@ -31,22 +31,32 @@
             </div>
         @endif
 
-        <ul class="mt-6 divide-y divide-[#EDEAE2]">
-            @foreach ($meetingSessions as $meetingSession)
-                <li class="flex items-center justify-between py-3">
-                    <a href="{{ route('admin.sessions.show', $meetingSession) }}" class="text-sm font-semibold text-[#12213D] hover:underline">
-                        {{ $meetingSession->title }} — {{ $meetingSession->date->format('d/m/Y') }}
-                    </a>
-                    <span class="flex items-center gap-2">
-                        @if ($meetingSession->is_active)
-                            <span class="rounded-full bg-[#E7F5F1] px-2 py-0.5 text-[11px] font-semibold uppercase text-[#0E7C66]">Active</span>
-                        @endif
-                        <span class="rounded-full {{ $meetingSession->is_open ? 'bg-[#E7F5F1] text-[#0E7C66]' : 'bg-[#F1EFEA] text-[#6B6558]' }} px-2 py-0.5 text-[11px] font-semibold uppercase">
-                            {{ $meetingSession->is_open ? 'Ouverte' : 'Clôturée' }}
+        <div
+            x-data="sessionsList(@js($meetingSessions->map(fn ($meetingSession) => [
+                'id' => $meetingSession->id,
+                'title' => $meetingSession->title,
+                'date' => $meetingSession->date->format('d/m/Y'),
+                'url' => route('admin.sessions.show', $meetingSession),
+                'isActive' => $meetingSession->is_active,
+                'isOpen' => $meetingSession->is_open,
+            ])))"
+        >
+            <input type="text" x-model="search" placeholder="Rechercher un titre…"
+                class="mt-6 max-w-[280px] rounded-full border border-[#DEDAD0] px-4 py-2 text-sm">
+
+            <ul class="mt-4 divide-y divide-[#EDEAE2]">
+                <template x-for="session in filtered" :key="session.id">
+                    <li class="flex items-center justify-between py-3">
+                        <a :href="session.url" class="text-sm font-semibold text-[#12213D] hover:underline">
+                            <span x-text="session.title"></span> — <span x-text="session.date"></span>
+                        </a>
+                        <span class="flex items-center gap-2">
+                            <span x-show="session.isActive" class="rounded-full bg-[#E7F5F1] px-2 py-0.5 text-[11px] font-semibold uppercase text-[#0E7C66]">Active</span>
+                            <span :class="session.isOpen ? 'bg-[#E7F5F1] text-[#0E7C66]' : 'bg-[#F1EFEA] text-[#6B6558]'" class="rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase" x-text="session.isOpen ? 'Ouverte' : 'Clôturée'"></span>
                         </span>
-                    </span>
-                </li>
-            @endforeach
-        </ul>
+                    </li>
+                </template>
+            </ul>
+        </div>
     </div>
 </x-layouts.admin>

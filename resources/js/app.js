@@ -38,6 +38,16 @@ Alpine.data('attendanceDashboard', (records) => ({
     },
 }));
 
+Alpine.data('sessionsList', (sessions) => ({
+    sessions,
+    search: '',
+    get filtered() {
+        const search = this.search.toLowerCase();
+
+        return this.sessions.filter((session) => session.title.toLowerCase().includes(search));
+    },
+}));
+
 Alpine.data('qrCodePanel', (url) => ({
     url,
     open: false,
