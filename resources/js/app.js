@@ -76,4 +76,14 @@ Alpine.data('qrCodePanel', (url) => ({
     },
 }));
 
+Alpine.data('adminShell', () => ({
+    sidebarOpen: false,
+    toggle() {
+        this.sidebarOpen = !this.sidebarOpen;
+    },
+    close() {
+        this.sidebarOpen = false;
+    },
+}));
+
 Alpine.start();
