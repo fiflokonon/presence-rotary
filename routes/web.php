@@ -1,7 +1,7 @@
 <?php
 
+use App\Http\Controllers\AttendanceFormController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [AttendanceFormController::class, 'show'])->name('attendance.show');
+Route::post('/attendances', [AttendanceFormController::class, 'store'])->name('attendance.store');
