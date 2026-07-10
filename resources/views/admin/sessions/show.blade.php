@@ -77,6 +77,13 @@
         <div class="flex flex-wrap items-center gap-3 px-8 py-4">
             <input type="text" x-model="search" placeholder="Rechercher un nom…"
                 class="max-w-[280px] rounded-full border border-[#DEDAD0] px-4 py-2 text-sm">
+            <select x-model="activeTitle"
+                class="rounded-lg border border-[#DEDAD0] px-3 py-2 text-sm">
+                <option value="all">Tous les titres</option>
+                <template x-for="option in titleOptions" :key="option">
+                    <option :value="option" x-text="option"></option>
+                </template>
+            </select>
             <button type="button" @click="activeCategory = 'all'"
                 :class="activeCategory === 'all' ? 'bg-[#12213D] text-white' : 'border border-[#DEDAD0]'"
                 class="rounded-full px-3 py-1.5 text-xs font-semibold">Tous</button>
