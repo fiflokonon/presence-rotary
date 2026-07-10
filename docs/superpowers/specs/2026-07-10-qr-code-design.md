@@ -20,6 +20,7 @@ toutes les séances passées et futures.
 ## Portée
 
 Dans le périmètre :
+
 - Génération du QR code côté navigateur (aucun appel serveur, aucune
   nouvelle route/contrôleur/migration)
 - Affichage sur le dashboard d'une séance (`admin/sessions/{id}`), derrière
@@ -28,6 +29,7 @@ Dans le périmètre :
 - Bouton « Télécharger le QR code » (export PNG)
 
 Hors périmètre :
+
 - QR code différent par séance (explicitement rejeté : même URL pour toutes
   les séances)
 - Génération côté serveur / route dédiée à une image QR
@@ -35,21 +37,23 @@ Hors périmètre :
 
 ## Décisions d'architecture
 
-| Sujet | Décision |
-|---|---|
-| Génération du QR code | Librairie JS côté navigateur (`qrcode`, npm), rendue dans un `<canvas>` — pas d'appel réseau, fonctionne hors-ligne |
-| Nouvelle dépendance | `qrcode` (npm), à approuver comme `alpinejs`/`barryvdh/laravel-dompdf` l'ont été |
-| URL encodée | `route('attendance.show')`, injectée depuis Blade — fixe, identique pour toutes les séances |
-| Emplacement | Panneau repliable sur le dashboard de séance (`admin/sessions/{id}`), pas de page dédiée |
-| Partage du lien | `navigator.share({ url })` si disponible, sinon `navigator.clipboard.writeText(url)` avec confirmation visuelle |
-| Téléchargement de l'image | `canvas.toDataURL('image/png')` + lien `<a download>` déclenché en JS |
-| Nouvelles routes/contrôleurs/migrations | Aucune |
+| Sujet                                    | Décision                                                                                                                   |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Génération du QR code                  | Librairie JS côté navigateur (`qrcode`, npm), rendue dans un `<canvas>` — pas d'appel réseau, fonctionne hors-ligne |
+| Nouvelle dépendance                     | `qrcode` (npm), à approuver comme `alpinejs`/`barryvdh/laravel-dompdf` l'ont été                                   |
+| URL encodée                             | `route('attendance.show')`, injectée depuis Blade — fixe, identique pour toutes les séances                            |
+| Emplacement                              | Panneau repliable sur le dashboard de séance (`admin/sessions/{id}`), pas de page dédiée                               |
+| Partage du lien                          | `navigator.share({ url })` si disponible, sinon `navigator.clipboard.writeText(url)` avec confirmation visuelle         |
+| Téléchargement de l'image              | `canvas.toDataURL('image/png')` + lien `<a download>` déclenché en JS                                                 |
+| Nouvelles routes/contrôleurs/migrations | Aucune                                                                                                                      |
 
 ## Composants
 
 ### `resources/js/app.js`
+
 Nouveau composant Alpine `qrCodePanel(url)`, suivant le même patron que
 `attendanceDashboard` :
+
 - `open` (bool, défaut `false`) : pilote l'affichage du panneau
 - `url` : l'URL du formulaire, reçue en paramètre depuis Blade
 - `copied` (bool) : état temporaire pour le retour visuel du bouton copier
@@ -63,6 +67,7 @@ Nouveau composant Alpine `qrCodePanel(url)`, suivant le même patron que
   déclenche un clic programmatique
 
 ### `resources/views/admin/sessions/show.blade.php`
+
 - Ajout d'un bouton « QR code » dans le bloc d'actions du header, à côté
   du lien « Exporter en PDF », qui bascule `open`
 - Ajout d'un panneau `x-show="open"` contenant : le `<canvas>`, l'URL
@@ -100,6 +105,7 @@ Nouveau composant Alpine `qrCodePanel(url)`, suivant le même patron que
 Comme il n'y a ni nouvelle route, ni nouveau contrôleur, ni nouvelle
 migration, la couverture Pest se limite à vérifier que le dashboard expose
 correctement les données nécessaires au composant côté client :
+
 - Le dashboard authentifié affiche le bouton de bascule « QR code »
 - Le dashboard authentifié contient l'URL du formulaire public
   (`route('attendance.show')`) dans le payload Alpine du composant
