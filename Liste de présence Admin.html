@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@600;700;800&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;background:#F5F3EE;font-family:'Source Sans 3',sans-serif;-webkit-font-smoothing:antialiased}
+  a{color:#17458F}
+  a:hover{color:#0F3266}
+  .dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}
+  .dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 22px}
+  .dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#17458F;color:#fff;border-radius:4px;text-decoration:none}
+  .dv-tname{font:700 14px/1.2 'Libre Franklin',sans-serif;color:#1a1a1a}
+  .dv-opts{display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start}
+  .dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}
+  .dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(23,69,143,.1);color:#17458F;border-radius:5px;text-decoration:none}
+  .dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 12px/1.3 'Source Sans 3',sans-serif;color:rgba(0,0,0,.55);max-width:400px}
+  .dv-card{max-width:100%;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:12px;box-shadow:0 2px 10px rgba(20,30,50,.06);overflow:hidden}
+  .dv-opt:target .dv-oid{background:#17458F;color:#fff}
+  .dv-next{margin:24px 0 0;font:12px/1.6 'Source Sans 3',sans-serif;color:rgba(0,0,0,.5)}
+  input[type=text],input[type=email],input[type=tel],select{font-family:'Source Sans 3',sans-serif}
+</style>
+</helmet>
+
+<section class="dv-turn" id="t2">
+  <div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">Formulaire d'émargement rattaché au tableau de bord (1a) — soumettre à gauche met à jour la liste à droite</span></div>
+  <div class="dv-opts">
+
+    <div class="dv-opt" id="2a">
+      <div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>Formulaire de confirmation de présence</div>
+      <div class="dv-card" style="width:420px">
+        <div style="background:#12213D;padding:22px 24px 18px;display:flex;align-items:center;gap:12px">
+          <img src="uploads/rotary-nexus-logo.png" alt="Rotary Club de Cotonou Nexus" style="height:34px;width:auto;filter:brightness(0) invert(1);opacity:.95"/>
+          <div>
+            <div style="font:700 10px/1 'Source Sans 3',sans-serif;letter-spacing:.07em;text-transform:uppercase;color:#F2B94D">District 9103</div>
+            <div style="font:700 15px/1.3 'Libre Franklin',sans-serif;margin-top:3px">RC Cotonou Nexus</div>
+          </div>
+        </div>
+
+        <sc-if value="{{ !submitted && showClosedGate }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:40px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px">
+            <div style="width:52px;height:52px;border-radius:50%;background:#F1EFEA;color:#6B6558;display:flex;align-items:center;justify-content:center;font:700 22px 'Libre Franklin',sans-serif">⏱</div>
+            <div style="font:700 18px 'Libre Franklin',sans-serif;color:#12213D">La séance est clôturée</div>
+            <div style="font:400 13.5px 'Source Sans 3',sans-serif;color:#8A8474;max-width:280px">L'administrateur a fermé le pointage pour « {{ sessionTitle }} ». Vous n'avez pas pu confirmer votre présence à temps ?</div>
+            <button onClick="{{ onStartLateForm }}" style="margin-top:6px;padding:10px 20px;background:#12213D;border:none;color:#fff;border-radius:8px;font:700 13px 'Source Sans 3',sans-serif;cursor:pointer">Marquer ma présence en retard</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ !submitted && showForm }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:24px 24px 8px">
+            <div style="font:800 20px/1.3 'Libre Franklin',sans-serif;color:#12213D">Liste de présence</div>
+            <div style="font:500 13.5px 'Source Sans 3',sans-serif;color:#8A8474;margin-top:4px">{{ sessionTitle }} — {{ sessionDate }}</div>
+          </div>
+
+          <sc-if value="{{ formLateMode }}" hint-placeholder-val="{{ false }}">
+            <div style="margin:14px 24px 0;padding:10px 14px;background:#FDF3E2;color:#C77700;border-radius:8px;font:600 12.5px 'Source Sans 3',sans-serif">⏱ Séance clôturée — cette réponse sera enregistrée comme présence en retard.</div>
+          </sc-if>
+
+          <sc-if value="{{ formError }}" hint-placeholder-val="{{ false }}">
+            <div style="margin:14px 24px 0;padding:10px 14px;background:#FBEAEA;color:#B23B3B;border-radius:8px;font:600 12.5px 'Source Sans 3',sans-serif">* Merci de remplir les champs obligatoires.</div>
+          </sc-if>
+
+          <div style="padding:16px 24px 24px;display:flex;flex-direction:column;gap:16px">
+            <label style="display:flex;flex-direction:column;gap:6px">
+              <span style="font:600 13px 'Source Sans 3',sans-serif;color:#12213D">Titre / Qualité <span style="color:#B23B3B">*</span></span>
+              <select value="{{ formTitle }}" onChange="{{ onFormTitleChange }}" style="padding:10px 12px;border:1px solid #DEDAD0;border-radius:8px;font-size:14px;color:#12213D;background:#fff">
+                <option value="">Sélectionner</option>
+                <option value="PDG">PDG</option>
+                <option value="DG">DG</option>
+                <option value="DGE">DGE</option>
+                <option value="DGN">DGN</option>
+                <option value="AdG">AdG</option>
+                <option value="PAdG">PAdG</option>
+                <option value="Past Président">Past Président</option>
+                <option value="Président">Président</option>
+                <option value="Président Elu">Président Elu</option>
+                <option value="Président Nommé">Président Nommé</option>
+                <option value="Secrétaire">Secrétaire</option>
+                <option value="Trésorier">Trésorier</option>
+                <option value="Protocole">Protocole</option>
+                <option value="Président de Commission">Président de Commission</option>
+                <option value="Rotarien">Rotarien</option>
+                <option value="Rotaractien">Rotaractien</option>
+                <option value="Invité">Invité</option>
+              </select>
+            </label>
+
+            <label style="display:flex;flex-direction:column;gap:6px">
+              <span style="font:600 13px 'Source Sans 3',sans-serif;color:#12213D">Nom et prénoms <span style="color:#B23B3B">*</span></span>
+              <input type="text" placeholder="Ex. Charnitte Basso" value="{{ formName }}" onChange="{{ onFormNameChange }}" style="padding:10px 12px;border:1px solid #DEDAD0;border-radius:8px;font-size:14px;color:#12213D"/>
+            </label>
+
+            <label style="display:flex;flex-direction:column;gap:6px">
+              <span style="font:600 13px 'Source Sans 3',sans-serif;color:#12213D">Votre club <span style="color:#B23B3B">*</span></span>
+              <input type="text" placeholder="Ex. Rotary Club de Cotonou Ifê" value="{{ formClub }}" onChange="{{ onFormClubChange }}" style="padding:10px 12px;border:1px solid #DEDAD0;border-radius:8px;font-size:14px;color:#12213D"/>
+            </label>
+
+            <label style="display:flex;flex-direction:column;gap:6px">
+              <span style="font:600 13px 'Source Sans 3',sans-serif;color:#12213D">Numéro de téléphone <span style="color:#B23B3B">*</span></span>
+              <input type="tel" placeholder="Ex. 01 97 25 26 88" value="{{ formPhone }}" onChange="{{ onFormPhoneChange }}" style="padding:10px 12px;border:1px solid #DEDAD0;border-radius:8px;font-size:14px;color:#12213D"/>
+            </label>
+
+            <label style="display:flex;flex-direction:column;gap:6px">
+              <span style="font:600 13px 'Source Sans 3',sans-serif;color:#12213D">Classification</span>
+              <input type="text" placeholder="Ex. Marketing et Communication" value="{{ formClassification }}" onChange="{{ onFormClassificationChange }}" style="padding:10px 12px;border:1px solid #DEDAD0;border-radius:8px;font-size:14px;color:#12213D"/>
+            </label>
+
+            <label style="display:flex;flex-direction:column;gap:6px">
+              <span style="font:600 13px 'Source Sans 3',sans-serif;color:#12213D">Adresse e-mail</span>
+              <input type="email" placeholder="Ex. nom@email.com" value="{{ formEmail }}" onChange="{{ onFormEmailChange }}" style="padding:10px 12px;border:1px solid #DEDAD0;border-radius:8px;font-size:14px;color:#12213D"/>
+            </label>
+
+            <div style="display:flex;align-items:center;gap:18px;margin-top:4px">
+              <button onClick="{{ onSubmitForm }}" style="padding:11px 22px;background:#12213D;color:#fff;border:none;border-radius:8px;font:700 14px 'Source Sans 3',sans-serif;cursor:pointer" style-hover="background:#1c3559">Envoyer</button>
+              <button onClick="{{ onResetForm }}" style="background:none;border:none;color:#C77700;font:700 13px 'Source Sans 3',sans-serif;cursor:pointer">Effacer le formulaire</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ submitted }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:40px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px">
+            <div style="width:52px;height:52px;border-radius:50%;background:#E7F5F1;color:#0E7C66;display:flex;align-items:center;justify-content:center;font:700 24px 'Libre Franklin',sans-serif">✓</div>
+            <div style="font:700 18px 'Libre Franklin',sans-serif;color:#12213D">Présence enregistrée</div>
+            <sc-if value="{{ !lastLate }}" hint-placeholder-val="{{ true }}">
+              <div style="font:400 13.5px 'Source Sans 3',sans-serif;color:#8A8474;max-width:280px">Merci ! Votre présence à la séance a bien été prise en compte dans la liste de l'administrateur.</div>
+            </sc-if>
+            <sc-if value="{{ lastLate }}" hint-placeholder-val="{{ false }}">
+              <div style="font:400 13.5px 'Source Sans 3',sans-serif;color:#8A8474;max-width:280px">Merci ! Votre présence a été enregistrée en retard — elle apparaîtra avec la mention « en retard » côté administrateur.</div>
+            </sc-if>
+            <button onClick="{{ onResetForm }}" style="margin-top:6px;padding:10px 20px;background:#fff;border:1px solid #DEDAD0;color:#12213D;border-radius:8px;font:700 13px 'Source Sans 3',sans-serif;cursor:pointer">Envoyer une autre réponse</button>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div class="dv-opt" id="2b">
+      <div class="dv-olabel"><a class="dv-oid" href="#2b">2b</a>Tableau de bord admin — se met à jour en direct dès qu'une réponse est envoyée en <a class="dv-oid" href="#2a">2a</a></div>
+      <div class="dv-card" style="width:960px">
+        <div style="padding:28px 32px 20px;border-bottom:1px solid #EDEAE2">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px">
+            <div>
+              <div style="font:700 11px/1 'Source Sans 3',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#C77700;margin-bottom:8px">RC Cotonou Nexus · District 9103</div>
+              <div style="font:800 26px/1.15 'Libre Franklin',sans-serif;color:#12213D">{{ sessionTitle }}</div>
+              <div style="font:500 15px/1.4 'Source Sans 3',sans-serif;color:#6B6558;margin-top:4px">{{ sessionDate }}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+              <button style="flex:none;display:flex;align-items:center;gap:8px;padding:10px 18px;background:#12213D;color:#fff;border:none;border-radius:8px;font:600 13px 'Source Sans 3',sans-serif;cursor:pointer" style-hover="background:#1c3559">Exporter en PDF</button>
+              <div style="display:flex;align-items:center;gap:8px">
+                <sc-if value="{{ sessionOpen }}" hint-placeholder-val="{{ true }}">
+                  <span style="padding:5px 12px;border-radius:999px;font:700 11.5px 'Source Sans 3',sans-serif;background:#E7F5F1;color:#0E7C66">● {{ sessionStatusLabel }}</span>
+                </sc-if>
+                <sc-if value="{{ !sessionOpen }}" hint-placeholder-val="{{ false }}">
+                  <span style="padding:5px 12px;border-radius:999px;font:700 11.5px 'Source Sans 3',sans-serif;background:#F1EFEA;color:#6B6558">● {{ sessionStatusLabel }}</span>
+                </sc-if>
+                <button onClick="{{ toggleSession }}" style="padding:6px 12px;border-radius:7px;border:1px solid #DEDAD0;background:#fff;font:600 11.5px 'Source Sans 3',sans-serif;color:#12213D;cursor:pointer">{{ sessionToggleLabel }}</button>
+              </div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:22px">
+            <div style="background:#12213D;border-radius:10px;padding:14px 16px;color:#fff">
+              <div style="font:700 22px/1 'Libre Franklin',sans-serif">{{ presentCount }}/{{ total }}</div>
+              <div style="font:600 11px/1.4 'Source Sans 3',sans-serif;opacity:.75;margin-top:4px">Présents ({{ pctPresent }}%)</div>
+            </div>
+            <div style="background:#EAF1FB;border-radius:10px;padding:14px 16px">
+              <div style="font:700 20px/1 'Libre Franklin',sans-serif;color:#17458F">{{ officielsPresent }}/{{ officielsCount }}</div>
+              <div style="font:600 11px/1.4 'Source Sans 3',sans-serif;color:#17458F;opacity:.75;margin-top:4px">Bureau / Officiels</div>
+            </div>
+            <div style="background:#E7F5F1;border-radius:10px;padding:14px 16px">
+              <div style="font:700 20px/1 'Libre Franklin',sans-serif;color:#0E7C66">{{ membresPresent }}/{{ membresCount }}</div>
+              <div style="font:600 11px/1.4 'Source Sans 3',sans-serif;color:#0E7C66;opacity:.75;margin-top:4px">Membres</div>
+            </div>
+            <div style="background:#FDF3E2;border-radius:10px;padding:14px 16px">
+              <div style="font:700 20px/1 'Libre Franklin',sans-serif;color:#C77700">{{ rotaractPresent }}/{{ rotaractCount }}</div>
+              <div style="font:600 11px/1.4 'Source Sans 3',sans-serif;color:#C77700;opacity:.75;margin-top:4px">Rotaractiens</div>
+            </div>
+            <div style="background:#F1EFEA;border-radius:10px;padding:14px 16px">
+              <div style="font:700 20px/1 'Libre Franklin',sans-serif;color:#6B6558">{{ invitesPresent }}/{{ invitesCount }}</div>
+              <div style="font:600 11px/1.4 'Source Sans 3',sans-serif;color:#6B6558;opacity:.75;margin-top:4px">Invités</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding:16px 32px;display:flex;gap:10px;align-items:center;border-bottom:1px solid #EDEAE2">
+          <input type="text" placeholder="Rechercher un nom..." value="{{ searchA }}" onChange="{{ onSearchA }}" style="flex:1;max-width:280px;padding:9px 14px;border:1px solid #DEDAD0;border-radius:8px;font-size:14px;color:#12213D;outline:none"/>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <sc-for list="{{ chipsA }}" as="chip" hint-placeholder-count="5">
+              <button onClick="{{ chip.onClick }}" style="padding:7px 14px;border-radius:999px;border:1px solid #DEDAD0;background:#fff;font:600 12.5px 'Source Sans 3',sans-serif;color:#6B6558;cursor:pointer" style-hover="border-color:#17458F">{{ chip.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="padding:8px 32px 28px;max-height:520px;overflow:auto">
+          <sc-for list="{{ groupsA }}" as="grp" hint-placeholder-count="4">
+            <div style="margin-top:20px">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                <span style="width:8px;height:8px;border-radius:50%;background:{{ grp.color }}"></span>
+                <span style="font:700 13px 'Libre Franklin',sans-serif;color:#12213D">{{ grp.label }}</span>
+                <span style="font:600 12px 'Source Sans 3',sans-serif;color:#A39C8C">{{ grp.items.length }}</span>
+              </div>
+              <sc-for list="{{ grp.items }}" as="person" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:14px;padding:10px 12px;border-radius:8px" style-hover="background:#FAFAF7">
+                  <span style="width:34px;height:34px;border-radius:50%;background:{{ person.catMeta.bg }};color:{{ person.catMeta.color }};display:flex;align-items:center;justify-content:center;font:700 12px 'Libre Franklin',sans-serif;flex:none">{{ person.initials }}</span>
+                  <div style="flex:1;min-width:0">
+                    <div style="font:600 14.5px 'Source Sans 3',sans-serif;color:#12213D">{{ person.name }}</div>
+                    <div style="font:400 12.5px 'Source Sans 3',sans-serif;color:#8A8474">{{ person.title }} · {{ person.club }}<sc-if value="{{ person.late }}" hint-placeholder-val="{{ false }}"><span style="color:#C77700;font-weight:700"> · marqué en retard</span></sc-if></div>
+                  </div>
+                  <div style="font:400 12.5px ui-monospace,Menlo,monospace;color:#A39C8C;flex:none">{{ person.phone }}</div>
+                  <button onClick="{{ person.toggle }}" style="flex:none;width:104px;padding:7px 0;border-radius:999px;border:1px solid transparent;font:700 12px 'Source Sans 3',sans-serif;cursor:pointer;background:#E7F5F1;color:#0E7C66">
+                    <sc-if value="{{ person.present }}" hint-placeholder-val="{{ true }}">Présent</sc-if>
+                    <sc-if value="{{ !person.present }}" hint-placeholder-val="{{ false }}">Marquer présent</sc-if>
+                  </button>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <p class="dv-next">Essayez ensuite : « remplis <a class="dv-oid" href="#2a">2a</a> avec un invité et regarde <a class="dv-oid" href="#2b">2b</a> » · « ajoute un lien QR code au formulaire » · « garde seulement 2b, retire les autres pistes »</p>
+</section>
+
+<section class="dv-turn" id="t1">
+  <div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Écran admin — 3 pistes visuelles explorées (retenu : 1a)</span></div>
+  <div class="dv-opts">
+
+    <div class="dv-opt" id="1a">
+      <div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Tableau de bord — sections groupées par catégorie ✓ retenu</div>
+      <div class="dv-card" style="width:960px">
+        <div style="padding:28px 32px 20px;border-bottom:1px solid #EDEAE2">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px">
+            <div>
+              <div style="font:700 11px/1 'Source Sans 3',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#C77700;margin-bottom:8px">RC Cotonou Nexus · District 9103</div>
+              <div style="font:800 26px/1.15 'Libre Franklin',sans-serif;color:#12213D">{{ sessionTitle }}</div>
+              <div style="font:500 15px/1.4 'Source Sans 3',sans-serif;color:#6B6558;margin-top:4px">{{ sessionDate }}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+              <button style="flex:none;display:flex;align-items:center;gap:8px;padding:10px 18px;background:#12213D;color:#fff;border:none;border-radius:8px;font:600 13px 'Source Sans 3',sans-serif;cursor:pointer" style-hover="background:#1c3559">Exporter en PDF</button>
+              <div style="display:flex;align-items:center;gap:8px">
+                <sc-if value="{{ sessionOpen }}" hint-placeholder-val="{{ true }}">
+                  <span style="padding:5px 12px;border-radius:999px;font:700 11.5px 'Source Sans 3',sans-serif;background:#E7F5F1;color:#0E7C66">● {{ sessionStatusLabel }}</span>
+                </sc-if>
+                <sc-if value="{{ !sessionOpen }}" hint-placeholder-val="{{ false }}">
+                  <span style="padding:5px 12px;border-radius:999px;font:700 11.5px 'Source Sans 3',sans-serif;background:#F1EFEA;color:#6B6558">● {{ sessionStatusLabel }}</span>
+                </sc-if>
+                <button onClick="{{ toggleSession }}" style="padding:6px 12px;border-radius:7px;border:1px solid #DEDAD0;background:#fff;font:600 11.5px 'Source Sans 3',sans-serif;color:#12213D;cursor:pointer">{{ sessionToggleLabel }}</button>
+              </div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:22px">
+            <div style="background:#12213D;border-radius:10px;padding:14px 16px;color:#fff">
+              <div style="font:700 22px/1 'Libre Franklin',sans-serif">{{ presentCount }}/{{ total }}</div>
+              <div style="font:600 11px/1.4 'Source Sans 3',sans-serif;opacity:.75;margin-top:4px">Présents ({{ pctPresent }}%)</div>
+            </div>
+            <div style="background:#EAF1FB;border-radius:10px;padding:14px 16px">
+              <div style="font:700 20px/1 'Libre Franklin',sans-serif;color:#17458F">{{ officielsPresent }}/{{ officielsCount }}</div>
+              <div style="font:600 11px/1.4 'Source Sans 3',sans-serif;color:#17458F;opacity:.75;margin-top:4px">Bureau / Officiels</div>
+            </div>
+            <div style="background:#E7F5F1;border-radius:10px;padding:14px 16px">
+              <div style="font:700 20px/1 'Libre Franklin',sans-serif;color:#0E7C66">{{ membresPresent }}/{{ membresCount }}</div>
+              <div style="font:600 11px/1.4 'Source Sans 3',sans-serif;color:#0E7C66;opacity:.75;margin-top:4px">Membres</div>
+            </div>
+            <div style="background:#FDF3E2;border-radius:10px;padding:14px 16px">
+              <div style="font:700 20px/1 'Libre Franklin',sans-serif;color:#C77700">{{ rotaractPresent }}/{{ rotaractCount }}</div>
+              <div style="font:600 11px/1.4 'Source Sans 3',sans-serif;color:#C77700;opacity:.75;margin-top:4px">Rotaractiens</div>
+            </div>
+            <div style="background:#F1EFEA;border-radius:10px;padding:14px 16px">
+              <div style="font:700 20px/1 'Libre Franklin',sans-serif;color:#6B6558">{{ invitesPresent }}/{{ invitesCount }}</div>
+              <div style="font:600 11px/1.4 'Source Sans 3',sans-serif;color:#6B6558;opacity:.75;margin-top:4px">Invités</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding:16px 32px;display:flex;gap:10px;align-items:center;border-bottom:1px solid #EDEAE2">
+          <input type="text" placeholder="Rechercher un nom..." value="{{ searchA }}" onChange="{{ onSearchA }}" style="flex:1;max-width:280px;padding:9px 14px;border:1px solid #DEDAD0;border-radius:8px;font-size:14px;color:#12213D;outline:none"/>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <sc-for list="{{ chipsA }}" as="chip" hint-placeholder-count="5">
+              <button onClick="{{ chip.onClick }}" style="padding:7px 14px;border-radius:999px;border:1px solid #DEDAD0;background:#fff;font:600 12.5px 'Source Sans 3',sans-serif;color:#6B6558;cursor:pointer" style-hover="border-color:#17458F">{{ chip.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="padding:8px 32px 28px;max-height:520px;overflow:auto">
+          <sc-for list="{{ groupsA }}" as="grp" hint-placeholder-count="4">
+            <div style="margin-top:20px">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                <span style="width:8px;height:8px;border-radius:50%;background:{{ grp.color }}"></span>
+                <span style="font:700 13px 'Libre Franklin',sans-serif;color:#12213D">{{ grp.label }}</span>
+                <span style="font:600 12px 'Source Sans 3',sans-serif;color:#A39C8C">{{ grp.items.length }}</span>
+              </div>
+              <sc-for list="{{ grp.items }}" as="person" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:14px;padding:10px 12px;border-radius:8px" style-hover="background:#FAFAF7">
+                  <span style="width:34px;height:34px;border-radius:50%;background:{{ person.catMeta.bg }};color:{{ person.catMeta.color }};display:flex;align-items:center;justify-content:center;font:700 12px 'Libre Franklin',sans-serif;flex:none">{{ person.initials }}</span>
+                  <div style="flex:1;min-width:0">
+                    <div style="font:600 14.5px 'Source Sans 3',sans-serif;color:#12213D">{{ person.name }}</div>
+                    <div style="font:400 12.5px 'Source Sans 3',sans-serif;color:#8A8474">{{ person.title }} · {{ person.club }}<sc-if value="{{ person.late }}" hint-placeholder-val="{{ false }}"><span style="color:#C77700;font-weight:700"> · marqué en retard</span></sc-if></div>
+                  </div>
+                  <div style="font:400 12.5px ui-monospace,Menlo,monospace;color:#A39C8C;flex:none">{{ person.phone }}</div>
+                  <button onClick="{{ person.toggle }}" style="flex:none;width:104px;padding:7px 0;border-radius:999px;border:1px solid transparent;font:700 12px 'Source Sans 3',sans-serif;cursor:pointer;background:#E7F5F1;color:#0E7C66">
+                    <sc-if value="{{ person.present }}" hint-placeholder-val="{{ true }}">Présent</sc-if>
+                    <sc-if value="{{ !person.present }}" hint-placeholder-val="{{ false }}">Marquer présent</sc-if>
+                  </button>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <div class="dv-opt" id="1b">
+      <div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Table dense — onglets par catégorie, style back-office</div>
+      <div class="dv-card" style="width:1060px">
+        <div style="padding:24px 30px 0">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between">
+            <div>
+              <div style="font:800 22px/1.2 'Libre Franklin',sans-serif;color:#12213D">{{ sessionTitle }} <span style="font-weight:500;color:#8A8474;font-size:15px">— {{ sessionDate }}</span></div>
+            </div>
+            <button style="padding:9px 16px;background:#fff;color:#12213D;border:1px solid #DEDAD0;border-radius:8px;font:600 13px 'Source Sans 3',sans-serif;cursor:pointer" style-hover="border-color:#12213D">Exporter en PDF</button>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:18px;border-bottom:2px solid #EDEAE2">
+            <div style="display:flex;gap:4px">
+              <sc-for list="{{ tabsB }}" as="tab" hint-placeholder-count="5">
+                <button onClick="{{ tab.onClick }}" style="padding:10px 16px;border:none;background:none;font:700 13px 'Source Sans 3',sans-serif;color:#8A8474;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px">{{ tab.label }} <span style="opacity:.6">{{ tab.count }}</span></button>
+              </sc-for>
+            </div>
+            <input type="text" placeholder="Rechercher..." value="{{ searchB }}" onChange="{{ onSearchB }}" style="margin-bottom:10px;width:220px;padding:8px 12px;border:1px solid #DEDAD0;border-radius:7px;font-size:13px;outline:none"/>
+          </div>
+        </div>
+        <div style="max-height:480px;overflow:auto">
+          <table style="width:100%;border-collapse:collapse">
+            <thead>
+              <tr style="position:sticky;top:0;background:#FAFAF7;z-index:1">
+                <th style="text-align:left;padding:10px 30px;font:700 11px 'Source Sans 3',sans-serif;color:#8A8474;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #EDEAE2">Nom et prénoms</th>
+                <th style="text-align:left;padding:10px 16px;font:700 11px 'Source Sans 3',sans-serif;color:#8A8474;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #EDEAE2">Titre / Qualité</th>
+                <th style="text-align:left;padding:10px 16px;font:700 11px 'Source Sans 3',sans-serif;color:#8A8474;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #EDEAE2">Club</th>
+                <th style="text-align:left;padding:10px 16px;font:700 11px 'Source Sans 3',sans-serif;color:#8A8474;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #EDEAE2">Catégorie</th>
+                <th style="text-align:right;padding:10px 30px;font:700 11px 'Source Sans 3',sans-serif;color:#8A8474;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #EDEAE2">Présence</th>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{ filteredB }}" as="person" hint-placeholder-count="8">
+                <tr style="background:#fff" style-hover="background:#FAFAF7">
+                  <td style="padding:11px 30px;font:600 13.5px 'Source Sans 3',sans-serif;color:#12213D;border-bottom:1px solid #F2F0EA">{{ person.name }}</td>
+                  <td style="padding:11px 16px;font:400 13px 'Source Sans 3',sans-serif;color:#6B6558;border-bottom:1px solid #F2F0EA">{{ person.title }}</td>
+                  <td style="padding:11px 16px;font:400 13px 'Source Sans 3',sans-serif;color:#6B6558;border-bottom:1px solid #F2F0EA">{{ person.club }}</td>
+                  <td style="padding:11px 16px;border-bottom:1px solid #F2F0EA">
+                    <span style="padding:3px 10px;border-radius:999px;font:700 11px 'Source Sans 3',sans-serif;background:{{ person.catMeta.bg }};color:{{ person.catMeta.color }}">{{ person.catMeta.label }}</span>
+                  </td>
+                  <td style="padding:11px 30px;text-align:right;border-bottom:1px solid #F2F0EA">
+                    <button onClick="{{ person.toggle }}" style="width:96px;padding:6px 0;border-radius:6px;border:1px solid;font:700 11.5px 'Source Sans 3',sans-serif;cursor:pointer">
+                      <sc-if value="{{ person.present }}" hint-placeholder-val="{{ true }}"><span style="color:#0E7C66">✓ Présent</span></sc-if>
+                      <sc-if value="{{ !person.present }}" hint-placeholder-val="{{ false }}"><span style="color:#B23B3B">Absent</span></sc-if>
+                    </button>
+                  </td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="dv-opt" id="1c">
+      <div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Version mobile — carnet de check-in sur le terrain</div>
+      <div class="dv-card" style="width:400px">
+        <div style="background:#12213D;padding:24px 24px 20px;color:#fff">
+          <div style="font:700 10px/1 'Source Sans 3',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#F2B94D;margin-bottom:10px">Club de Cotonou Nexus</div>
+          <div style="font:800 21px/1.25 'Libre Franklin',sans-serif">{{ sessionTitle }}</div>
+          <div style="font:500 13px 'Source Sans 3',sans-serif;color:rgba(255,255,255,.65);margin-top:2px">{{ sessionDate }}</div>
+          <div style="display:flex;align-items:center;gap:14px;margin-top:18px">
+            <div style="position:relative;width:56px;height:56px;border-radius:50%;background:conic-gradient(#F2B94D 0% {{ pctPresent }}%, rgba(255,255,255,.18) {{ pctPresent }}% 100%);display:flex;align-items:center;justify-content:center;flex:none">
+              <div style="width:42px;height:42px;border-radius:50%;background:#12213D;display:flex;align-items:center;justify-content:center;font:700 13px 'Libre Franklin',sans-serif">{{ pctPresent }}%</div>
+            </div>
+            <div>
+              <div style="font:700 18px 'Libre Franklin',sans-serif">{{ presentCount }} / {{ total }}</div>
+              <div style="font:500 12px 'Source Sans 3',sans-serif;color:rgba(255,255,255,.65)">présents enregistrés</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding:14px 20px 0">
+          <input type="text" placeholder="Rechercher un nom..." value="{{ searchC }}" onChange="{{ onSearchC }}" style="width:100%;box-sizing:border-box;padding:10px 14px;border:1px solid #DEDAD0;border-radius:9px;font-size:14px;outline:none"/>
+          <div style="display:flex;gap:8px;overflow-x:auto;padding:12px 0 4px">
+            <sc-for list="{{ tabsC }}" as="tab" hint-placeholder-count="5">
+              <button onClick="{{ tab.onClick }}" style="flex:none;padding:7px 13px;border-radius:999px;border:1px solid #DEDAD0;background:#fff;font:600 12px 'Source Sans 3',sans-serif;color:#6B6558;cursor:pointer;white-space:nowrap">{{ tab.label }} · {{ tab.count }}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="padding:4px 20px 20px;display:flex;flex-direction:column;gap:10px;max-height:460px;overflow:auto">
+          <sc-for list="{{ filteredC }}" as="person" hint-placeholder-count="6">
+            <div style="display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #EDEAE2;border-radius:11px">
+              <span style="width:38px;height:38px;border-radius:50%;background:{{ person.catMeta.bg }};color:{{ person.catMeta.color }};display:flex;align-items:center;justify-content:center;font:700 13px 'Libre Franklin',sans-serif;flex:none">{{ person.initials }}</span>
+              <div style="flex:1;min-width:0">
+                <div style="font:600 14px 'Source Sans 3',sans-serif;color:#12213D;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ person.name }}</div>
+                <div style="font:400 11.5px 'Source Sans 3',sans-serif;color:#8A8474;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ person.title }} · {{ person.catMeta.label }}</div>
+              </div>
+              <button onClick="{{ person.toggle }}" style="flex:none;width:46px;height:26px;border-radius:999px;border:none;position:relative;cursor:pointer;background:#E7E4DA">
+                <span style="position:absolute;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25)"></span>
+              </button>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <p class="dv-next">Essayez ensuite : « garde <a class="dv-oid" href="#1b">1b</a> mais ajoute les compteurs du haut de <a class="dv-oid" href="#1a">1a</a> » · « nouvelle direction visuelle plus colorée »</p>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  categoryMeta = {
+    officiels: { label: 'Bureau / Officiels', color: '#17458F', bg: '#EAF1FB' },
+    membres: { label: 'Membres', color: '#0E7C66', bg: '#E7F5F1' },
+    rotaract: { label: 'Rotaractiens', color: '#C77700', bg: '#FDF3E2' },
+    invites: { label: 'Invités', color: '#6B6558', bg: '#F1EFEA' }
+  };
+
+  officielsTitles = ['PDG', 'DG', 'DGE', 'DGN', 'AdG', 'PAdG', 'Past Président', 'Président', 'Président Elu', 'Président Nommé', 'Secrétaire', 'Trésorier', 'Protocole', 'Président de Commission'];
+
+  categoryFromTitle(title) {
+    if (title === 'Rotarien') return 'membres';
+    if (title === 'Rotaractien') return 'rotaract';
+    if (title === 'Invité') return 'invites';
+    return 'officiels';
+  }
+
+  state = {
+    attendees: [
+      { id: 1, name: 'Charnitte Basso', title: 'Présidente', category: 'officiels', club: 'RC Cotonou Ifê', phone: '01 97 25 26 88', present: true },
+      { id: 2, name: 'Jean Ahouansou', title: 'Secrétaire', category: 'officiels', club: 'RC Cotonou Nexus', phone: '01 96 00 11 22', present: true },
+      { id: 3, name: 'Awa Dossou', title: 'Trésorière', category: 'officiels', club: 'RC Cotonou Nexus', phone: '01 97 33 44 55', present: true },
+      { id: 4, name: 'Marcel Tossou', title: 'Protocole', category: 'officiels', club: 'RC Cotonou Nexus', phone: '01 98 44 55 66', present: false },
+      { id: 5, name: 'Florence Adjovi', title: 'PAdG', category: 'officiels', club: 'RC Cotonou Nexus', phone: '01 99 55 66 77', present: true },
+      { id: 6, name: 'Bertin Hounkpatin', title: 'Président de Commission', category: 'officiels', club: 'RC Cotonou Nexus', phone: '01 91 66 77 88', present: true },
+      { id: 7, name: 'Rodrigue Agbodjan', title: 'Rotarien', category: 'membres', club: 'RC Cotonou Nexus', phone: '01 92 77 88 99', present: true },
+      { id: 8, name: 'Nadège Zinsou', title: 'Rotarien', category: 'membres', club: 'RC Cotonou Nexus', phone: '01 93 88 99 00', present: false },
+      { id: 9, name: 'Cyrille Hounsa', title: 'Rotarien', category: 'membres', club: 'RC Cotonou Nexus', phone: '01 94 99 00 11', present: true },
+      { id: 10, name: 'Aïcha Mama', title: 'Rotarien', category: 'membres', club: 'RC Cotonou Nexus', phone: '01 95 00 11 22', present: true },
+      { id: 11, name: 'Prisca Degbey', title: 'Rotaractien', category: 'rotaract', club: 'Rotaract Club Cotonou', phone: '01 61 22 33 44', present: true },
+      { id: 12, name: 'Steeve Akpovi', title: 'Rotaractien', category: 'rotaract', club: 'Rotaract Club Cotonou', phone: '01 62 33 44 55', present: false },
+      { id: 13, name: 'Larissa Gnansounou', title: 'Rotaractien', category: 'rotaract', club: 'Rotaract Club Cotonou', phone: '01 63 44 55 66', present: true },
+      { id: 14, name: 'Dr Paul Koudogbo', title: 'Invité', category: 'invites', club: 'RC Porto-Novo', phone: '01 70 11 22 33', present: true },
+      { id: 15, name: 'Sandrine Allada', title: 'Invité', category: 'invites', club: 'Entreprise partenaire', phone: '01 71 22 33 44', present: false },
+      { id: 16, name: 'Yves Sossou', title: 'Invité', category: 'invites', club: 'RC Cotonou Golfe', phone: '01 72 33 44 55', present: true }
+    ],
+    nextId: 17,
+    searchA: '', filterA: 'all',
+    searchB: '', filterB: 'all',
+    searchC: '', filterC: 'all',
+    formTitle: '', formName: '', formClub: '', formPhone: '', formClassification: '', formEmail: '',
+    formDate: '14/01/2026', formTime: '18:30',
+    submitted: false, formError: false,
+    sessionOpen: true, formLateMode: false, lastLate: false
+  };
+
+  togglePresence = (id) => this.setState(s => ({
+    attendees: s.attendees.map(a => a.id === id ? { ...a, present: !a.present } : a)
+  }));
+
+  toggleSession = () => this.setState(s => ({ sessionOpen: !s.sessionOpen, formLateMode: false }));
+  startLateForm = () => this.setState({ formLateMode: true });
+
+  renderVals() {
+    const { attendees, searchA, filterA, searchB, filterB, searchC, filterC,
+      formTitle, formName, formClub, formPhone, formClassification, formEmail,
+      formDate, formTime, submitted, formError, sessionOpen, formLateMode, lastLate } = this.state;
+    const meta = this.categoryMeta;
+    const categories = ['officiels', 'membres', 'rotaract', 'invites'];
+
+    const withPresence = attendees.map(a => ({
+      ...a,
+      initials: a.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase(),
+      catMeta: meta[a.category],
+      toggle: () => this.togglePresence(a.id)
+    }));
+
+    const total = withPresence.length;
+    const presentCount = withPresence.filter(a => a.present).length;
+    const countByCat = (cat) => withPresence.filter(a => a.category === cat).length;
+    const presentByCat = (cat) => withPresence.filter(a => a.category === cat && a.present).length;
+
+    const matches = (a, search, filter) =>
+      (filter === 'all' || a.category === filter) &&
+      a.name.toLowerCase().includes(search.toLowerCase());
+
+    const filteredA = withPresence.filter(a => matches(a, searchA, filterA));
+    const groupsA = categories
+      .map(cat => ({ key: cat, ...meta[cat], items: filteredA.filter(a => a.category === cat) }))
+      .filter(g => g.items.length > 0);
+
+    const makeChips = (filterKey) => [
+      { key: 'all', label: 'Tous', onClick: () => this.setState({ [filterKey]: 'all' }) },
+      ...categories.map(c => ({ key: c, label: meta[c].label, onClick: () => this.setState({ [filterKey]: c }) }))
+    ];
+
+    const makeTabs = (filterKey) => [
+      { key: 'all', label: 'Tous', count: total, onClick: () => this.setState({ [filterKey]: 'all' }) },
+      ...categories.map(c => ({ key: c, label: meta[c].label, count: countByCat(c), onClick: () => this.setState({ [filterKey]: c }) }))
+    ];
+
+    const filteredB = withPresence.filter(a => matches(a, searchB, filterB));
+    const filteredC = withPresence.filter(a => matches(a, searchC, filterC));
+
+    return {
+      sessionTitle: 'Réunion hebdomadaire',
+      sessionDate: 'Mardi 14 janvier 2026',
+      total,
+      presentCount,
+      pctPresent: total ? Math.round((presentCount / total) * 100) : 0,
+      officielsCount: countByCat('officiels'), officielsPresent: presentByCat('officiels'),
+      membresCount: countByCat('membres'), membresPresent: presentByCat('membres'),
+      rotaractCount: countByCat('rotaract'), rotaractPresent: presentByCat('rotaract'),
+      invitesCount: countByCat('invites'), invitesPresent: presentByCat('invites'),
+
+      searchA, groupsA,
+      chipsA: makeChips('filterA'),
+      onSearchA: (e) => this.setState({ searchA: e.target.value }),
+
+      searchB, filteredB,
+      tabsB: makeTabs('filterB'),
+      onSearchB: (e) => this.setState({ searchB: e.target.value }),
+
+      searchC, filteredC,
+      tabsC: makeTabs('filterC'),
+      onSearchC: (e) => this.setState({ searchC: e.target.value }),
+
+      formTitle, formName, formClub, formPhone, formClassification, formEmail, formDate, formTime, submitted, formError,
+      sessionOpen, formLateMode, lastLate,
+      showForm: sessionOpen || formLateMode,
+      showClosedGate: !sessionOpen && !formLateMode,
+      sessionStatusLabel: sessionOpen ? 'Séance ouverte' : 'Séance clôturée',
+      sessionToggleLabel: sessionOpen ? 'Clôturer la séance' : 'Rouvrir la séance',
+      toggleSession: this.toggleSession,
+      onStartLateForm: this.startLateForm,
+      onFormTitleChange: (e) => this.setState({ formTitle: e.target.value }),
+      onFormNameChange: (e) => this.setState({ formName: e.target.value }),
+      onFormClubChange: (e) => this.setState({ formClub: e.target.value }),
+      onFormPhoneChange: (e) => this.setState({ formPhone: e.target.value }),
+      onFormClassificationChange: (e) => this.setState({ formClassification: e.target.value }),
+      onFormEmailChange: (e) => this.setState({ formEmail: e.target.value }),
+      onSubmitForm: () => {
+        const { formTitle, formName, formClub, formPhone } = this.state;
+        if (!formTitle || !formName.trim() || !formClub.trim() || !formPhone.trim()) {
+          this.setState({ formError: true });
+          return;
+        }
+        const id = this.state.nextId;
+        const isLate = !this.state.sessionOpen;
+        this.setState(s => ({
+          attendees: [...s.attendees, {
+            id, name: formName.trim(), title: formTitle, category: this.categoryFromTitle(formTitle),
+            club: formClub.trim(), phone: formPhone.trim(), present: true, late: isLate
+          }],
+          nextId: id + 1,
+          submitted: true,
+          formError: false,
+          lastLate: isLate
+        }));
+      },
+      onResetForm: () => this.setState({
+        formTitle: '', formName: '', formClub: '', formPhone: '', formClassification: '', formEmail: '',
+        submitted: false, formError: false, formLateMode: false
+      })
+    };
+  }
+}
+
+</script>
+</body>
+</html>
