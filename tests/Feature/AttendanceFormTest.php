@@ -15,7 +15,9 @@ it('shows the form when the active session is open', function () {
 
     $this->get(route('attendance.show'))
         ->assertOk()
-        ->assertSee('Liste de présence')
+        ->assertSee('Numéro de téléphone')
+        ->assertSee('Envoyer')
+        ->assertDontSee('Aucune séance en cours')
         ->assertDontSee('La séance est clôturée');
 });
 
