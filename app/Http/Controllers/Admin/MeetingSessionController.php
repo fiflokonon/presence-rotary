@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreMeetingSessionRequest;
 use App\Models\MeetingSession;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Route;
 use Illuminate\View\View;
 
@@ -43,6 +45,16 @@ class MeetingSessionController extends Controller
             'meetingSession' => $meetingSession,
             'attendances' => $meetingSession->attendances,
         ]);
+    }
+
+    public function exportPdf(MeetingSession $meetingSession): Response
+    {
+        $pdf = Pdf::loadView('admin.sessions.pdf', [
+            'meetingSession' => $meetingSession,
+            'attendances' => $meetingSession->attendances,
+        ]);
+
+        return $pdf->download("liste-presence-{$meetingSession->id}.pdf");
     }
 
     /**
