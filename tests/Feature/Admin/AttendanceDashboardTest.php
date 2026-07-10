@@ -54,3 +54,17 @@ it('exposes a QR code panel for sharing the public form link', function () {
         ->assertSee('QR code')
         ->assertSee('qrCodePanel(', false);
 });
+
+it('exposes a title/qualité filter listing the titles present in the roster', function () {
+    $meetingSession = MeetingSession::factory()->create();
+    Attendance::factory()->for($meetingSession)->create(['title' => AttendanceTitle::Rotarien, 'name' => 'Jean Dupont']);
+    Attendance::factory()->for($meetingSession)->create(['title' => AttendanceTitle::Invite, 'name' => 'Awa Bello']);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.sessions.show', $meetingSession))
+        ->assertOk()
+        ->assertSee('x-model="activeTitle"', false)
+        ->assertSee('Tous les titres')
+        ->assertSee('Rotarien')
+        ->assertSee('Invité');
+});
