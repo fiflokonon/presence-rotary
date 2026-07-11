@@ -7,14 +7,19 @@ Alpine.data('attendanceDashboard', (records) => ({
     records,
     search: '',
     activeCategory: 'all',
+    activeTitle: 'all',
+    get titleOptions() {
+        return [...new Set(this.records.map((record) => record.title))].sort();
+    },
     get filtered() {
         const search = this.search.toLowerCase();
 
         return this.records.filter((record) => {
             const matchesCategory = this.activeCategory === 'all' || record.category === this.activeCategory;
+            const matchesTitle = this.activeTitle === 'all' || record.title === this.activeTitle;
             const matchesSearch = record.name.toLowerCase().includes(search);
 
-            return matchesCategory && matchesSearch;
+            return matchesCategory && matchesTitle && matchesSearch;
         });
     },
     get groups() {
@@ -35,6 +40,16 @@ Alpine.data('attendanceDashboard', (records) => ({
             .map((part) => part[0])
             .join('')
             .toUpperCase();
+    },
+}));
+
+Alpine.data('sessionsList', (sessions) => ({
+    sessions,
+    search: '',
+    get filtered() {
+        const search = this.search.toLowerCase();
+
+        return this.sessions.filter((session) => session.title.toLowerCase().includes(search));
     },
 }));
 

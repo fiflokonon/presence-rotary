@@ -57,3 +57,16 @@ it('shows a details affordance for each session row', function () {
         ->assertOk()
         ->assertSee('Voir les détails');
 });
+
+it('exposes a title filter with every session in the client-side payload', function () {
+    MeetingSession::factory()->create(['title' => 'Réunion hebdomadaire']);
+    MeetingSession::factory()->create(['title' => 'Assemblée annuelle']);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.sessions.index'))
+        ->assertOk()
+        ->assertSee('sessionsList(', false)
+        ->assertSee('Rechercher un titre…')
+        ->assertSee('Réunion hebdomadaire')
+        ->assertSee('Assemblée annuelle');
+});
