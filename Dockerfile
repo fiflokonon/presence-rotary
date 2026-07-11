@@ -17,7 +17,7 @@ FROM php:8.4-fpm-alpine AS runtime
 RUN apk add --no-cache \
         nginx \
         supervisor \
-        sqlite \
+        sqlite-dev \
         icu-dev \
         libzip-dev \
         libpng-dev \
