@@ -23,7 +23,7 @@
         </div>
 
         <div x-show="sidebarOpen" x-cloak @click="close()" x-transition.opacity
-            class="fixed inset-0 z-30 bg-black/40 md:hidden"></div>
+            class="fixed inset-0 z-30 cursor-pointer bg-black/40 md:hidden"></div>
 
         <aside
             :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
