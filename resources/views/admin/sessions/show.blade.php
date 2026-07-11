@@ -57,12 +57,57 @@
                     <span class="w-full rounded-full {{ $meetingSession->is_open ? 'bg-success-bg text-success' : 'bg-divider text-muted' }} px-3 py-1 text-center text-xs font-semibold md:w-auto">
                         ● {{ $meetingSession->is_open ? 'Séance ouverte' : 'Séance clôturée' }}
                     </span>
-                    <form method="POST" action="{{ route('admin.sessions.toggle-open', $meetingSession) }}" class="w-full md:w-auto">
-                        @csrf
-                        <button type="submit" class="cursor-pointer w-full text-sm font-semibold text-navy underline md:w-auto">
-                            {{ $meetingSession->is_open ? 'Clôturer la séance' : 'Rouvrir la séance' }}
-                        </button>
-                    </form>
+                    @if ($meetingSession->is_open)
+                        <div
+                            x-data="closeSessionPanel(@js($upcomingSessions->isNotEmpty() ? 'session:'.$upcomingSessions->first()->id : 'manual'))"
+                            class="relative w-full md:w-auto"
+                        >
+                            <button type="button" @click="toggle()"
+                                class="cursor-pointer w-full text-sm font-semibold text-navy underline md:w-auto">
+                                Clôturer la séance
+                            </button>
+                            <div x-show="open" x-cloak @click.outside="open = false"
+                                class="absolute right-0 top-full z-10 mt-2 w-80 rounded-xl border border-divider bg-white p-4 text-left shadow-[0_2px_10px_rgba(20,30,50,.06)]">
+                                <form method="POST" action="{{ route('admin.sessions.toggle-open', $meetingSession) }}" class="flex flex-col gap-3">
+                                    @csrf
+                                    <label class="flex items-start gap-2 text-sm text-navy">
+                                        <input type="checkbox" name="send_thank_you_email" value="1" x-model="sendThankYouEmail" class="mt-0.5">
+                                        Envoyer un mail de remerciement aux présents
+                                    </label>
+                                    <label x-show="sendThankYouEmail" x-cloak class="flex items-start gap-2 text-sm text-navy">
+                                        <input type="checkbox" name="mention_next_session" value="1" x-model="mentionNextSession" class="mt-0.5">
+                                        Mentionner la prochaine séance
+                                    </label>
+                                    <div x-show="sendThankYouEmail && mentionNextSession" x-cloak class="flex flex-col gap-2">
+                                        @if ($upcomingSessions->isNotEmpty())
+                                            <select name="next_session_option" x-model="nextSessionOption"
+                                                class="rounded-lg border border-border px-3 py-2 text-sm">
+                                                @foreach ($upcomingSessions as $upcomingSession)
+                                                    <option value="session:{{ $upcomingSession->id }}">
+                                                        {{ $upcomingSession->title }} — {{ $upcomingSession->date->translatedFormat('d F Y') }}
+                                                    </option>
+                                                @endforeach
+                                                <option value="manual">Autre date…</option>
+                                            </select>
+                                        @endif
+                                        <input type="date" name="next_session_date" x-show="nextSessionOption === 'manual'" x-cloak
+                                            class="rounded-lg border border-border px-3 py-2 text-sm">
+                                    </div>
+                                    <button type="submit"
+                                        class="cursor-pointer rounded-lg bg-navy px-4 py-2 text-sm font-bold text-white hover:bg-navy-hover">
+                                        Confirmer la clôture
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    @else
+                        <form method="POST" action="{{ route('admin.sessions.toggle-open', $meetingSession) }}" class="w-full md:w-auto">
+                            @csrf
+                            <button type="submit" class="cursor-pointer w-full text-sm font-semibold text-navy underline md:w-auto">
+                                Rouvrir la séance
+                            </button>
+                        </form>
+                    @endif
                 </div>
             </div>
         </div>

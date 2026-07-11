@@ -106,3 +106,28 @@ it('passes a manually typed next session date without a title', function () {
             && $mail->nextSessionDate->toDateString() === '2026-08-15'
     );
 });
+
+it('shows the close-session panel with the thank-you email options when the session is open', function () {
+    $meetingSession = MeetingSession::factory()->create(['is_open' => true]);
+    MeetingSession::factory()->create([
+        'title' => 'Assemblée annuelle',
+        'date' => now()->addWeek()->toDateString(),
+    ]);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.sessions.show', $meetingSession))
+        ->assertOk()
+        ->assertSee('closeSessionPanel(', false)
+        ->assertSee('Envoyer un mail de remerciement aux présents')
+        ->assertSee('Mentionner la prochaine séance')
+        ->assertSee('Assemblée annuelle');
+});
+
+it('does not show the close-session panel checkboxes when the session is already closed', function () {
+    $meetingSession = MeetingSession::factory()->create(['is_open' => false]);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.sessions.show', $meetingSession))
+        ->assertOk()
+        ->assertDontSee('Envoyer un mail de remerciement aux présents');
+});

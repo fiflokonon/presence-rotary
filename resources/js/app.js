@@ -101,6 +101,16 @@ Alpine.data('adminShell', () => ({
     },
 }));
 
+Alpine.data('closeSessionPanel', (initialNextSessionOption) => ({
+    open: false,
+    sendThankYouEmail: false,
+    mentionNextSession: false,
+    nextSessionOption: initialNextSessionOption,
+    toggle() {
+        this.open = !this.open;
+    },
+}));
+
 Alpine.store('pageLoading', {
     active: false,
 });
