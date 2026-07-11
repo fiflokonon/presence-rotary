@@ -102,9 +102,9 @@ Catégorie peut être un accessor Eloquent dérivé du `title` plutôt qu'une co
 - Avatars : cercle (radius 50%)
 
 ## Assets
-- Logo du club : `assets/rotary-nexus-logo.png` (affiché en blanc sur fond bleu marine via `filter: brightness(0) invert(1)` dans le prototype — utilisez plutôt une version blanche du logo si disponible pour la production).
+- Logo du club : `assets/ife-logo.png` (affiché en blanc sur fond bleu marine via `filter: brightness(0) invert(1)` dans le prototype — utilisez plutôt une version blanche du logo si disponible pour la production).
 - Polices Google Fonts : Libre Franklin (600/700/800), Source Sans 3 (400/500/600/700).
 
 ## Fichiers
 - `Liste de présence Admin.html` — prototype complet (formulaire + tableau de bord + variantes de design explorées 1a/1b/1c, la 1a est la version retenue). Le HTML utilise un moteur de template propriétaire (attributs `{{ }}`, balises `sc-if`/`sc-for`) propre à l'outil de design — ne pas le copier tel quel, il sert de référence visuelle et fonctionnelle.
-- `assets/rotary-nexus-logo.png` — logo du club.
+- `assets/ife-logo.png` — logo du club.

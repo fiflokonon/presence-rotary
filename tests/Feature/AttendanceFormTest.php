@@ -72,5 +72,5 @@ it('rejects a submission missing required fields', function () {
 it('shows the club logo on the attendance form page', function () {
     $this->get(route('attendance.show'))
         ->assertOk()
-        ->assertSee('rotary-nexus-logo.png', false);
+        ->assertSee('ife-logo.png', false);
 });

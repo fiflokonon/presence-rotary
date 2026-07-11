@@ -2,8 +2,8 @@
     <div class="mx-auto flex min-h-screen max-w-[420px] flex-col items-center justify-center px-4 py-10">
         <div class="w-full overflow-hidden rounded-xl bg-white shadow-[0_2px_10px_rgba(20,30,50,.06)]">
             <div class="flex flex-col items-center bg-[#12213D] px-6 pb-[18px] pt-[22px] text-center">
-                <div class="inline-flex items-center justify-center rounded-xl bg-white px-4 py-2">
-                    <img src="{{ asset('assets/rotary-nexus-logo.png') }}" alt="RC Cotonou Nexus" class="h-12 w-auto object-contain">
+                <div class="inline-flex items-center justify-center rounded-xl bg-[linear-gradient(135deg,#17A8E5_0%,#0B73C5_55%,#0A5CA6_100%)] px-4 py-2 shadow-[0_8px_20px_rgba(10,92,166,.35)]">
+                    <img src="{{ asset('assets/ife-logo.png') }}" alt="RC Cotonou Nexus" class="h-12 w-auto object-contain">
                 </div>
                 <p class="mt-3 font-display text-lg font-extrabold text-white">RC Cotonou Nexus</p>
                 <p class="mt-2 text-[10px] font-semibold uppercase tracking-wide text-[#F2B94D]">District 9103</p>

@@ -4,7 +4,7 @@ it('renders the spinning logo with default sizing', function () {
     $html = (string) $this->blade('<x-loader />');
 
     expect($html)
-        ->toContain('rotary-nexus-logo.png')
+        ->toContain('ife-logo.png')
         ->toContain('animate-spin')
         ->toContain('h-8 w-8');
 });

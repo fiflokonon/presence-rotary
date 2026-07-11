@@ -18,7 +18,7 @@ it('renders the attendee name and session details in the email body', function (
     $mailable->assertSeeInHtml('Jean Dupont');
     $mailable->assertSeeInHtml('Réunion hebdomadaire');
     $mailable->assertSeeInHtml('11 juillet 2026');
-    $mailable->assertSeeInHtml('rotary-nexus-logo.png');
+    $mailable->assertSeeInHtml('ife-logo.png');
 });
 
 it('mentions the next session with its title when one is provided', function () {
