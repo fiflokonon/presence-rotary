@@ -48,3 +48,12 @@ it('toggles a session open state', function () {
 
     expect($meetingSession->fresh()->is_open)->toBeFalse();
 });
+
+it('shows a details affordance for each session row', function () {
+    MeetingSession::factory()->create(['title' => 'Réunion hebdomadaire']);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.sessions.index'))
+        ->assertOk()
+        ->assertSee('Voir les détails');
+});
