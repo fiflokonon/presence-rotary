@@ -49,6 +49,15 @@ it('toggles a session open state', function () {
     expect($meetingSession->fresh()->is_open)->toBeFalse();
 });
 
+it('shows a details affordance for each session row', function () {
+    MeetingSession::factory()->create(['title' => 'Réunion hebdomadaire']);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.sessions.index'))
+        ->assertOk()
+        ->assertSee('Voir les détails');
+});
+
 it('exposes a title filter with every session in the client-side payload', function () {
     MeetingSession::factory()->create(['title' => 'Réunion hebdomadaire']);
     MeetingSession::factory()->create(['title' => 'Assemblée annuelle']);

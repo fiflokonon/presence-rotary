@@ -7,6 +7,19 @@
     --font-sans: 'Source Sans 3', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
     --font-display: 'Libre Franklin', ui-sans-serif, system-ui, sans-serif;
+
+    --color-navy: #12213D;
+    --color-navy-hover: #1c3559;
+    --color-gold: #C77700;
+    --color-cream: #F5F3EE;
+    --color-success: #0E7C66;
+    --color-success-bg: #E7F5F1;
+    --color-muted: #6B6558;
+    --color-muted-strong: #8A8474;
+    --color-border: #DEDAD0;
+    --color-divider: #EDEAE2;
+    --color-error: #B23B3B;
+    --color-error-bg: #FBEAEA;
 }
 
 [x-cloak] {

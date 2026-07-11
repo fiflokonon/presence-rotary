@@ -11,48 +11,55 @@
             'present' => $attendance->present,
             'isLate' => $attendance->is_late,
         ])))"
-        class="rounded-xl bg-white shadow-[0_2px_10px_rgba(20,30,50,.06)]"
+        class="rounded-2xl bg-white shadow-[0_2px_10px_rgba(20,30,50,.06)]"
     >
-        <div class="border-b border-[#EDEAE2] px-8 pb-5 pt-7">
-            <p class="text-[11px] font-semibold uppercase text-[#C77700]">RC Cotonou Nexus · District 9103</p>
-            <div class="mt-1 flex flex-wrap items-start justify-between gap-4">
+        <div class="border-b border-divider px-4 pb-5 pt-6 md:px-8 md:pt-7">
+            <a href="{{ route('admin.sessions.index') }}"
+                class="inline-flex cursor-pointer items-center gap-1 text-sm font-semibold text-muted hover:text-navy">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                </svg>
+                Retour aux séances
+            </a>
+            <p class="mt-3 text-[11px] font-semibold uppercase text-gold">RC Cotonou Nexus · District 9103</p>
+            <div class="mt-1 flex flex-col gap-4 md:flex-row md:flex-wrap md:items-start md:justify-between">
                 <div>
-                    <h1 class="font-display text-2xl font-extrabold text-[#12213D]">{{ $meetingSession->title }}</h1>
-                    <p class="text-[15px] text-[#6B6558]">{{ $meetingSession->date->translatedFormat('d F Y') }}</p>
+                    <h1 class="font-display text-2xl font-extrabold text-navy">{{ $meetingSession->title }}</h1>
+                    <p class="text-[15px] text-muted">{{ $meetingSession->date->translatedFormat('d F Y') }}</p>
                 </div>
-                <div class="flex items-center gap-3">
+                <div class="flex flex-col gap-3 md:flex-row md:items-center">
                     <div x-data="qrCodePanel(@js(route('attendance.show')))" class="relative">
                         <button type="button" @click="toggle()"
-                            class="rounded-lg border border-[#DEDAD0] px-4 py-2 text-sm font-bold text-[#12213D] hover:bg-[#F5F3EE]">
+                            class="cursor-pointer w-full rounded-lg border border-border px-4 py-2 text-sm font-bold text-navy hover:bg-cream md:w-auto">
                             QR code
                         </button>
                         <div x-show="open" x-cloak @click.outside="open = false"
-                            class="absolute right-0 top-full z-10 mt-2 w-72 rounded-xl border border-[#EDEAE2] bg-white p-4 shadow-[0_2px_10px_rgba(20,30,50,.06)]">
+                            class="absolute right-0 top-full z-10 mt-2 w-72 rounded-xl border border-divider bg-white p-4 shadow-[0_2px_10px_rgba(20,30,50,.06)]">
                             <canvas x-ref="canvas" class="mx-auto"></canvas>
-                            <p class="mt-3 break-all text-center text-xs text-[#8A8474]" x-text="url"></p>
+                            <p class="mt-3 break-all text-center text-xs text-muted-strong" x-text="url"></p>
                             <div class="mt-3 flex gap-2">
                                 <button type="button" @click="share()"
-                                    class="flex-1 rounded-lg bg-[#12213D] px-3 py-2 text-xs font-bold text-white">
+                                    class="cursor-pointer flex-1 rounded-lg bg-navy px-3 py-2 text-xs font-bold text-white">
                                     <span x-show="!copied">Partager le lien</span>
                                     <span x-show="copied" x-cloak>Lien copié ✓</span>
                                 </button>
                                 <button type="button" @click="download()"
-                                    class="flex-1 rounded-lg border border-[#DEDAD0] px-3 py-2 text-xs font-bold text-[#12213D]">
+                                    class="cursor-pointer flex-1 rounded-lg border border-border px-3 py-2 text-xs font-bold text-navy">
                                     Télécharger
                                 </button>
                             </div>
                         </div>
                     </div>
                     <a href="{{ route('admin.sessions.export-pdf', $meetingSession) }}"
-                        class="rounded-lg bg-[#12213D] px-4 py-2 text-sm font-bold text-white hover:bg-[#1c3559]">
+                        class="cursor-pointer w-full rounded-lg bg-navy px-4 py-2 text-center text-sm font-bold text-white hover:bg-navy-hover md:w-auto">
                         Exporter en PDF
                     </a>
-                    <span class="rounded-full {{ $meetingSession->is_open ? 'bg-[#E7F5F1] text-[#0E7C66]' : 'bg-[#F1EFEA] text-[#6B6558]' }} px-3 py-1 text-xs font-semibold">
+                    <span class="w-full rounded-full {{ $meetingSession->is_open ? 'bg-success-bg text-success' : 'bg-divider text-muted' }} px-3 py-1 text-center text-xs font-semibold md:w-auto">
                         ● {{ $meetingSession->is_open ? 'Séance ouverte' : 'Séance clôturée' }}
                     </span>
-                    <form method="POST" action="{{ route('admin.sessions.toggle-open', $meetingSession) }}">
+                    <form method="POST" action="{{ route('admin.sessions.toggle-open', $meetingSession) }}" class="w-full md:w-auto">
                         @csrf
-                        <button type="submit" class="text-sm font-semibold text-[#12213D] underline">
+                        <button type="submit" class="cursor-pointer w-full text-sm font-semibold text-navy underline md:w-auto">
                             {{ $meetingSession->is_open ? 'Clôturer la séance' : 'Rouvrir la séance' }}
                         </button>
                     </form>
@@ -60,8 +67,8 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 px-8 py-5 md:grid-cols-5">
-            <div class="rounded-lg bg-[#12213D] p-3 text-white">
+        <div class="grid grid-cols-2 gap-3 px-4 py-5 md:grid-cols-5 md:px-8">
+            <div class="rounded-lg bg-navy p-3 text-white">
                 <p class="text-lg font-extrabold">{{ $attendances->where('present', true)->count() }}/{{ $attendances->count() }}</p>
                 <p class="text-xs">Présents ({{ $attendances->count() > 0 ? round($attendances->where('present', true)->count() / $attendances->count() * 100) : 0 }}%)</p>
             </div>
@@ -74,52 +81,55 @@
             @endforeach
         </div>
 
-        <div class="flex flex-wrap items-center gap-3 px-8 py-4">
+        <div class="flex flex-wrap items-center gap-3 px-4 py-4 md:px-8">
             <input type="text" x-model="search" placeholder="Rechercher un nom…"
-                class="max-w-[280px] rounded-full border border-[#DEDAD0] px-4 py-2 text-sm">
+                class="w-full max-w-[280px] rounded-full border border-border px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy">
             <select x-model="activeTitle"
-                class="rounded-lg border border-[#DEDAD0] px-3 py-2 text-sm">
+                class="cursor-pointer rounded-lg border border-border px-3 py-2 text-sm">
                 <option value="all">Tous les titres</option>
                 <template x-for="option in titleOptions" :key="option">
                     <option :value="option" x-text="option"></option>
                 </template>
             </select>
             <button type="button" @click="activeCategory = 'all'"
-                :class="activeCategory === 'all' ? 'bg-[#12213D] text-white' : 'border border-[#DEDAD0]'"
-                class="rounded-full px-3 py-1.5 text-xs font-semibold">Tous</button>
+                :class="activeCategory === 'all' ? 'bg-navy text-white' : 'border border-border text-navy'"
+                class="cursor-pointer rounded-full px-3 py-2 text-xs font-semibold md:py-1.5">Tous</button>
             @foreach (\App\Enums\AttendanceCategory::cases() as $category)
                 <button type="button" @click="activeCategory = '{{ $category->value }}'"
-                    :class="activeCategory === '{{ $category->value }}' ? 'bg-[#12213D] text-white' : 'border border-[#DEDAD0]'"
-                    class="rounded-full px-3 py-1.5 text-xs font-semibold">{{ $category->label() }}</button>
+                    :class="activeCategory === '{{ $category->value }}' ? 'bg-navy text-white' : 'border border-border text-navy'"
+                    class="cursor-pointer rounded-full px-3 py-2 text-xs font-semibold md:py-1.5">{{ $category->label() }}</button>
             @endforeach
         </div>
 
-        <div class="max-h-[520px] overflow-y-auto px-8 pb-8">
+        <div class="max-h-[520px] overflow-y-auto px-4 pb-8 md:px-8">
             <template x-for="group in groups" :key="group.category">
                 <div class="mb-5">
-                    <p class="mb-2 text-xs font-semibold uppercase text-[#8A8474]" x-text="group.records[0].categoryLabel + ' (' + group.records.length + ')'"></p>
+                    <p class="mb-2 text-xs font-semibold uppercase text-muted-strong" x-text="group.records[0].categoryLabel + ' (' + group.records.length + ')'"></p>
                     <template x-for="record in group.records" :key="record.id">
-                        <div class="flex items-center justify-between border-b border-[#F2F0EA] py-2.5">
+                        <div class="flex flex-col gap-2 border-b border-divider py-2.5 sm:flex-row sm:items-center sm:justify-between">
                             <div class="flex items-center gap-3">
-                                <div class="flex h-[34px] w-[34px] items-center justify-center rounded-full bg-[#F1EFEA] text-xs font-bold" x-text="initials(record.name)"></div>
+                                <div class="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full bg-divider text-xs font-bold" x-text="initials(record.name)"></div>
                                 <div>
-                                    <p class="text-[14.5px] font-semibold text-[#12213D]" x-text="record.name"></p>
-                                    <p class="text-[12.5px] text-[#8A8474]">
+                                    <p class="text-[14.5px] font-semibold text-navy" x-text="record.name"></p>
+                                    <p class="text-[12.5px] text-muted-strong">
                                         <span x-text="record.title + ' · ' + record.club"></span>
-                                        <span x-show="record.isLate" class="font-bold text-[#C77700]"> · marqué en retard</span>
+                                        <span x-show="record.isLate" class="font-bold text-gold"> · marqué en retard</span>
                                     </p>
+                                    <p class="mt-0.5 font-mono text-xs text-muted-strong sm:hidden" x-text="record.phone"></p>
                                 </div>
                             </div>
-                            <span class="font-mono text-sm text-[#A39C8C]" x-text="record.phone"></span>
-                            <form method="POST" :action="'/admin/attendances/' + record.id + '/toggle-present'">
-                                @csrf
-                                @method('PATCH')
-                                <button type="submit"
-                                    :class="record.present ? 'bg-[#E7F5F1] text-[#0E7C66]' : 'border border-[#DEDAD0] text-[#6B6558]'"
-                                    class="rounded-lg px-3 py-1.5 text-xs font-semibold">
-                                    <span x-text="record.present ? 'Présent' : 'Marquer présent'"></span>
-                                </button>
-                            </form>
+                            <div class="flex items-center justify-between gap-3 sm:justify-end">
+                                <span class="hidden font-mono text-sm text-muted-strong sm:inline" x-text="record.phone"></span>
+                                <form method="POST" :action="'/admin/attendances/' + record.id + '/toggle-present'">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit"
+                                        :class="record.present ? 'bg-success-bg text-success' : 'border border-border text-muted'"
+                                        class="cursor-pointer rounded-lg px-3 py-1.5 text-xs font-semibold">
+                                        <span x-text="record.present ? 'Présent' : 'Marquer présent'"></span>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </template>
                 </div>

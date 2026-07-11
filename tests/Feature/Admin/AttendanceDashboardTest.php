@@ -68,3 +68,13 @@ it('exposes a title/qualité filter listing the titles present in the roster', f
         ->assertSee('Rotarien')
         ->assertSee('Invité');
 });
+
+it('shows a link back to the sessions list', function () {
+    $meetingSession = MeetingSession::factory()->create();
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.sessions.show', $meetingSession))
+        ->assertOk()
+        ->assertSee('Retour aux séances')
+        ->assertSee('href="'.route('admin.sessions.index').'"', false);
+});

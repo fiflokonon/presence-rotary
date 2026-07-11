@@ -41,3 +41,9 @@ it('logs an admin out', function () {
 
     $this->assertGuest();
 });
+
+it('shows the club logo on the login page', function () {
+    $this->get(route('admin.login'))
+        ->assertOk()
+        ->assertSee('rotary-nexus-logo.png', false);
+});
