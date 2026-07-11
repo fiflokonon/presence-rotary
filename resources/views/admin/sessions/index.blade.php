@@ -49,10 +49,10 @@
                     <li>
                         <a :href="session.url"
                             class="flex cursor-pointer items-center justify-between gap-3 rounded-lg py-3 pl-2 pr-2 hover:bg-cream">
-                            <span class="text-sm font-semibold text-navy">
+                            <span class="min-w-0 truncate text-sm font-semibold text-navy">
                                 <span x-text="session.title"></span> — <span x-text="session.date"></span>
                             </span>
-                            <span class="flex items-center gap-2">
+                            <span class="flex shrink-0 items-center gap-2">
                                 <span x-show="session.isActive" class="rounded-full bg-success-bg px-2 py-0.5 text-[11px] font-semibold uppercase text-success">Active</span>
                                 <span :class="session.isOpen ? 'bg-success-bg text-success' : 'bg-divider text-muted'" class="rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase" x-text="session.isOpen ? 'Ouverte' : 'Clôturée'"></span>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-muted-strong" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
