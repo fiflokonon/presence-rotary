@@ -2,8 +2,10 @@
     <div class="mx-auto flex min-h-screen max-w-[420px] flex-col items-center justify-center px-4 py-10">
         <div class="w-full overflow-hidden rounded-xl bg-white shadow-[0_2px_10px_rgba(20,30,50,.06)]">
             <div class="flex flex-col items-center bg-[#12213D] px-6 pb-[18px] pt-[22px] text-center">
-                <img src="{{ asset('assets/rotary-nexus-logo.png') }}" alt="RC Cotonou Nexus" class="h-12 w-12 object-contain">
-                <p class="mt-2 font-display text-lg font-extrabold text-white">RC Cotonou Nexus</p>
+                <div class="inline-flex items-center justify-center rounded-xl bg-white px-4 py-2">
+                    <img src="{{ asset('assets/rotary-nexus-logo.png') }}" alt="RC Cotonou Nexus" class="h-12 w-auto object-contain">
+                </div>
+                <p class="mt-3 font-display text-lg font-extrabold text-white">RC Cotonou Nexus</p>
                 <p class="mt-2 text-[10px] font-semibold uppercase tracking-wide text-[#F2B94D]">District 9103</p>
                 <p class="font-display text-[15px] font-bold text-white">RC Cotonou Nexus</p>
             </div>

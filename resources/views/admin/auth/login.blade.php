@@ -1,6 +1,6 @@
 <x-layouts.app title="Connexion administrateur">
     <div class="mx-auto flex min-h-screen max-w-[380px] flex-col items-center justify-center gap-6 px-4">
-        <img src="{{ asset('assets/rotary-nexus-logo.png') }}" alt="RC Cotonou Nexus" class="h-14 w-14 object-contain">
+        <img src="{{ asset('assets/rotary-nexus-logo.png') }}" alt="RC Cotonou Nexus" class="h-16 w-auto object-contain">
         <div class="w-full rounded-2xl bg-white p-6 shadow-[0_2px_10px_rgba(20,30,50,.06)]">
             <h1 class="font-display text-xl font-extrabold text-navy">Connexion administrateur</h1>
 
