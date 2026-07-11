@@ -101,4 +101,23 @@ Alpine.data('adminShell', () => ({
     },
 }));
 
+Alpine.store('pageLoading', {
+    active: false,
+});
+
+document.addEventListener('click', (event) => {
+    const link = event.target.closest('a[href]');
+
+    if (!link) return;
+    if (link.target === '_blank' || link.hasAttribute('download')) return;
+    if (link.origin !== window.location.origin) return;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+    Alpine.store('pageLoading').active = true;
+});
+
+document.addEventListener('submit', () => {
+    Alpine.store('pageLoading').active = true;
+});
+
 Alpine.start();

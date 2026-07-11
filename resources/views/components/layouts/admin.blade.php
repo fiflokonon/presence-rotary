@@ -8,6 +8,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="h-full bg-cream font-sans text-navy antialiased">
+    <x-page-loading-overlay />
     <div x-data="adminShell()" class="flex min-h-full flex-col md:flex-row">
         <div class="flex items-center justify-between border-b border-divider bg-white px-4 py-3 md:hidden">
             <div class="flex items-center gap-2">
