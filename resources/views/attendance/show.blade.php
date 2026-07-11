@@ -1,5 +1,6 @@
 <x-layouts.app :title="'Liste de présence' . ($meetingSession ? ' — ' . $meetingSession->title : '')">
-    <div class="mx-auto flex min-h-screen max-w-[420px] items-center px-4 py-10">
+    <div class="mx-auto flex min-h-screen max-w-[420px] flex-col items-center justify-center gap-6 px-4 py-10">
+        <img src="{{ asset('assets/rotary-nexus-logo.png') }}" alt="RC Cotonou Nexus" class="h-14 w-14 object-contain">
         <div class="w-full overflow-hidden rounded-xl bg-white shadow-[0_2px_10px_rgba(20,30,50,.06)]">
             <div class="bg-[#12213D] px-6 pb-[18px] pt-[22px]">
                 <p class="font-display text-lg font-extrabold text-white">RC Cotonou Nexus</p>
