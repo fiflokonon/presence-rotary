@@ -12,6 +12,7 @@ storage/framework/sessions/*
 storage/framework/views/*
 public/build
 database/database.sqlite
+database/data
 .env
 .env.*
 !.env.example

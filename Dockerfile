@@ -41,8 +41,9 @@ COPY --from=frontend /app/public/build ./public/build
 RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache \
-    && touch database/database.sqlite \
-    && chown www-data:www-data database/database.sqlite
+    && mkdir -p database/data \
+    && touch database/data/database.sqlite \
+    && chown -R www-data:www-data database/data
 
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf

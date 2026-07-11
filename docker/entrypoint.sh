@@ -1,8 +1,8 @@
 #!/bin/sh
 set -e
 
-if [ ! -f database/database.sqlite ]; then
-    touch database/database.sqlite
+if [ ! -f database/data/database.sqlite ]; then
+    touch database/data/database.sqlite
 fi
 
 php artisan migrate --force
