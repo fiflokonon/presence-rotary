@@ -1,0 +1,23 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "${APP_PORT:-8080}:80"
+    volumes:
+      - sqlite-data:/var/www/html/database/database.sqlite
+      - storage-data:/var/www/html/storage
+
+  queue:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    command: php artisan queue:work --tries=3 --max-time=3600
+    volumes:
+      - sqlite-data:/var/www/html/database/database.sqlite
+      - storage-data:/var/www/html/storage
+
+volumes:
+  sqlite-data:
+  storage-data:
