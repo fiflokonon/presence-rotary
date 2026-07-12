@@ -1,4 +1,4 @@
-@props(['title' => 'Liste de présence — RC Cotonou Nexus'])
+@props(['title' => 'Liste de présence — RC Cotonou Ife'])
 <!doctype html>
 <html lang="fr" class="h-full">
 <head>

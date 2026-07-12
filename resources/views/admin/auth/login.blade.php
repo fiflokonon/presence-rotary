@@ -1,7 +1,7 @@
 <x-layouts.app title="Connexion administrateur">
     <div class="mx-auto flex min-h-screen max-w-[380px] flex-col items-center justify-center gap-6 px-4">
         <div class="inline-flex items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#17A8E5_0%,#0B73C5_55%,#0A5CA6_100%)] p-3 shadow-[0_8px_20px_rgba(10,92,166,.35)]">
-            <img src="{{ asset('assets/ife-logo.png') }}" alt="RC Cotonou Nexus" class="h-16 w-auto object-contain">
+            <img src="{{ asset('assets/ife-logo.png') }}" alt="RC Cotonou Ife" class="h-16 w-auto object-contain">
         </div>
         <div class="w-full rounded-2xl bg-white p-6 shadow-[0_2px_10px_rgba(20,30,50,.06)]">
             <h1 class="font-display text-xl font-extrabold text-navy">Connexion administrateur</h1>

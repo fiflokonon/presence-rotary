@@ -13,7 +13,7 @@
 </head>
 <body>
     <h1>{{ $meetingSession->title }}</h1>
-    <p class="subtitle">{{ $meetingSession->date->translatedFormat('d F Y') }} — RC Cotonou Nexus, District 9103</p>
+    <p class="subtitle">{{ $meetingSession->date->translatedFormat('d F Y') }} — RC Cotonou Ife, District 9103</p>
 
     @foreach (\App\Enums\AttendanceCategory::cases() as $category)
         @php $categoryAttendances = $attendances->filter(fn ($attendance) => $attendance->category === $category); @endphp

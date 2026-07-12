@@ -1,4 +1,4 @@
-@props(['title' => 'Administration — RC Cotonou Nexus'])
+@props(['title' => 'Administration — RC Cotonou Ife'])
 <!doctype html>
 <html lang="fr" class="h-full">
 <head>
@@ -13,9 +13,9 @@
         <div class="flex items-center justify-between border-b border-divider bg-white px-4 py-3 md:hidden">
             <div class="flex items-center gap-2">
                 <div class="inline-flex items-center justify-center rounded-lg bg-[linear-gradient(135deg,#17A8E5_0%,#0B73C5_55%,#0A5CA6_100%)] p-1 shadow-[0_6px_14px_rgba(10,92,166,.3)]">
-                    <img src="{{ asset('assets/ife-logo.png') }}" alt="RC Cotonou Nexus" class="h-8 w-8 object-contain">
+                    <img src="{{ asset('assets/ife-logo.png') }}" alt="RC Cotonou Ife" class="h-8 w-8 object-contain">
                 </div>
-                <span class="text-sm font-semibold text-navy">RC Cotonou Nexus</span>
+                <span class="text-sm font-semibold text-navy">RC Cotonou Ife</span>
             </div>
             <button type="button" @click="toggle()" aria-label="Ouvrir le menu"
                 class="cursor-pointer rounded-lg p-2 text-navy hover:bg-cream">
@@ -34,9 +34,9 @@
         >
             <div class="hidden items-center gap-2 px-2 md:flex">
                 <div class="inline-flex items-center justify-center rounded-lg bg-[linear-gradient(135deg,#17A8E5_0%,#0B73C5_55%,#0A5CA6_100%)] p-1 shadow-[0_6px_14px_rgba(10,92,166,.3)]">
-                    <img src="{{ asset('assets/ife-logo.png') }}" alt="RC Cotonou Nexus" class="h-10 w-10 object-contain">
+                    <img src="{{ asset('assets/ife-logo.png') }}" alt="RC Cotonou Ife" class="h-10 w-10 object-contain">
                 </div>
-                <span class="text-sm font-semibold text-navy">RC Cotonou Nexus</span>
+                <span class="text-sm font-semibold text-navy">RC Cotonou Ife</span>
             </div>
 
             <div class="flex items-center justify-between px-2 md:hidden">

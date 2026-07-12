@@ -1,4 +1,4 @@
-# Handoff : Liste de présence — Rotary Club de Cotonou Nexus
+# Handoff : Liste de présence — Rotary Club de Cotonou Ife
 
 ## Aperçu
 Ce module gère l'émargement des réunions du club : un formulaire public que chaque participant remplit pour confirmer sa présence, et un tableau de bord administrateur qui affiche la liste de présence de la séance en cours, groupée par catégorie (Bureau/Officiels, Membres, Rotaractiens, Invités), avec recherche, filtres, compteurs, export PDF et gestion des présences tardives.
@@ -40,7 +40,7 @@ Les fichiers de ce dossier sont des **références de design réalisées en HTML
 **Layout** : carte pleine largeur (~960px), fond blanc, radius 12px.
 
 **En-tête** (padding `28px 32px 20px`, bordure basse `#EDEAE2`) :
-- Ligne éyebrow "RC Cotonou Nexus · District 9103" (11px uppercase, `#C77700`)
+- Ligne éyebrow "RC Cotonou Ife · District 9103" (11px uppercase, `#C77700`)
 - Titre séance (26px, 800, Libre Franklin, `#12213D`) + date (15px, `#6B6558`)
 - À droite : bouton "Exporter en PDF" (fond `#12213D`) + statut de séance (pastille "● Séance ouverte" verte `#E7F5F1`/`#0E7C66` ou "● Séance clôturée" grise `#F1EFEA`/`#6B6558`) + bouton toggle "Clôturer la séance" / "Rouvrir la séance".
 

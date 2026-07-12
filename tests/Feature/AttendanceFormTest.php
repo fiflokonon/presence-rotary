@@ -35,7 +35,7 @@ it('records an on-time attendance when the session is open', function () {
     $this->post(route('attendance.store'), [
         'title' => AttendanceTitle::Rotarien->value,
         'name' => 'Jean Dupont',
-        'club' => 'RC Cotonou Nexus',
+        'club' => 'RC Cotonou Ife',
         'phone' => '+229 90 00 00 00',
     ])->assertRedirect(route('attendance.show'));
 

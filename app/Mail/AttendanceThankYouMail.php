@@ -26,7 +26,7 @@ class AttendanceThankYouMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Merci pour votre présence — RC Cotonou Nexus',
+            subject: 'Merci pour votre présence — RC Cotonou Ife',
         );
     }
 

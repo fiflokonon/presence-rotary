@@ -21,7 +21,7 @@
                 </svg>
                 Retour aux séances
             </a>
-            <p class="mt-3 text-[11px] font-semibold uppercase text-gold">RC Cotonou Nexus · District 9103</p>
+            <p class="mt-3 text-[11px] font-semibold uppercase text-gold">RC Cotonou Ife · District 9103</p>
             <div class="mt-1 flex flex-col gap-4 md:flex-row md:flex-wrap md:items-start md:justify-between">
                 <div>
                     <h1 class="font-display text-2xl font-extrabold text-navy">{{ $meetingSession->title }}</h1>

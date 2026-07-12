@@ -22,7 +22,7 @@ class NewAdminCredentialsMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Vos identifiants d\'administration — RC Cotonou Nexus',
+            subject: 'Vos identifiants d\'administration — RC Cotonou Ife',
         );
     }
 

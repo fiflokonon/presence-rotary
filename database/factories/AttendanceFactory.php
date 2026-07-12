@@ -23,7 +23,7 @@ class AttendanceFactory extends Factory
             'meeting_session_id' => MeetingSession::factory(),
             'title' => fake()->randomElement(AttendanceTitle::cases()),
             'name' => fake()->name(),
-            'club' => 'RC Cotonou Nexus',
+            'club' => 'RC Cotonou Ife',
             'phone' => fake()->phoneNumber(),
             'classification' => null,
             'email' => null,

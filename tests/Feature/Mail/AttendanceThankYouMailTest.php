@@ -14,7 +14,7 @@ it('renders the attendee name and session details in the email body', function (
 
     $mailable = new AttendanceThankYouMail($attendance, $meetingSession);
 
-    $mailable->assertHasSubject('Merci pour votre présence — RC Cotonou Nexus');
+    $mailable->assertHasSubject('Merci pour votre présence — RC Cotonou Ife');
     $mailable->assertSeeInHtml('Jean Dupont');
     $mailable->assertSeeInHtml('Réunion hebdomadaire');
     $mailable->assertSeeInHtml('11 juillet 2026');
