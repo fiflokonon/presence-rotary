@@ -6,7 +6,7 @@ if [ ! -f database/data/database.sqlite ]; then
 fi
 
 php artisan migrate --force
-php artisan db:seed
+php artisan db:seed --force
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache

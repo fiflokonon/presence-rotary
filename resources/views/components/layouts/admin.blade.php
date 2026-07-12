@@ -54,6 +54,10 @@
                     class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.sessions.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
                     Séances
                 </a>
+                <a href="{{ route('admin.users.index') }}" @click="close()"
+                    class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.users.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
+                    Administrateurs
+                </a>
             </nav>
 
             @auth

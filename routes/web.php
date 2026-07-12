@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\MeetingSessionController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AttendanceFormController;
 use Illuminate\Support\Facades\Route;
 
@@ -23,5 +24,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('sessions/{meetingSession}', [MeetingSessionController::class, 'show'])->name('sessions.show');
         Route::get('sessions/{meetingSession}/export-pdf', [MeetingSessionController::class, 'exportPdf'])->name('sessions.export-pdf');
         Route::patch('attendances/{attendance}/toggle-present', [AttendanceController::class, 'togglePresent'])->name('attendances.toggle-present');
+        Route::get('users', [UserController::class, 'index'])->name('users.index');
+        Route::get('users/create', [UserController::class, 'create'])->name('users.create');
+        Route::post('users', [UserController::class, 'store'])->name('users.store');
     });
 });
