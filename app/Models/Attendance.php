@@ -16,7 +16,7 @@ class Attendance extends Model
     use HasFactory;
 
     protected $fillable = [
-        'meeting_session_id', 'title', 'name', 'club', 'phone',
+        'meeting_session_id', 'member_id', 'title', 'name', 'club', 'phone',
         'classification', 'email', 'present', 'is_late',
     ];
 
@@ -35,6 +35,11 @@ class Attendance extends Model
     public function meetingSession(): BelongsTo
     {
         return $this->belongsTo(MeetingSession::class);
+    }
+
+    public function member(): BelongsTo
+    {
+        return $this->belongsTo(Member::class);
     }
 
     protected function category(): Attribute
