@@ -24,7 +24,7 @@ class StoreAttendanceRequest extends FormRequest
             'club' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:50'],
             'classification' => ['nullable', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'email' => ['required', 'email', 'max:255'],
         ];
     }
 }

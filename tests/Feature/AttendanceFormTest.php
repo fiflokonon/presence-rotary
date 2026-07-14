@@ -10,13 +10,14 @@ it('shows an informational screen when no session is active', function () {
         ->assertSee('Aucune séance en cours');
 });
 
-it('shows the form when the active session is open', function () {
+it('shows the email step by default when the active session is open', function () {
     MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
 
     $this->get(route('attendance.show'))
         ->assertOk()
-        ->assertSee('Numéro de téléphone')
-        ->assertSee('Envoyer')
+        ->assertSee('Adresse e-mail')
+        ->assertSee('Continuer')
+        ->assertDontSee('Numéro de téléphone')
         ->assertDontSee('Aucune séance en cours')
         ->assertDontSee('La séance est clôturée');
 });
@@ -37,6 +38,7 @@ it('records an on-time attendance when the session is open', function () {
         'name' => 'Jean Dupont',
         'club' => 'RC Cotonou Ife',
         'phone' => '+229 90 00 00 00',
+        'email' => 'jean.dupont@example.com',
     ])->assertRedirect(route('attendance.show'));
 
     expect(Attendance::first())
@@ -53,6 +55,7 @@ it('records a late attendance when the session is closed', function () {
         'name' => 'Awa Bello',
         'club' => 'RC Porto-Novo',
         'phone' => '+229 91 00 00 00',
+        'email' => 'awa.bello@example.com',
     ])->assertRedirect(route('attendance.show'));
 
     expect(Attendance::first())
@@ -64,7 +67,7 @@ it('rejects a submission missing required fields', function () {
     MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
 
     $this->post(route('attendance.store'), ['name' => 'Jean Dupont'])
-        ->assertSessionHasErrors(['title', 'club', 'phone']);
+        ->assertSessionHasErrors(['title', 'club', 'phone', 'email']);
 
     expect(Attendance::count())->toBe(0);
 });

@@ -9,6 +9,7 @@ use App\Http\Controllers\AttendanceFormController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [AttendanceFormController::class, 'show'])->name('attendance.show');
+Route::post('/check-in', [AttendanceFormController::class, 'lookup'])->name('attendance.lookup');
 Route::post('/attendances', [AttendanceFormController::class, 'store'])->name('attendance.store');
 
 Route::prefix('admin')->name('admin.')->group(function () {

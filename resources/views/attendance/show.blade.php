@@ -25,6 +25,15 @@
                         Envoyer une autre réponse
                     </a>
                 </div>
+            @elseif (session('attendanceAlreadyCheckedIn'))
+                <div class="flex flex-col items-center gap-3 px-6 py-10 text-center">
+                    <div class="flex h-14 w-14 items-center justify-center rounded-full bg-[#FDF3E2] text-2xl text-[#C77700]">!</div>
+                    <p class="font-display text-lg font-extrabold text-[#12213D]">Présence déjà enregistrée</p>
+                    <p class="text-sm text-[#8A8474]">Vous êtes déjà enregistré(e) pour cette séance.</p>
+                    <a href="{{ route('attendance.show') }}" class="text-sm font-semibold text-[#12213D] underline">
+                        Retour
+                    </a>
+                </div>
             @elseif (! $meetingSession)
                 <div class="flex flex-col items-center gap-3 px-6 py-10 text-center">
                     <p class="font-display text-lg font-extrabold text-[#12213D]">Aucune séance en cours</p>
@@ -37,7 +46,11 @@
                 </div>
 
                 @if ($meetingSession->is_open)
-                    <x-attendance-form :late="false" />
+                    @if ($email === null)
+                        <x-attendance-email-form />
+                    @else
+                        <x-attendance-form :late="false" :email="$email" :member="$member" />
+                    @endif
                 @else
                     <div x-data="{ lateMode: false }">
                         <div x-show="! lateMode" class="flex flex-col items-center gap-3 px-6 py-10 text-center">
@@ -50,7 +63,11 @@
                             </button>
                         </div>
                         <div x-show="lateMode" x-cloak>
-                            <x-attendance-form :late="true" />
+                            @if ($email === null)
+                                <x-attendance-email-form />
+                            @else
+                                <x-attendance-form :late="true" :email="$email" :member="$member" />
+                            @endif
                         </div>
                     </div>
                 @endif
