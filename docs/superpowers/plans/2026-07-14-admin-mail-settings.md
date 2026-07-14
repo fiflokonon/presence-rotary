@@ -200,14 +200,15 @@ Replace `tests/Feature/MailSettingConfigOverrideTest.php` with:
 <?php
 
 use App\Models\MailSetting;
+use App\Providers\AppServiceProvider;
 
 it('leaves the default mail config untouched when no MailSetting row exists', function () {
-    $this->get('/');
+    (new AppServiceProvider($this->app))->overrideMailConfigFromDatabase();
 
     // Values come from .env, unaffected by phpunit.xml's MAIL_MAILER=array override.
     expect(config('mail.default'))->toBe('array')
         ->and(config('mail.mailers.smtp.host'))->toBe('127.0.0.1')
-        ->and(config('mail.mailers.smtp.port'))->toBe(2525)
+        ->and((int) config('mail.mailers.smtp.port'))->toBe(2525)
         ->and(config('mail.from.address'))->toBe('hello@example.com')
         ->and(MailSetting::current())->toBeNull();
 });
@@ -223,11 +224,11 @@ it('overrides the runtime mail config when a MailSetting row exists', function (
         'from_name' => 'Custom Sender',
     ]);
 
-    $this->get('/');
+    (new AppServiceProvider($this->app))->overrideMailConfigFromDatabase();
 
     expect(config('mail.default'))->toBe('smtp')
         ->and(config('mail.mailers.smtp.host'))->toBe('smtp.custom.test')
-        ->and(config('mail.mailers.smtp.port'))->toBe(2526)
+        ->and((int) config('mail.mailers.smtp.port'))->toBe(2526)
         ->and(config('mail.mailers.smtp.username'))->toBe('custom-user')
         ->and(config('mail.mailers.smtp.password'))->toBe('custom-pass')
         ->and(config('mail.mailers.smtp.encryption'))->toBe('ssl')
@@ -236,10 +237,22 @@ it('overrides the runtime mail config when a MailSetting row exists', function (
 });
 ```
 
+**Why this doesn't go through `$this->get('/')`:** Laravel's test lifecycle
+boots the `Application` (running every provider's `boot()`) *before*
+`RefreshDatabase` migrates the in-memory test database. A `MailSetting` row
+created inside the test body can never retroactively affect a `boot()` that
+already ran — and `$this->get('/')` reuses the same already-booted
+`Application`, it doesn't reboot. So the override method is called directly
+(it's `public` for exactly this reason — see Step 3), instead of relying on
+a fresh HTTP-request boot cycle the test process can't produce. In real
+production usage (PHP-FPM per-request, or a queue worker per job), a fresh
+`Application` really does boot and call this method — this test gap is
+purely an artifact of Pest reusing one `Application` per test.
+
 - [ ] **Step 2: Run test to verify the second case fails**
 
 Run: `php artisan test --compact --filter=MailSettingConfigOverrideTest`
-Expected: first test PASSes (nothing to override yet), second test FAILs because `config('mail.default')` is still `'log'`/`'array'`, not `'smtp'`.
+Expected: first test PASSes (nothing to override yet), second test FAILs because `config('mail.default')` is still `'log'`/`'array'`, not `'smtp'` — the method doesn't exist yet, so this step actually errors until Step 3 is done. Confirm the error is "call to undefined method," not something else.
 
 - [ ] **Step 3: Implement the override**
 
@@ -277,7 +290,7 @@ class AppServiceProvider extends ServiceProvider
         $this->overrideMailConfigFromDatabase();
     }
 
-    private function overrideMailConfigFromDatabase(): void
+    public function overrideMailConfigFromDatabase(): void
     {
         if (! Schema::hasTable('mail_settings')) {
             return;
