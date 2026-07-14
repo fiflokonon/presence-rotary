@@ -37,6 +37,18 @@ it('rejects an invalid email at the lookup step', function () {
         ->assertSessionHasErrors(['email']);
 });
 
+it('re-shows the step-1 email form after a failed lookup submission', function () {
+    MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
+
+    $this->post(route('attendance.lookup'), ['email' => 'not-an-email'])
+        ->assertSessionHasErrors(['email']);
+
+    $this->get(route('attendance.show'))
+        ->assertOk()
+        ->assertSee('Continuer')
+        ->assertDontSee('Nom et prénoms');
+});
+
 it('creates a member on first check-in and links the attendance to it', function () {
     MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
 
