@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\MailSettingController;
 use App\Http\Controllers\Admin\MeetingSessionController;
+use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AttendanceFormController;
 use Illuminate\Support\Facades\Route;
@@ -29,6 +30,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('users', [UserController::class, 'index'])->name('users.index');
         Route::get('users/create', [UserController::class, 'create'])->name('users.create');
         Route::post('users', [UserController::class, 'store'])->name('users.store');
+        Route::get('members', [MemberController::class, 'index'])->name('members.index');
+        Route::get('members/{member}', [MemberController::class, 'show'])->name('members.show');
+        Route::get('members/{member}/edit', [MemberController::class, 'edit'])->name('members.edit');
+        Route::put('members/{member}', [MemberController::class, 'update'])->name('members.update');
         Route::get('mail-settings', [MailSettingController::class, 'edit'])->name('mail-settings.edit');
         Route::put('mail-settings', [MailSettingController::class, 'update'])->name('mail-settings.update');
         Route::post('mail-settings/test', [MailSettingController::class, 'sendTest'])->name('mail-settings.test');
