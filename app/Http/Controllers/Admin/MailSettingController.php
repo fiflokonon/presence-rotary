@@ -8,6 +8,7 @@ use App\Http\Requests\StoreMailSettingRequest;
 use App\Mail\MailSettingTestMail;
 use App\Models\MailSetting;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 use Throwable;
@@ -36,6 +37,8 @@ class MailSettingController extends Controller
         } else {
             MailSetting::create($data);
         }
+
+        Artisan::call('queue:restart');
 
         return redirect()->route('admin.mail-settings.edit')->with('status', 'Paramètres mail enregistrés.');
     }

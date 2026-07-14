@@ -31,7 +31,39 @@ it('overrides the runtime mail config when a MailSetting row exists', function (
         ->and((int) config('mail.mailers.smtp.port'))->toBe(2526)
         ->and(config('mail.mailers.smtp.username'))->toBe('custom-user')
         ->and(config('mail.mailers.smtp.password'))->toBe('custom-pass')
-        ->and(config('mail.mailers.smtp.encryption'))->toBe('ssl')
+        ->and(config('mail.mailers.smtp.scheme'))->toBe('smtps')
         ->and(config('mail.from.address'))->toBe('custom@example.com')
         ->and(config('mail.from.name'))->toBe('Custom Sender');
+});
+
+it('maps tls encryption to the smtp scheme', function () {
+    MailSetting::create([
+        'host' => 'smtp.custom.test',
+        'port' => 2526,
+        'username' => 'custom-user',
+        'password' => 'custom-pass',
+        'encryption' => 'tls',
+        'from_address' => 'custom@example.com',
+        'from_name' => 'Custom Sender',
+    ]);
+
+    (new AppServiceProvider($this->app))->overrideMailConfigFromDatabase();
+
+    expect(config('mail.mailers.smtp.scheme'))->toBe('smtp');
+});
+
+it('maps null encryption to a null scheme', function () {
+    MailSetting::create([
+        'host' => 'smtp.custom.test',
+        'port' => 2526,
+        'username' => 'custom-user',
+        'password' => 'custom-pass',
+        'encryption' => null,
+        'from_address' => 'custom@example.com',
+        'from_name' => 'Custom Sender',
+    ]);
+
+    (new AppServiceProvider($this->app))->overrideMailConfigFromDatabase();
+
+    expect(config('mail.mailers.smtp.scheme'))->toBeNull();
 });

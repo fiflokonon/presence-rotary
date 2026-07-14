@@ -3,6 +3,7 @@
 use App\Mail\MailSettingTestMail;
 use App\Models\MailSetting;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 
 it('redirects guests to login on edit', function () {
@@ -145,6 +146,21 @@ it('sends a test email synchronously using the saved settings', function () {
     });
 
     Mail::assertNotQueued(MailSettingTestMail::class);
+});
+
+it('signals a queue restart after saving settings', function () {
+    $this->actingAs(User::factory()->create())
+        ->put(route('admin.mail-settings.update'), [
+            'host' => 'smtp.example.com',
+            'port' => 587,
+            'username' => 'bot@example.com',
+            'password' => 'secret-password',
+            'encryption' => 'tls',
+            'from_address' => 'no-reply@example.com',
+            'from_name' => 'RC Cotonou Ife',
+        ]);
+
+    expect(Cache::get('illuminate:queue:restart'))->not->toBeNull();
 });
 
 it('rejects an invalid test-email address', function () {
