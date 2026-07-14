@@ -220,7 +220,7 @@ public function sendTest(SendMailSettingTestRequest $request): RedirectResponse
     }
 
     try {
-        Mail::to($request->string('test_email'))->send(new MailSettingTestMail());
+        Mail::to($request->validated('test_email'))->send(new MailSettingTestMail());
     } catch (\Throwable $e) {
         return back()->withErrors(['test_email' => 'Échec de l\'envoi : '.$e->getMessage()]);
     }
