@@ -110,6 +110,15 @@ it('rejects a second check-in for the same member on the same session', function
     expect(Attendance::count())->toBe(1);
 });
 
+it('shows the late check-in confirmation form when looking up an unknown email on a closed session', function () {
+    MeetingSession::factory()->create(['is_active' => true, 'is_open' => false]);
+
+    $this->post(route('attendance.lookup'), ['email' => 'inconnu@example.com'])
+        ->assertOk()
+        ->assertSee('Nom et prénoms')
+        ->assertSee('lateMode: true', false);
+});
+
 it('re-shows the pre-filled confirmation form after a failed submission', function () {
     MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
 

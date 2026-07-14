@@ -52,7 +52,7 @@
                         <x-attendance-form :late="false" :email="$email" :member="$member" />
                     @endif
                 @else
-                    <div x-data="{ lateMode: false }">
+                    <div x-data="{ lateMode: {{ $email !== null ? 'true' : 'false' }} }">
                         <div x-show="! lateMode" class="flex flex-col items-center gap-3 px-6 py-10 text-center">
                             <div class="flex h-14 w-14 items-center justify-center rounded-full bg-[#F1EFEA] text-2xl">⏱</div>
                             <p class="font-display text-lg font-extrabold text-[#12213D]">La séance est clôturée</p>

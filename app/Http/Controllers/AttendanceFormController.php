@@ -48,20 +48,24 @@ class AttendanceFormController extends Controller
 
         $email = Member::normalizeEmail($request->validated('email'));
 
+        $existingMember = Member::firstWhere('email', $email);
+
+        if ($existingMember !== null) {
+            $alreadyCheckedIn = Attendance::where('member_id', $existingMember->id)
+                ->where('meeting_session_id', $meetingSession->id)
+                ->exists();
+
+            if ($alreadyCheckedIn) {
+                return redirect()
+                    ->route('attendance.show')
+                    ->with('attendanceAlreadyCheckedIn', true);
+            }
+        }
+
         $member = Member::updateOrCreate(
             ['email' => $email],
             $request->safe()->only(['title', 'name', 'club', 'phone', 'classification']),
         );
-
-        $alreadyCheckedIn = Attendance::where('member_id', $member->id)
-            ->where('meeting_session_id', $meetingSession->id)
-            ->exists();
-
-        if ($alreadyCheckedIn) {
-            return redirect()
-                ->route('attendance.show')
-                ->with('attendanceAlreadyCheckedIn', true);
-        }
 
         Attendance::create([
             ...$request->validated(),
