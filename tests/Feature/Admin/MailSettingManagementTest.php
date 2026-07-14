@@ -1,7 +1,9 @@
 <?php
 
+use App\Mail\MailSettingTestMail;
 use App\Models\MailSetting;
 use App\Models\User;
+use Illuminate\Support\Facades\Mail;
 
 it('redirects guests to login on edit', function () {
     $this->get(route('admin.mail-settings.edit'))->assertRedirect(route('admin.login'));
@@ -113,4 +115,50 @@ it('rejects an invalid payload', function () {
             'from_address' => 'not-an-email',
             'from_name' => '',
         ])->assertSessionHasErrors(['host', 'port', 'from_address', 'from_name']);
+});
+
+it('rejects a test-email request when no settings are saved yet', function () {
+    $this->actingAs(User::factory()->create())
+        ->post(route('admin.mail-settings.test'), ['test_email' => 'someone@example.com'])
+        ->assertSessionHasErrors(['test_email']);
+});
+
+it('sends a test email synchronously using the saved settings', function () {
+    Mail::fake();
+
+    MailSetting::create([
+        'host' => 'smtp.example.com',
+        'port' => 587,
+        'username' => 'bot@example.com',
+        'password' => 'secret-password',
+        'encryption' => 'tls',
+        'from_address' => 'no-reply@example.com',
+        'from_name' => 'RC Cotonou Ife',
+    ]);
+
+    $this->actingAs(User::factory()->create())
+        ->post(route('admin.mail-settings.test'), ['test_email' => 'someone@example.com'])
+        ->assertRedirect();
+
+    Mail::assertSent(MailSettingTestMail::class, function ($mail) {
+        return $mail->hasTo('someone@example.com');
+    });
+
+    Mail::assertNotQueued(MailSettingTestMail::class);
+});
+
+it('rejects an invalid test-email address', function () {
+    MailSetting::create([
+        'host' => 'smtp.example.com',
+        'port' => 587,
+        'username' => 'bot@example.com',
+        'password' => 'secret-password',
+        'encryption' => 'tls',
+        'from_address' => 'no-reply@example.com',
+        'from_name' => 'RC Cotonou Ife',
+    ]);
+
+    $this->actingAs(User::factory()->create())
+        ->post(route('admin.mail-settings.test'), ['test_email' => 'not-an-email'])
+        ->assertSessionHasErrors(['test_email']);
 });

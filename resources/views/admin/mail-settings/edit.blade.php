@@ -60,6 +60,21 @@
             </button>
         </form>
 
+        @if ($mailSetting)
+            <form method="POST" action="{{ route('admin.mail-settings.test') }}" class="mt-6 flex max-w-md flex-col gap-3 border-t border-border pt-6">
+                @csrf
+                <label for="test_email" class="text-sm font-semibold">Envoyer un mail de test</label>
+                <div class="flex gap-2">
+                    <input type="email" id="test_email" name="test_email" placeholder="destinataire@example.com" required
+                        class="flex-1 rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy">
+                    <button type="submit"
+                        class="cursor-pointer rounded-lg bg-navy px-4 py-2.5 text-sm font-bold text-white hover:bg-navy-hover">
+                        Envoyer
+                    </button>
+                </div>
+            </form>
+        @endif
+
         @if ($errors->any())
             <div class="mt-4 rounded-lg bg-error-bg px-4 py-3 text-sm text-error">
                 {{ $errors->first() }}
