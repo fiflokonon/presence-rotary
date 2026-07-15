@@ -12,11 +12,11 @@ it('casts category to the AttendanceCategory enum', function () {
 
 it('can have many positions attached', function () {
     $title = Title::factory()->create();
-    $position = Position::factory()->create(['name' => 'Président']);
+    $position = Position::factory()->create();
 
     $title->positions()->attach($position);
 
-    expect($title->positions()->pluck('name')->all())->toBe(['Président']);
+    expect($title->positions()->pluck('name')->all())->toBe([$position->name]);
 });
 
 it('exposes the titles a position is linked to', function () {
