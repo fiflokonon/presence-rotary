@@ -37,25 +37,33 @@ it('defaults is_active to true', function () {
 });
 
 it('scopes to active titles only', function () {
-    Title::factory()->create(['is_active' => true, 'name' => 'Active One']);
-    Title::factory()->create(['is_active' => false, 'name' => 'Inactive One']);
+    $active = Title::factory()->create(['is_active' => true]);
+    $inactive = Title::factory()->create(['is_active' => false]);
 
-    expect(Title::active()->pluck('name')->all())->toBe(['Active One']);
+    $activeIds = Title::active()->pluck('id');
+
+    expect($activeIds)->toContain($active->id)
+        ->and($activeIds)->not->toContain($inactive->id);
 });
 
 it('scopes to active titles plus a specific inactive id', function () {
     $active = Title::factory()->create(['is_active' => true]);
     $inactive = Title::factory()->create(['is_active' => false]);
-    Title::factory()->create(['is_active' => false]);
+    $otherInactive = Title::factory()->create(['is_active' => false]);
 
-    $ids = Title::activeOrId($inactive->id)->pluck('id')->sort()->values()->all();
+    $ids = Title::activeOrId($inactive->id)->pluck('id');
 
-    expect($ids)->toBe(collect([$active->id, $inactive->id])->sort()->values()->all());
+    expect($ids)->toContain($active->id)
+        ->and($ids)->toContain($inactive->id)
+        ->and($ids)->not->toContain($otherInactive->id);
 });
 
 it('activeOrId with a null id behaves like active alone', function () {
     $active = Title::factory()->create(['is_active' => true]);
-    Title::factory()->create(['is_active' => false]);
+    $inactive = Title::factory()->create(['is_active' => false]);
 
-    expect(Title::activeOrId(null)->pluck('id')->all())->toBe([$active->id]);
+    $ids = Title::activeOrId(null)->pluck('id');
+
+    expect($ids)->toContain($active->id)
+        ->and($ids)->not->toContain($inactive->id);
 });

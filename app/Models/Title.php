@@ -39,9 +39,14 @@ class Title extends Model
 
     public function scopeActiveOrId(Builder $query, ?int $id): void
     {
-        $query->where('is_active', true)->when(
-            $id !== null,
-            fn (Builder $q) => $q->orWhere('id', $id),
-        );
+        // Grouped in a nested where() — an ungrouped top-level orWhere()
+        // here would leak across any other where() clause a caller adds
+        // to the same query, due to SQL operator precedence.
+        $query->where(function (Builder $q) use ($id) {
+            $q->where('is_active', true)->when(
+                $id !== null,
+                fn (Builder $q2) => $q2->orWhere('id', $id),
+            );
+        });
     }
 }

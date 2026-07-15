@@ -37,6 +37,17 @@
 
 Append to `tests/Feature/Models/TitleTest.php`:
 
+Every test below asserts *membership* (`toContain`/`not->toContain`) rather
+than exact-set equality. This is required, not stylistic: `RefreshDatabase`
+runs the earlier titre/poste plan's seed migration before every test, which
+inserts 7 real `Title` rows and 16 real `Position` rows — all `is_active`
+`true` by the column's own default. An assertion like
+`expect(Title::active()->pluck('name')->all())->toBe(['Active One'])` would
+fail against that seeded data (the result would contain those 7 titles
+too), and — this is the trap — a fix that touches production seed data or
+migration ordering to force an empty table is the wrong direction entirely.
+Assert only what this test created.
+
 ```php
 it('defaults is_active to true', function () {
     $title = Title::factory()->create();
@@ -45,31 +56,41 @@ it('defaults is_active to true', function () {
 });
 
 it('scopes to active titles only', function () {
-    Title::factory()->create(['is_active' => true, 'name' => 'Active One']);
-    Title::factory()->create(['is_active' => false, 'name' => 'Inactive One']);
+    $active = Title::factory()->create(['is_active' => true]);
+    $inactive = Title::factory()->create(['is_active' => false]);
 
-    expect(Title::active()->pluck('name')->all())->toBe(['Active One']);
+    $activeIds = Title::active()->pluck('id');
+
+    expect($activeIds)->toContain($active->id)
+        ->and($activeIds)->not->toContain($inactive->id);
 });
 
 it('scopes to active titles plus a specific inactive id', function () {
     $active = Title::factory()->create(['is_active' => true]);
     $inactive = Title::factory()->create(['is_active' => false]);
-    Title::factory()->create(['is_active' => false]);
+    $otherInactive = Title::factory()->create(['is_active' => false]);
 
-    $ids = Title::activeOrId($inactive->id)->pluck('id')->sort()->values()->all();
+    $ids = Title::activeOrId($inactive->id)->pluck('id');
 
-    expect($ids)->toBe(collect([$active->id, $inactive->id])->sort()->values()->all());
+    expect($ids)->toContain($active->id)
+        ->and($ids)->toContain($inactive->id)
+        ->and($ids)->not->toContain($otherInactive->id);
 });
 
 it('activeOrId with a null id behaves like active alone', function () {
     $active = Title::factory()->create(['is_active' => true]);
-    Title::factory()->create(['is_active' => false]);
+    $inactive = Title::factory()->create(['is_active' => false]);
 
-    expect(Title::activeOrId(null)->pluck('id')->all())->toBe([$active->id]);
+    $ids = Title::activeOrId(null)->pluck('id');
+
+    expect($ids)->toContain($active->id)
+        ->and($ids)->not->toContain($inactive->id);
 });
 ```
 
-Create `tests/Feature/Models/PositionTest.php`:
+Create `tests/Feature/Models/PositionTest.php` — same membership-assertion
+approach, for the same reason (16 seeded `Position` rows exist in every
+test via `RefreshDatabase`):
 
 ```php
 <?php
@@ -83,27 +104,35 @@ it('defaults is_active to true', function () {
 });
 
 it('scopes to active positions only', function () {
-    Position::factory()->create(['is_active' => true, 'name' => 'Active Poste']);
-    Position::factory()->create(['is_active' => false, 'name' => 'Inactive Poste']);
+    $active = Position::factory()->create(['is_active' => true]);
+    $inactive = Position::factory()->create(['is_active' => false]);
 
-    expect(Position::active()->pluck('name')->all())->toBe(['Active Poste']);
+    $activeIds = Position::active()->pluck('id');
+
+    expect($activeIds)->toContain($active->id)
+        ->and($activeIds)->not->toContain($inactive->id);
 });
 
 it('scopes to active positions plus a specific inactive id', function () {
     $active = Position::factory()->create(['is_active' => true]);
     $inactive = Position::factory()->create(['is_active' => false]);
-    Position::factory()->create(['is_active' => false]);
+    $otherInactive = Position::factory()->create(['is_active' => false]);
 
-    $ids = Position::activeOrId($inactive->id)->pluck('id')->sort()->values()->all();
+    $ids = Position::activeOrId($inactive->id)->pluck('id');
 
-    expect($ids)->toBe(collect([$active->id, $inactive->id])->sort()->values()->all());
+    expect($ids)->toContain($active->id)
+        ->and($ids)->toContain($inactive->id)
+        ->and($ids)->not->toContain($otherInactive->id);
 });
 
 it('activeOrId with a null id behaves like active alone', function () {
     $active = Position::factory()->create(['is_active' => true]);
-    Position::factory()->create(['is_active' => false]);
+    $inactive = Position::factory()->create(['is_active' => false]);
 
-    expect(Position::activeOrId(null)->pluck('id')->all())->toBe([$active->id]);
+    $ids = Position::activeOrId(null)->pluck('id');
+
+    expect($ids)->toContain($active->id)
+        ->and($ids)->not->toContain($inactive->id);
 });
 ```
 
@@ -193,10 +222,16 @@ class Title extends Model
 
     public function scopeActiveOrId(Builder $query, ?int $id): void
     {
-        $query->where('is_active', true)->when(
-            $id !== null,
-            fn (Builder $q) => $q->orWhere('id', $id),
-        );
+        // Grouped in a nested where() — an ungrouped top-level orWhere()
+        // here would leak across any other where() clause a caller adds
+        // to the same query (e.g. Task 2's `orWhereIn('id', $linkedIds)`),
+        // due to SQL operator precedence.
+        $query->where(function (Builder $q) use ($id) {
+            $q->where('is_active', true)->when(
+                $id !== null,
+                fn (Builder $q2) => $q2->orWhere('id', $id),
+            );
+        });
     }
 }
 ```
@@ -240,10 +275,16 @@ class Position extends Model
 
     public function scopeActiveOrId(Builder $query, ?int $id): void
     {
-        $query->where('is_active', true)->when(
-            $id !== null,
-            fn (Builder $q) => $q->orWhere('id', $id),
-        );
+        // Grouped in a nested where() — an ungrouped top-level orWhere()
+        // here would leak across any other where() clause a caller adds
+        // to the same query (e.g. Task 2's `orWhereIn('id', $linkedIds)`),
+        // due to SQL operator precedence.
+        $query->where(function (Builder $q) use ($id) {
+            $q->where('is_active', true)->when(
+                $id !== null,
+                fn (Builder $q2) => $q2->orWhere('id', $id),
+            );
+        });
     }
 }
 ```

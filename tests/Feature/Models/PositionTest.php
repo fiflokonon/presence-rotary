@@ -9,25 +9,33 @@ it('defaults is_active to true', function () {
 });
 
 it('scopes to active positions only', function () {
-    Position::factory()->create(['is_active' => true, 'name' => 'Active Poste']);
-    Position::factory()->create(['is_active' => false, 'name' => 'Inactive Poste']);
+    $active = Position::factory()->create(['is_active' => true]);
+    $inactive = Position::factory()->create(['is_active' => false]);
 
-    expect(Position::active()->pluck('name')->all())->toBe(['Active Poste']);
+    $activeIds = Position::active()->pluck('id');
+
+    expect($activeIds)->toContain($active->id)
+        ->and($activeIds)->not->toContain($inactive->id);
 });
 
 it('scopes to active positions plus a specific inactive id', function () {
     $active = Position::factory()->create(['is_active' => true]);
     $inactive = Position::factory()->create(['is_active' => false]);
-    Position::factory()->create(['is_active' => false]);
+    $otherInactive = Position::factory()->create(['is_active' => false]);
 
-    $ids = Position::activeOrId($inactive->id)->pluck('id')->sort()->values()->all();
+    $ids = Position::activeOrId($inactive->id)->pluck('id');
 
-    expect($ids)->toBe(collect([$active->id, $inactive->id])->sort()->values()->all());
+    expect($ids)->toContain($active->id)
+        ->and($ids)->toContain($inactive->id)
+        ->and($ids)->not->toContain($otherInactive->id);
 });
 
 it('activeOrId with a null id behaves like active alone', function () {
     $active = Position::factory()->create(['is_active' => true]);
-    Position::factory()->create(['is_active' => false]);
+    $inactive = Position::factory()->create(['is_active' => false]);
 
-    expect(Position::activeOrId(null)->pluck('id')->all())->toBe([$active->id]);
+    $ids = Position::activeOrId(null)->pluck('id');
+
+    expect($ids)->toContain($active->id)
+        ->and($ids)->not->toContain($inactive->id);
 });
