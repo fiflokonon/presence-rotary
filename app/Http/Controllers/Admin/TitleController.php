@@ -7,6 +7,7 @@ use App\Http\Requests\StoreTitleRequest;
 use App\Http\Requests\UpdateTitleRequest;
 use App\Models\Position;
 use App\Models\Title;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -47,6 +48,25 @@ class TitleController extends Controller
     {
         $title->update($request->safe()->only(['name', 'category']));
         $title->positions()->sync($request->input('position_ids', []));
+
+        return redirect()->route('admin.titles.index');
+    }
+
+    public function toggleActive(Title $title): RedirectResponse
+    {
+        $title->update(['is_active' => ! $title->is_active]);
+
+        return redirect()->route('admin.titles.index');
+    }
+
+    public function destroy(Title $title): RedirectResponse
+    {
+        try {
+            $title->delete();
+        } catch (QueryException) {
+            return redirect()->route('admin.titles.index')
+                ->with('error', 'Ce titre est utilisé par des membres ou des présences existantes — désactivez-le plutôt que de le supprimer.');
+        }
 
         return redirect()->route('admin.titles.index');
     }

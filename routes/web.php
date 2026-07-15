@@ -41,11 +41,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('titles', [TitleController::class, 'store'])->name('titles.store');
         Route::get('titles/{title}/edit', [TitleController::class, 'edit'])->name('titles.edit');
         Route::put('titles/{title}', [TitleController::class, 'update'])->name('titles.update');
+        Route::patch('titles/{title}/toggle-active', [TitleController::class, 'toggleActive'])->name('titles.toggle-active');
+        Route::delete('titles/{title}', [TitleController::class, 'destroy'])->name('titles.destroy');
         Route::get('positions', [PositionController::class, 'index'])->name('positions.index');
         Route::get('positions/create', [PositionController::class, 'create'])->name('positions.create');
         Route::post('positions', [PositionController::class, 'store'])->name('positions.store');
         Route::get('positions/{position}/edit', [PositionController::class, 'edit'])->name('positions.edit');
         Route::put('positions/{position}', [PositionController::class, 'update'])->name('positions.update');
+        Route::patch('positions/{position}/toggle-active', [PositionController::class, 'toggleActive'])->name('positions.toggle-active');
+        Route::delete('positions/{position}', [PositionController::class, 'destroy'])->name('positions.destroy');
         Route::get('mail-settings', [MailSettingController::class, 'edit'])->name('mail-settings.edit');
         Route::put('mail-settings', [MailSettingController::class, 'update'])->name('mail-settings.update');
         Route::post('mail-settings/test', [MailSettingController::class, 'sendTest'])->name('mail-settings.test');

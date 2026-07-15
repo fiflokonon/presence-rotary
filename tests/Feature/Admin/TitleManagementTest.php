@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\AttendanceCategory;
+use App\Models\Member;
 use App\Models\Position;
 use App\Models\Title;
 use App\Models\User;
@@ -13,6 +14,8 @@ it('redirects guests to login for every title route', function () {
     $this->post(route('admin.titles.store'), [])->assertRedirect(route('admin.login'));
     $this->get(route('admin.titles.edit', $title))->assertRedirect(route('admin.login'));
     $this->put(route('admin.titles.update', $title), [])->assertRedirect(route('admin.login'));
+    $this->patch(route('admin.titles.toggle-active', $title))->assertRedirect(route('admin.login'));
+    $this->delete(route('admin.titles.destroy', $title))->assertRedirect(route('admin.login'));
 });
 
 it('lists titles with their category to an authenticated admin', function () {
@@ -64,4 +67,42 @@ it('updates a title and replaces its linked positions', function () {
 
     expect($title->fresh()->category)->toBe(AttendanceCategory::Members)
         ->and($title->positions()->pluck('id')->all())->toBe([$newPosition->id]);
+});
+
+it('toggles a titles active status', function () {
+    $title = Title::factory()->create(['is_active' => true]);
+
+    $this->actingAs(User::factory()->create())
+        ->patch(route('admin.titles.toggle-active', $title))
+        ->assertRedirect(route('admin.titles.index'));
+
+    expect($title->fresh()->is_active)->toBeFalse();
+
+    $this->actingAs(User::factory()->create())
+        ->patch(route('admin.titles.toggle-active', $title))
+        ->assertRedirect(route('admin.titles.index'));
+
+    expect($title->fresh()->is_active)->toBeTrue();
+});
+
+it('deletes an unused title', function () {
+    $title = Title::factory()->create();
+
+    $this->actingAs(User::factory()->create())
+        ->delete(route('admin.titles.destroy', $title))
+        ->assertRedirect(route('admin.titles.index'));
+
+    expect(Title::find($title->id))->toBeNull();
+});
+
+it('blocks deleting a title referenced by a member with a friendly message', function () {
+    $title = Title::factory()->create();
+    Member::factory()->create(['title_id' => $title->id]);
+
+    $this->actingAs(User::factory()->create())
+        ->delete(route('admin.titles.destroy', $title))
+        ->assertRedirect(route('admin.titles.index'))
+        ->assertSessionHas('error');
+
+    expect(Title::find($title->id))->not->toBeNull();
 });
