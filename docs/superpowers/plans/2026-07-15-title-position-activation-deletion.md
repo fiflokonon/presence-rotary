@@ -808,8 +808,7 @@ git commit -m "Filter Title admin form's poste checkboxes by active state"
 - Modify: `app/Http/Controllers/Admin/MemberController.php`
 - Modify: `resources/views/components/attendance-form.blade.php`
 - Modify: `resources/views/admin/members/edit.blade.php`
-- Modify: `tests/Feature/AttendanceFormTest.php`
-- Modify: `tests/Feature/AttendanceMemberCheckInTest.php`
+- Modify: `tests/Feature/AttendanceMemberCheckInTest.php` (gets both new lookup-flow tests — see Step 1 for why the "unknown email" test belongs here rather than `AttendanceFormTest.php`)
 - Modify: `tests/Feature/Admin/MemberManagementTest.php`
 
 **Interfaces:**
@@ -818,25 +817,29 @@ git commit -m "Filter Title admin form's poste checkboxes by active state"
 
 - [ ] **Step 1: Write the failing tests**
 
-Add to `tests/Feature/AttendanceFormTest.php`:
+Add to `tests/Feature/AttendanceMemberCheckInTest.php` (not
+`AttendanceFormTest.php` — this needs to POST to `attendance.lookup` with
+an unresolved email, not GET `attendance.show`. `GET /` with no old input
+renders only the step-1 email-entry screen (`<x-attendance-email-form
+/>`), which never lists titles at all regardless of filtering, so
+asserting against it there would pass unconditionally and prove nothing
+about the `activeOrId(null)` degradation this task adds. `lookup()` with
+an unmatched email is the actual case that exercises `show()`/`lookup()`'s
+"no resolved member" path while still rendering the full titre/poste form
+— the same code path the pre-existing "shows a blank confirmation form
+when the email is unknown" test in this same file already covers, just
+without an inactive-title fixture):
 
 ```php
-it('does not offer an inactive title on a blank check-in form', function () {
+it('does not offer an inactive title when looking up an unknown email', function () {
     MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
     Title::factory()->create(['name' => 'Ancien Titre', 'is_active' => false]);
 
-    $this->get(route('attendance.show'))
+    $this->post(route('attendance.lookup'), ['email' => 'inconnu@example.com'])
         ->assertOk()
         ->assertDontSee('Ancien Titre');
 });
-```
 
-(`Title` needs importing at the top of this file if not already present —
-check first; `MeetingSession` is already imported.)
-
-Add to `tests/Feature/AttendanceMemberCheckInTest.php`:
-
-```php
 it('still shows a returning members inactive title and position, marked inactive', function () {
     MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
     $title = Title::factory()->create(['name' => 'Titre Retraité', 'is_active' => false]);
@@ -900,7 +903,6 @@ this file.)
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `php artisan test --filter=AttendanceFormTest`
 Run: `php artisan test --filter=AttendanceMemberCheckInTest`
 Run: `php artisan test --filter=MemberManagementTest`
 Expected: FAIL — every title/position currently shows regardless of `is_active`, so the "does not offer" assertions fail, and no `' (inactif)'` suffix exists yet.
@@ -997,7 +999,6 @@ Apply the identical two changes to `resources/views/admin/members/edit.blade.php
 
 - [ ] **Step 7: Run tests to verify they pass**
 
-Run: `php artisan test --filter=AttendanceFormTest`
 Run: `php artisan test --filter=AttendanceMemberCheckInTest`
 Run: `php artisan test --filter=MemberManagementTest`
 Expected: all PASS. If the JSON-encoding assertion from Step 1 still
@@ -1015,7 +1016,6 @@ Expected: PASS, 100%.
 vendor/bin/pint --dirty --format agent
 git add app/Http/Controllers/AttendanceFormController.php app/Http/Controllers/Admin/MemberController.php \
   resources/views/components/attendance-form.blade.php resources/views/admin/members/edit.blade.php \
-  tests/Feature/AttendanceFormTest.php tests/Feature/AttendanceMemberCheckInTest.php \
-  tests/Feature/Admin/MemberManagementTest.php
+  tests/Feature/AttendanceMemberCheckInTest.php tests/Feature/Admin/MemberManagementTest.php
 git commit -m "Filter check-in and member-edit forms by active titre/poste, preserving current values"
 ```
