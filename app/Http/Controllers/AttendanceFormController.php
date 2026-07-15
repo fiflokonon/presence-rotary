@@ -18,12 +18,16 @@ class AttendanceFormController extends Controller
         // `name` only exists in old-input after a failed step-2 (store) submit,
         // never after a failed step-1 (lookup) submit — use it to tell the two apart.
         $email = session()->hasOldInput('name') ? old('email') : null;
+        $member = $email !== null ? Member::firstWhere('email', Member::normalizeEmail($email)) : null;
 
         return view('attendance.show', [
             'meetingSession' => MeetingSession::active(),
             'email' => $email,
-            'member' => $email !== null ? Member::firstWhere('email', Member::normalizeEmail($email)) : null,
-            'titles' => Title::with('positions')->orderBy('name')->get(),
+            'member' => $member,
+            'titles' => Title::activeOrId($member?->title_id)
+                ->with(['positions' => fn ($query) => $query->activeOrId($member?->position_id)])
+                ->orderBy('name')
+                ->get(),
         ]);
     }
 
@@ -34,12 +38,16 @@ class AttendanceFormController extends Controller
         abort_if($meetingSession === null, 404);
 
         $email = Member::normalizeEmail($request->validated('email'));
+        $member = Member::firstWhere('email', $email);
 
         return view('attendance.show', [
             'meetingSession' => $meetingSession,
             'email' => $email,
-            'member' => Member::firstWhere('email', $email),
-            'titles' => Title::with('positions')->orderBy('name')->get(),
+            'member' => $member,
+            'titles' => Title::activeOrId($member?->title_id)
+                ->with(['positions' => fn ($query) => $query->activeOrId($member?->position_id)])
+                ->orderBy('name')
+                ->get(),
         ]);
     }
 

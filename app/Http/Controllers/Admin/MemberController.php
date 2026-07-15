@@ -51,7 +51,10 @@ class MemberController extends Controller
     {
         return view('admin.members.edit', [
             'member' => $member,
-            'titles' => Title::with('positions')->orderBy('name')->get(),
+            'titles' => Title::activeOrId($member->title_id)
+                ->with(['positions' => fn ($query) => $query->activeOrId($member->position_id)])
+                ->orderBy('name')
+                ->get(),
         ]);
     }
 

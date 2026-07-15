@@ -3,6 +3,7 @@
 use App\Models\Attendance;
 use App\Models\MeetingSession;
 use App\Models\Member;
+use App\Models\Position;
 use App\Models\Title;
 use App\Models\User;
 
@@ -92,4 +93,26 @@ it('rejects an email that collides with another member', function () {
             'classification' => $member->classification,
             'email' => 'existing@example.com',
         ])->assertSessionHasErrors(['email']);
+});
+
+it('does not offer an inactive title for a member whose current title is different', function () {
+    $member = Member::factory()->create();
+    Title::factory()->create(['name' => 'Titre Retraité', 'is_active' => false]);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.members.edit', $member))
+        ->assertOk()
+        ->assertDontSee('Titre Retraité');
+});
+
+it('still offers a members own inactive title and position on their edit form', function () {
+    $title = Title::factory()->create(['name' => 'Titre Retraité', 'is_active' => false]);
+    $position = Position::factory()->create(['name' => 'Poste Retraité', 'is_active' => false]);
+    $title->positions()->attach($position);
+    $member = Member::factory()->create(['title_id' => $title->id, 'position_id' => $position->id]);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.members.edit', $member))
+        ->assertOk()
+        ->assertSee('Titre Retraité (inactif)');
 });

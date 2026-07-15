@@ -3,6 +3,7 @@
 use App\Models\Attendance;
 use App\Models\MeetingSession;
 use App\Models\Member;
+use App\Models\Position;
 use App\Models\Title;
 
 it('shows a blank confirmation form when the email is unknown', function () {
@@ -141,4 +142,22 @@ it('re-shows the pre-filled confirmation form after a failed submission', functi
         ->assertSee('Jean Dupont')
         ->assertSee('jean.dupont@example.com')
         ->assertDontSee('Adresse e-mail*');
+});
+
+it('still shows a returning members inactive title and position, marked inactive', function () {
+    MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
+    $title = Title::factory()->create(['name' => 'Titre Retraité', 'is_active' => false]);
+    $position = Position::factory()->create(['name' => 'Poste Retraité', 'is_active' => false]);
+    $title->positions()->attach($position);
+
+    Member::factory()->create([
+        'email' => 'ancien@example.com',
+        'title_id' => $title->id,
+        'position_id' => $position->id,
+    ]);
+
+    $this->post(route('attendance.lookup'), ['email' => 'ancien@example.com'])
+        ->assertOk()
+        ->assertSee('Titre Retraité (inactif)')
+        ->assertSee('Poste Retraité (inactif)', false);
 });

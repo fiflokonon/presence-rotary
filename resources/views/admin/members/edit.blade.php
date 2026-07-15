@@ -10,7 +10,10 @@
                     titleId: '{{ old('title_id', $member->title_id) }}',
                     positionId: '{{ old('position_id', $member->position_id) }}',
                     positionsByTitle: {{ Illuminate\Support\Js::from($titles->mapWithKeys(fn ($t) => [
-                        $t->id => $t->positions->map(fn ($p) => ['id' => $p->id, 'name' => $p->name])->values(),
+                        $t->id => $t->positions->map(fn ($p) => [
+                            'id' => $p->id,
+                            'name' => $p->is_active ? $p->name : $p->name.' (inactif)',
+                        ])->values(),
                     ])) }},
                     get availablePositions() { return this.positionsByTitle[this.titleId] ?? [] },
                 }"
@@ -22,7 +25,7 @@
                         class="rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy">
                         <option value="">Sélectionnez…</option>
                         @foreach ($titles as $titleOption)
-                            <option value="{{ $titleOption->id }}">{{ $titleOption->name }}</option>
+                            <option value="{{ $titleOption->id }}">{{ $titleOption->is_active ? $titleOption->name : $titleOption->name.' (inactif)' }}</option>
                         @endforeach
                     </select>
                 </div>
