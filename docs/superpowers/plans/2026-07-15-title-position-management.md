@@ -1145,7 +1145,7 @@ git commit -m "Cut over Member and Attendance models to Title/Position relations
 namespace App\Http\Requests;
 
 use App\Models\Title;
-use Closure;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreAttendanceRequest extends FormRequest
@@ -1171,30 +1171,50 @@ class StoreAttendanceRequest extends FormRequest
         ];
     }
 
-    private function positionBelongsToTitle(): Closure
+    private function positionBelongsToTitle(): ValidationRule
     {
-        return function (string $attribute, mixed $value, Closure $fail): void {
-            $title = Title::find($this->input('title_id'));
+        return new class($this) implements ValidationRule
+        {
+            public bool $implicit = true;
 
-            if ($title === null) {
-                return;
-            }
+            public function __construct(private FormRequest $request) {}
 
-            if ($value === null) {
-                if ($title->positions()->exists()) {
-                    $fail('Le poste/qualité est obligatoire pour ce titre.');
+            public function validate(string $attribute, mixed $value, \Closure $fail): void
+            {
+                $title = Title::find($this->request->input('title_id'));
+
+                if ($title === null) {
+                    return;
                 }
 
-                return;
-            }
+                if ($value === null || $value === '') {
+                    if ($title->positions()->exists()) {
+                        $fail('Le poste/qualité est obligatoire pour ce titre.');
+                    }
 
-            if (! $title->positions()->whereKey($value)->exists()) {
-                $fail('Le poste sélectionné ne correspond pas au titre choisi.');
+                    return;
+                }
+
+                if (! $title->positions()->whereKey($value)->exists()) {
+                    $fail('Le poste sélectionné ne correspond pas au titre choisi.');
+                }
             }
         };
     }
 }
 ```
+
+**Why not a plain `Closure`, as an earlier version of this plan specified:**
+Laravel wraps a bare closure rule in `ClosureValidationRule`, which does
+NOT implement `ImplicitRule` — so the validator skips it entirely whenever
+the field is absent, `null`, or `''` (exactly the "poste required" case
+this rule exists to catch, and exactly what an unselected/hidden `<select>`
+submits). An invokable class with `public bool $implicit = true` makes
+Laravel's `InvokableValidationRule` treat it as implicit, so it always
+runs regardless of whether `position_id` was submitted. This was caught
+empirically during Task 5 (not just a test failure — the literal closure
+version would never have enforced "poste required" in a real form
+submission either).
 
 ```php
 // app/Http/Requests/UpdateMemberRequest.php
@@ -1203,7 +1223,7 @@ class StoreAttendanceRequest extends FormRequest
 namespace App\Http\Requests;
 
 use App\Models\Title;
-use Closure;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -1230,25 +1250,33 @@ class UpdateMemberRequest extends FormRequest
         ];
     }
 
-    private function positionBelongsToTitle(): Closure
+    private function positionBelongsToTitle(): ValidationRule
     {
-        return function (string $attribute, mixed $value, Closure $fail): void {
-            $title = Title::find($this->input('title_id'));
+        return new class($this) implements ValidationRule
+        {
+            public bool $implicit = true;
 
-            if ($title === null) {
-                return;
-            }
+            public function __construct(private FormRequest $request) {}
 
-            if ($value === null) {
-                if ($title->positions()->exists()) {
-                    $fail('Le poste/qualité est obligatoire pour ce titre.');
+            public function validate(string $attribute, mixed $value, \Closure $fail): void
+            {
+                $title = Title::find($this->request->input('title_id'));
+
+                if ($title === null) {
+                    return;
                 }
 
-                return;
-            }
+                if ($value === null || $value === '') {
+                    if ($title->positions()->exists()) {
+                        $fail('Le poste/qualité est obligatoire pour ce titre.');
+                    }
 
-            if (! $title->positions()->whereKey($value)->exists()) {
-                $fail('Le poste sélectionné ne correspond pas au titre choisi.');
+                    return;
+                }
+
+                if (! $title->positions()->whereKey($value)->exists()) {
+                    $fail('Le poste sélectionné ne correspond pas au titre choisi.');
+                }
             }
         };
     }
