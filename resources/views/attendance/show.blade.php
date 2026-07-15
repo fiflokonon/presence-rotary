@@ -49,7 +49,7 @@
                     @if ($email === null)
                         <x-attendance-email-form />
                     @else
-                        <x-attendance-form :late="false" :email="$email" :member="$member" />
+                        <x-attendance-form :late="false" :email="$email" :member="$member" :titles="$titles" />
                     @endif
                 @else
                     <div x-data="{ lateMode: {{ $email !== null ? 'true' : 'false' }} }">
@@ -66,7 +66,7 @@
                             @if ($email === null)
                                 <x-attendance-email-form />
                             @else
-                                <x-attendance-form :late="true" :email="$email" :member="$member" />
+                                <x-attendance-form :late="true" :email="$email" :member="$member" :titles="$titles" />
                             @endif
                         </div>
                     </div>

@@ -7,6 +7,7 @@ use App\Http\Requests\StoreAttendanceRequest;
 use App\Models\Attendance;
 use App\Models\MeetingSession;
 use App\Models\Member;
+use App\Models\Title;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -22,6 +23,7 @@ class AttendanceFormController extends Controller
             'meetingSession' => MeetingSession::active(),
             'email' => $email,
             'member' => $email !== null ? Member::firstWhere('email', Member::normalizeEmail($email)) : null,
+            'titles' => Title::with('positions')->orderBy('name')->get(),
         ]);
     }
 
@@ -37,6 +39,7 @@ class AttendanceFormController extends Controller
             'meetingSession' => $meetingSession,
             'email' => $email,
             'member' => Member::firstWhere('email', $email),
+            'titles' => Title::with('positions')->orderBy('name')->get(),
         ]);
     }
 
@@ -64,7 +67,7 @@ class AttendanceFormController extends Controller
 
         $member = Member::updateOrCreate(
             ['email' => $email],
-            $request->safe()->only(['title', 'name', 'club', 'phone', 'classification']),
+            $request->safe()->only(['title_id', 'position_id', 'name', 'club', 'phone', 'classification']),
         );
 
         Attendance::create([

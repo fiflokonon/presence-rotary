@@ -1,9 +1,9 @@
 <?php
 
-use App\Enums\AttendanceTitle;
 use App\Models\Attendance;
 use App\Models\MeetingSession;
 use App\Models\Member;
+use App\Models\Title;
 
 it('shows a blank confirmation form when the email is unknown', function () {
     MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
@@ -53,7 +53,8 @@ it('creates a member on first check-in and links the attendance to it', function
     MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
 
     $this->post(route('attendance.store'), [
-        'title' => AttendanceTitle::Rotarien->value,
+        'title_id' => Title::where('name', 'Rotary')->sole()->id,
+        'position_id' => Title::where('name', 'Rotary')->sole()->positions()->where('name', 'Membre')->sole()->id,
         'name' => 'Jean Dupont',
         'club' => 'RC Cotonou Ife',
         'phone' => '+229 90 00 00 00',
@@ -75,7 +76,8 @@ it('updates the existing member with newly submitted info on a later check-in', 
     MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
 
     $this->post(route('attendance.store'), [
-        'title' => AttendanceTitle::Rotarien->value,
+        'title_id' => Title::where('name', 'Rotary')->sole()->id,
+        'position_id' => Title::where('name', 'Rotary')->sole()->positions()->where('name', 'Membre')->sole()->id,
         'name' => $member->name,
         'club' => 'RC Porto-Novo',
         'phone' => $member->phone,
@@ -99,7 +101,8 @@ it('rejects a second check-in for the same member on the same session', function
     ]);
 
     $this->post(route('attendance.store'), [
-        'title' => AttendanceTitle::Rotarien->value,
+        'title_id' => Title::where('name', 'Rotary')->sole()->id,
+        'position_id' => Title::where('name', 'Rotary')->sole()->positions()->where('name', 'Membre')->sole()->id,
         'name' => $member->name,
         'club' => $member->club,
         'phone' => $member->phone,
@@ -127,11 +130,11 @@ it('re-shows the pre-filled confirmation form after a failed submission', functi
         'name' => 'Jean Dupont',
     ]);
 
-    // 'title', 'club' and 'phone' omitted on purpose to trigger validation errors.
+    // 'title_id', 'club' and 'phone' omitted on purpose to trigger validation errors.
     $this->post(route('attendance.store'), [
         'name' => 'Jean Dupont',
         'email' => 'jean.dupont@example.com',
-    ])->assertSessionHasErrors(['title', 'club', 'phone']);
+    ])->assertSessionHasErrors(['title_id', 'club', 'phone']);
 
     $this->get(route('attendance.show'))
         ->assertOk()

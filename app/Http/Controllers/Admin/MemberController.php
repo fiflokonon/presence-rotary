@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateMemberRequest;
 use App\Models\Attendance;
 use App\Models\Member;
+use App\Models\Title;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -48,7 +49,10 @@ class MemberController extends Controller
 
     public function edit(Member $member): View
     {
-        return view('admin.members.edit', ['member' => $member]);
+        return view('admin.members.edit', [
+            'member' => $member,
+            'titles' => Title::with('positions')->orderBy('name')->get(),
+        ]);
     }
 
     public function update(UpdateMemberRequest $request, Member $member): RedirectResponse

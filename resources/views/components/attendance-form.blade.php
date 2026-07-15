@@ -1,4 +1,4 @@
-@props(['late' => false, 'email', 'member' => null])
+@props(['late' => false, 'email', 'member' => null, 'titles'])
 
 <form method="POST" action="{{ route('attendance.store') }}" class="flex flex-col gap-4 px-6 pb-6 pt-4">
     @csrf
@@ -24,17 +24,37 @@
         </a>
     </div>
 
-    <div class="flex flex-col gap-1.5">
-        <label for="title" class="text-sm font-semibold text-[#12213D]">Titre / Qualité*</label>
-        <select id="title" name="title" required
-            class="rounded-lg border border-[#DEDAD0] px-3 py-2 text-sm">
-            <option value="">Sélectionnez…</option>
-            @foreach (\App\Enums\AttendanceTitle::cases() as $titleOption)
-                <option value="{{ $titleOption->value }}" @selected(old('title', $member?->title?->value) === $titleOption->value)>
-                    {{ $titleOption->value }}
-                </option>
-            @endforeach
-        </select>
+    <div x-data="{
+            titleId: '{{ old('title_id', $member?->title_id) }}',
+            positionId: '{{ old('position_id', $member?->position_id) }}',
+            positionsByTitle: {{ Illuminate\Support\Js::from($titles->mapWithKeys(fn ($t) => [
+                $t->id => $t->positions->map(fn ($p) => ['id' => $p->id, 'name' => $p->name])->values(),
+            ])) }},
+            get availablePositions() { return this.positionsByTitle[this.titleId] ?? [] },
+        }"
+        class="contents"
+    >
+        <div class="flex flex-col gap-1.5">
+            <label for="title_id" class="text-sm font-semibold text-[#12213D]">Titre*</label>
+            <select x-model="titleId" id="title_id" name="title_id" required
+                class="rounded-lg border border-[#DEDAD0] px-3 py-2 text-sm">
+                <option value="">Sélectionnez…</option>
+                @foreach ($titles as $titleOption)
+                    <option value="{{ $titleOption->id }}">{{ $titleOption->name }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="flex flex-col gap-1.5" x-show="availablePositions.length > 0">
+            <label for="position_id" class="text-sm font-semibold text-[#12213D]">Poste / Qualité*</label>
+            <select x-model="positionId" id="position_id" name="position_id" :required="availablePositions.length > 0"
+                class="rounded-lg border border-[#DEDAD0] px-3 py-2 text-sm">
+                <option value="">Sélectionnez…</option>
+                <template x-for="position in availablePositions" :key="position.id">
+                    <option :value="position.id" x-text="position.name"></option>
+                </template>
+            </select>
+        </div>
     </div>
 
     <div class="flex flex-col gap-1.5">

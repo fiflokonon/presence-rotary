@@ -1,9 +1,9 @@
 <?php
 
-use App\Enums\AttendanceTitle;
 use App\Models\Attendance;
 use App\Models\MeetingSession;
 use App\Models\Member;
+use App\Models\Title;
 use App\Models\User;
 
 it('redirects guests to login for every member route', function () {
@@ -58,7 +58,8 @@ it('updates a member', function () {
 
     $this->actingAs(User::factory()->create())
         ->put(route('admin.members.update', $member), [
-            'title' => AttendanceTitle::Rotarien->value,
+            'title_id' => Title::where('name', 'Rotary')->sole()->id,
+            'position_id' => Title::where('name', 'Rotary')->sole()->positions()->where('name', 'Membre')->sole()->id,
             'name' => $member->name,
             'club' => 'RC Porto-Novo',
             'phone' => $member->phone,
@@ -75,7 +76,8 @@ it('rejects an email that collides with another member', function () {
 
     $this->actingAs(User::factory()->create())
         ->put(route('admin.members.update', $member), [
-            'title' => AttendanceTitle::Rotarien->value,
+            'title_id' => Title::where('name', 'Rotary')->sole()->id,
+            'position_id' => Title::where('name', 'Rotary')->sole()->positions()->where('name', 'Membre')->sole()->id,
             'name' => $member->name,
             'club' => $member->club,
             'phone' => $member->phone,
