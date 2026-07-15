@@ -9,20 +9,20 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('members', function (Blueprint $table) {
-            $table->string('title')->nullable()->change();
+            $table->dropColumn('title');
         });
         Schema::table('attendances', function (Blueprint $table) {
-            $table->string('title')->nullable()->change();
+            $table->dropColumn('title');
         });
     }
 
     public function down(): void
     {
         Schema::table('members', function (Blueprint $table) {
-            $table->string('title')->nullable(false)->change();
+            $table->string('title')->nullable();
         });
         Schema::table('attendances', function (Blueprint $table) {
-            $table->string('title')->nullable(false)->change();
+            $table->string('title')->nullable();
         });
     }
 };

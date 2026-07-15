@@ -704,18 +704,37 @@ git commit -m "Add title_id/position_id columns and backfill from old title valu
 
 ---
 
-### Addendum (discovered during Task 4): legacy `title` columns must become nullable
+### Addendum (discovered during Task 4): the legacy `title` column must be dropped now, not deferred to Task 7
 
 Task 3 added `title_id`/`position_id` alongside the old `title` string
-column on both tables without changing `title`'s nullability. But the
-original `create_members_table`/`create_attendances_table` migrations
-defined `title` as `NOT NULL` with no default. Task 4 removes `title` from
-both models' `$fillable` and both factories' `definition()` entirely — so
-every `Member::factory()`/`Attendance::factory()` call (used throughout the
-existing test suite, not just the six files Task 4 expects to break) then
-violates that `NOT NULL` constraint at the database layer.
+column on both tables, leaving `title` in place (originally `NOT NULL`, no
+default) for the finalize migration to drop later (originally planned for
+Task 7). This does not work: Eloquent's attribute resolution checks
+`$this->attributes` (the row's raw DB columns) **before** it checks
+relations or eager-loaded relations. As long as a real `title` column
+exists on the table, `$attendance->title` resolves to that column's raw
+value (a string, or `null` once nothing writes to it) for any model
+instance that was hydrated from a real query — it never reaches the
+`title(): BelongsTo` relation method of the same name, eager-loaded or not.
+Verified empirically: for a model just returned from `Model::factory()->create()`
+(never re-queried), `$attributes` never picked up the `title` key at all, so
+`->title` happens to resolve via the relation — but the moment the same row
+is re-fetched (`Model::find()`, `with('title')`, any real `SELECT *`), the
+`title` key is present (even if `null`) and shadows the relation, making
+`->title` return `null` unconditionally. This broke `Attendance::category`
+(`$this->title->category`) for every DB-refetched row, and would have made
+Task 6's planned eager-loading (`->with('title')`) silently useless — the
+eager-loaded relation would never be reached either.
 
-Fix: `database/migrations/2026_07_15_120007_make_legacy_title_columns_nullable.php`,
+Fix: drop the old `title` column outright, immediately after Task 3's
+backfill, rather than waiting for the finalize task. Nothing needs it
+anymore — `title_id`/`position_id` already hold everything the backfill
+produced, and `$fillable` guarding means no application code can
+accidentally attempt to write to a dropped column (see Task 5/6, which only
+touch `title_id`/`position_id`/the `title()` relation, never the raw
+column).
+
+`database/migrations/2026_07_15_120007_drop_legacy_title_column.php`,
 applied before Task 4's model/factory changes:
 
 ```php
@@ -730,20 +749,20 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('members', function (Blueprint $table) {
-            $table->string('title')->nullable()->change();
+            $table->dropColumn('title');
         });
         Schema::table('attendances', function (Blueprint $table) {
-            $table->string('title')->nullable()->change();
+            $table->dropColumn('title');
         });
     }
 
     public function down(): void
     {
         Schema::table('members', function (Blueprint $table) {
-            $table->string('title')->nullable(false)->change();
+            $table->string('title')->nullable();
         });
         Schema::table('attendances', function (Blueprint $table) {
-            $table->string('title')->nullable(false)->change();
+            $table->string('title')->nullable();
         });
     }
 };
@@ -751,19 +770,67 @@ return new class extends Migration
 
 Task 7's finalize migration filename is renumbered from `120007` to
 `120008` (`2026_07_15_120008_finalize_title_and_position_columns.php`) to
-make room for this addendum in the timestamp sequence — see Task 7 below.
+make room for this addendum in the timestamp sequence, and its job shrinks
+to just tightening `title_id` to `NOT NULL` on both tables — the column
+drop already happened here. See the updated Task 7 below.
+
+Consequence for the six files Task 4's brief predicted would break: the
+actual breakage after this fix is narrower and for more precise reasons —
+`AttendanceFormTest`/`AttendanceMemberCheckInTest` still submit a `title`
+form field that `StoreAttendanceRequest` still validates (unaffected by
+this schema change, since validation reads request input, not the DB
+column) and so continue to pass until Task 5 rewrites them;
+`Unit/Enums/AttendanceTitleTest` tests the enum directly and is unaffected
+until Task 7 deletes the enum file; `Admin/MemberManagementTest`'s "show"
+case renders `$member->title->value` (`Title` has no `value` attribute, so
+this now renders blank rather than crashing) but doesn't assert on the
+displayed title text, so it passes even though the display is wrong until
+Task 5 fixes it (see below). Only `Admin/AttendanceDashboardTest` (both
+cases) and `Admin/AttendancePdfExportTest` are expected to actually **fail**
+after Task 4 — both still call `Attendance::factory()->create(['title' =>
+AttendanceTitle::Rotarien, ...])`, and since the `title` column is now
+dropped entirely (not just unfillable), that insert errors outright with
+"no such column." Task 4's Step 6 should be read as "confirm failures are
+confined to these two files, for this column-doesn't-exist reason — not a
+hard six-file list."
+
+**Two more casualties of the column drop, discovered empirically**: dropping
+`title` also breaks any test that manually re-invokes an *older* migration
+whose own code reads `attendances.title`/`members.title` directly — this
+codebase's established convention for testing one-time data migrations
+(`include $migrationPath; $migration->up();`, used by Task 3's own backfill
+test and by the pre-existing, unrelated `BackfillMembersFromAttendancesTest`
+from an earlier shipped feature) only works as long as no *later* migration
+removes a column the re-invoked migration touches. Once `title` is gone,
+both break with "no such column: attendances.title" — not because either
+migration's logic was wrong (both were correct when reviewed/shipped), but
+because their precondition column no longer exists in a fully-migrated
+database. This is the same lifecycle as `Unit/Enums/AttendanceTitleTest`
+being retired in Task 7 once its subject (the enum) is deleted — a
+migration test that can no longer reconstruct its precondition state is
+retired, not fixed. Delete both, as part of this task:
+- `tests/Feature/Migrations/BackfillTitleAndPositionIdsTest.php` (Task 3's
+  own test — its migration's correctness was already verified and approved;
+  this only retires the *test*, not the migration file, which stays and
+  still ran correctly the one time it mattered)
+- `tests/Feature/BackfillMembersFromAttendancesTest.php` (pre-existing,
+  unrelated to this plan — same reasoning; its migration
+  (`2026_07_14_214017_backfill_members_from_attendances.php`) already ran
+  once in any real deployment and keeps its permanent effect regardless)
 
 ---
 
 ### Task 4: Cut over Member and Attendance models to Title/Position relations
 
 **Files:**
-- Create: `database/migrations/2026_07_15_120007_make_legacy_title_columns_nullable.php` (addendum above — must land before the model/factory changes below)
+- Create: `database/migrations/2026_07_15_120007_drop_legacy_title_column.php` (addendum above — must land before the model/factory changes below)
 - Modify: `app/Models/Member.php`
 - Modify: `app/Models/Attendance.php`
 - Modify: `database/factories/MemberFactory.php`
 - Modify: `database/factories/AttendanceFactory.php`
 - Modify: `tests/Feature/Models/AttendanceTest.php`
+- Delete: `tests/Feature/Migrations/BackfillTitleAndPositionIdsTest.php` (addendum above — retired now that `title` is dropped, its migration's correctness was already reviewed/approved in Task 3)
+- Delete: `tests/Feature/BackfillMembersFromAttendancesTest.php` (addendum above — pre-existing, unrelated test retired for the same reason; its migration file stays untouched)
 
 **Interfaces:**
 - Consumes: `Title`, `Position` models (Task 1).
@@ -771,11 +838,15 @@ make room for this addendum in the timestamp sequence — see Task 7 below.
 
 This task does NOT touch `StoreAttendanceRequest`, `UpdateMemberRequest`, or
 any Blade view yet — those still reference the (now-removed) `title`
-attribute, so `AttendanceFormTest`, `AttendanceMemberCheckInTest`,
-`Admin/MemberManagementTest`, `Admin/AttendanceDashboardTest`, and
-`Admin/AttendancePdfExportTest` will go red after this task and stay red
-until Tasks 5 and 6. This is expected and called out in those tasks' Step
-2 — do not attempt to fix them here.
+attribute. Per the addendum above, only `Admin/AttendanceDashboardTest` and
+`Admin/AttendancePdfExportTest` are expected to go red after this task
+(both still factory-create with `'title' => AttendanceTitle::X`, which now
+errors since the column is gone) — they stay red until Task 6.
+`AttendanceFormTest`, `AttendanceMemberCheckInTest`, and
+`Admin/MemberManagementTest` continue to pass at this point (see addendum
+for why) and are cut over cosmetically/for-correctness in Task 5. Do not
+attempt to fix any of this task's expected `AttendanceDashboardTest`/
+`AttendancePdfExportTest` breakage here — that's Task 6's job.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1018,22 +1089,31 @@ Expected: PASS (4 tests).
 - [ ] **Step 6: Confirm the expected breakage, nothing more**
 
 Run: `php artisan test --compact`
-Expected: FAIL only in `AttendanceFormTest`, `AttendanceMemberCheckInTest`,
-`Admin/MemberManagementTest`, `Admin/AttendanceDashboardTest`,
-`Admin/AttendancePdfExportTest`, and `Unit/Enums/AttendanceTitleTest` (the
-last because `AttendanceTitle::values()` is unaffected but other suites
-reference `title` as a string). Every other suite (including
-`Feature/Models/TitleTest`, `Feature/Migrations/*`) must still pass. If
-anything else fails, stop and investigate before proceeding — that would
-mean an untracked usage of the old `title` column was missed.
+Expected: FAIL only in `Admin/AttendanceDashboardTest` (both cases) and
+`Admin/AttendancePdfExportTest` (one case) — all three still
+factory-create an `Attendance` with `'title' => AttendanceTitle::Rotarien`
+(or `::Invite`), which now errors with "no such column: attendances.title"
+since the column was dropped. `AttendanceFormTest`,
+`AttendanceMemberCheckInTest`, `Admin/MemberManagementTest`, and
+`Unit/Enums/AttendanceTitleTest` are expected to keep passing (see the
+addendum above for why each one doesn't yet surface a failure, even though
+some render stale/blank titles). Every other suite (including
+`Feature/Models/TitleTest`) must still pass — note
+`tests/Feature/Migrations/BackfillTitleAndPositionIdsTest.php` and
+`tests/Feature/BackfillMembersFromAttendancesTest.php` no longer exist,
+deleted as part of this task per the addendum. If the failure set doesn't
+match exactly — extra failures beyond these two files, or these two don't
+fail — stop and investigate before proceeding.
 
 - [ ] **Step 7: Format and commit**
 
 ```bash
 vendor/bin/pint --dirty --format agent
-git add app/Models/Member.php app/Models/Attendance.php \
+git add database/migrations/2026_07_15_120007_drop_legacy_title_column.php \
+  app/Models/Member.php app/Models/Attendance.php \
   database/factories/MemberFactory.php database/factories/AttendanceFactory.php \
   tests/Feature/Models/AttendanceTest.php
+git rm tests/Feature/Migrations/BackfillTitleAndPositionIdsTest.php tests/Feature/BackfillMembersFromAttendancesTest.php
 git commit -m "Cut over Member and Attendance models to Title/Position relations"
 ```
 
@@ -1047,6 +1127,7 @@ git commit -m "Cut over Member and Attendance models to Title/Position relations
 - Modify: `app/Http/Controllers/AttendanceFormController.php`
 - Modify: `resources/views/components/attendance-form.blade.php`
 - Modify: `resources/views/admin/members/edit.blade.php`
+- Modify: `resources/views/admin/members/show.blade.php` (`$member->title->value` at line 26 — was missed in the original file scan; `Title` has no `value` attribute so this silently rendered blank after Task 4's column drop rather than crashing, but it must still become `$member->title->name`)
 - Modify: `tests/Feature/AttendanceFormTest.php`
 - Modify: `tests/Feature/AttendanceMemberCheckInTest.php`
 - Modify: `tests/Feature/Admin/MemberManagementTest.php`
@@ -1283,6 +1364,16 @@ to `MemberController::edit()`'s view data, importing `use App\Models\Title;`):
 </div>
 ```
 
+- [ ] **Step 4b: Fix the member detail page's title display**
+
+In `resources/views/admin/members/show.blade.php` line 26, change
+`<dd>{{ $member->title->value }}</dd>` to
+`<dd>{{ $member->title->name }}</dd>` — `Title` has no `value` attribute
+(that was the enum's), so this line has been silently rendering blank
+since Task 4 dropped the old `title` column, without failing any test
+(`MemberManagementTest`'s "show" test doesn't assert on the title's
+displayed text).
+
 - [ ] **Step 5: Update `MemberController::edit`**
 
 ```php
@@ -1422,8 +1513,10 @@ Expected: all PASS.
 - [ ] **Step 8: Run the full suite**
 
 Run: `php artisan test --compact`
-Expected: only `Admin/AttendanceDashboardTest`, `Admin/AttendancePdfExportTest`,
-and `Unit/Enums/AttendanceTitleTest` still fail (handled in Tasks 6 and 7).
+Expected: only `Admin/AttendanceDashboardTest`, `Admin/AttendancePdfExportTest`
+still fail (handled in Task 6) — per the Task 4 addendum,
+`Unit/Enums/AttendanceTitleTest` was never affected by the schema/model
+changes and should already be passing.
 
 - [ ] **Step 9: Format and commit**
 
@@ -1432,7 +1525,7 @@ vendor/bin/pint --dirty --format agent
 git add app/Http/Requests/StoreAttendanceRequest.php app/Http/Requests/UpdateMemberRequest.php \
   app/Http/Controllers/AttendanceFormController.php app/Http/Controllers/Admin/MemberController.php \
   resources/views/components/attendance-form.blade.php resources/views/attendance/show.blade.php \
-  resources/views/admin/members/edit.blade.php \
+  resources/views/admin/members/edit.blade.php resources/views/admin/members/show.blade.php \
   tests/Feature/AttendanceFormTest.php tests/Feature/AttendanceMemberCheckInTest.php \
   tests/Feature/Admin/MemberManagementTest.php
 git commit -m "Cut over check-in and member-edit forms to titre/poste selects"
@@ -1568,7 +1661,7 @@ git commit -m "Cut over session dashboard and PDF export to the title relation"
 - Delete: `tests/Unit/Enums/AttendanceTitleTest.php`
 
 **Interfaces:**
-- Consumes: every row already has `title_id` populated (Task 3's backfill), no application code reads `members.title`/`attendances.title` anymore (Tasks 4–6).
+- Consumes: every row already has `title_id` populated (Task 3's backfill), no application code reads `members.title`/`attendances.title` anymore — that column was already dropped in the Task 4 addendum, not deferred to here.
 
 - [ ] **Step 1: Confirm no remaining references**
 
@@ -1578,6 +1671,11 @@ so `grep -v` those two paths, or just eyeball that the only hits are the
 enum file itself and its test file, which this task deletes).
 
 - [ ] **Step 2: Write the finalize migration**
+
+The old `title` column was already dropped by the Task 4 addendum
+migration (`2026_07_15_120007_drop_legacy_title_column.php`) — this
+migration's only remaining job is tightening `title_id` to `NOT NULL` on
+both tables, now that every row has one.
 
 ```php
 <?php
@@ -1591,13 +1689,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('members', function (Blueprint $table) {
-            $table->dropColumn('title');
-        });
-        Schema::table('attendances', function (Blueprint $table) {
-            $table->dropColumn('title');
-        });
-
-        Schema::table('members', function (Blueprint $table) {
             $table->foreignId('title_id')->nullable(false)->change();
         });
         Schema::table('attendances', function (Blueprint $table) {
@@ -1609,11 +1700,9 @@ return new class extends Migration
     {
         Schema::table('members', function (Blueprint $table) {
             $table->foreignId('title_id')->nullable()->change();
-            $table->string('title')->nullable();
         });
         Schema::table('attendances', function (Blueprint $table) {
             $table->foreignId('title_id')->nullable()->change();
-            $table->string('title')->nullable();
         });
     }
 };
