@@ -37,7 +37,14 @@ it('filters the member list by search term', function () {
 });
 
 it('shows a member detail page with their attendance history', function () {
-    $member = Member::factory()->create(['name' => 'Jean Dupont']);
+    $rotaryTitle = Title::where('name', 'Rotary')->sole();
+    $president = $rotaryTitle->positions()->where('name', 'Président')->sole();
+
+    $member = Member::factory()->create([
+        'name' => 'Jean Dupont',
+        'title_id' => $rotaryTitle->id,
+        'position_id' => $president->id,
+    ]);
     $meetingSession = MeetingSession::factory()->create(['title' => 'Réunion du 10 janvier']);
 
     Attendance::factory()->create([
@@ -50,7 +57,8 @@ it('shows a member detail page with their attendance history', function () {
         ->get(route('admin.members.show', $member))
         ->assertOk()
         ->assertSee('Réunion du 10 janvier')
-        ->assertSee('Classification A');
+        ->assertSee('Classification A')
+        ->assertSee($president->name);
 });
 
 it('updates a member', function () {

@@ -23,7 +23,7 @@
             </div>
             <div>
                 <dt class="font-semibold text-muted-strong">Titre / Qualité</dt>
-                <dd>{{ $member->title->name }}</dd>
+                <dd>{{ $member->title->name }}{{ $member->position ? ' — '.$member->position->name : '' }}</dd>
             </div>
             <div>
                 <dt class="font-semibold text-muted-strong">Classification</dt>

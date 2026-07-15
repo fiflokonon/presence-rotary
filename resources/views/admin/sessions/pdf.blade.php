@@ -33,7 +33,7 @@
                     @foreach ($categoryAttendances as $attendance)
                         <tr>
                             <td>{{ $attendance->name }}</td>
-                            <td>{{ $attendance->title->name }}</td>
+                            <td>{{ $attendance->title->name }}{{ $attendance->position ? ' — '.$attendance->position->name : '' }}</td>
                             <td>{{ $attendance->club }}</td>
                             <td>{{ $attendance->phone }}</td>
                             <td>{{ $attendance->present ? 'Oui' : 'Non' }}{{ $attendance->is_late ? ' (retard)' : '' }}</td>

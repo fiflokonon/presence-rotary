@@ -83,6 +83,52 @@ it('exposes a title/qualité filter listing the titles present in the roster', f
         ->assertSee('Invité');
 });
 
+it('shows the poste/qualité alongside the titre when set', function () {
+    $meetingSession = MeetingSession::factory()->create();
+    $rotaryTitle = Title::where('name', 'Rotary')->sole();
+    $president = $rotaryTitle->positions()->where('name', 'Président')->sole();
+
+    Attendance::factory()->for($meetingSession)->create([
+        'title_id' => $rotaryTitle->id,
+        'position_id' => $president->id,
+        'name' => 'Jean Dupont',
+    ]);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.sessions.show', $meetingSession))
+        ->assertOk()
+        ->assertSee($president->name);
+});
+
+it('does not fragment the titre filter by poste', function () {
+    $meetingSession = MeetingSession::factory()->create();
+    $rotaryTitle = Title::where('name', 'Rotary')->sole();
+    $president = $rotaryTitle->positions()->where('name', 'Président')->sole();
+    $member = $rotaryTitle->positions()->where('name', 'Membre')->sole();
+
+    Attendance::factory()->for($meetingSession)->create([
+        'title_id' => $rotaryTitle->id,
+        'position_id' => $president->id,
+        'name' => 'Jean Dupont',
+    ]);
+    Attendance::factory()->for($meetingSession)->create([
+        'title_id' => $rotaryTitle->id,
+        'position_id' => $member->id,
+        'name' => 'Awa Bello',
+    ]);
+
+    $response = $this->actingAs(User::factory()->create())
+        ->get(route('admin.sessions.show', $meetingSession));
+
+    $response->assertOk();
+
+    preg_match("/attendanceDashboard\(JSON\.parse\('(.+?)'\)\)/s", $response->getContent(), $matches);
+    $json = str_replace(chr(92).'u0022', '"', $matches[1]);
+    $records = json_decode($json, true);
+
+    expect(collect($records)->pluck('title')->unique()->values()->all())->toBe(['Rotary']);
+});
+
 it('shows a link back to the sessions list', function () {
     $meetingSession = MeetingSession::factory()->create();
 

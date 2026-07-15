@@ -4,6 +4,7 @@
             'id' => $attendance->id,
             'name' => $attendance->name,
             'title' => $attendance->title->name,
+            'position' => $attendance->position?->name,
             'club' => $attendance->club,
             'phone' => $attendance->phone,
             'category' => $attendance->category->value,
@@ -157,7 +158,7 @@
                                 <div>
                                     <p class="text-[14.5px] font-semibold text-navy" x-text="record.name"></p>
                                     <p class="text-[12.5px] text-muted-strong">
-                                        <span x-text="record.title + ' · ' + record.club"></span>
+                                        <span x-text="record.title + (record.position ? ' — ' + record.position : '') + ' · ' + record.club"></span>
                                         <span x-show="record.isLate" class="font-bold text-gold"> · marqué en retard</span>
                                     </p>
                                     <p class="mt-0.5 font-mono text-xs text-muted-strong sm:hidden" x-text="record.phone"></p>
