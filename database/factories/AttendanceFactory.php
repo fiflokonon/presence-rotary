@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
-use App\Enums\AttendanceTitle;
 use App\Models\Attendance;
 use App\Models\MeetingSession;
+use App\Models\Title;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -21,7 +21,8 @@ class AttendanceFactory extends Factory
     {
         return [
             'meeting_session_id' => MeetingSession::factory(),
-            'title' => fake()->randomElement(AttendanceTitle::cases()),
+            'title_id' => Title::factory(),
+            'position_id' => null,
             'name' => fake()->name(),
             'club' => 'RC Cotonou Ife',
             'phone' => fake()->phoneNumber(),

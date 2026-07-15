@@ -1,22 +1,23 @@
 <?php
 
 use App\Enums\AttendanceCategory;
-use App\Enums\AttendanceTitle;
 use App\Models\Attendance;
 use App\Models\MeetingSession;
+use App\Models\Title;
 
 it('derives its category from its title', function () {
-    $attendance = Attendance::factory()->create([
-        'title' => AttendanceTitle::Rotaractien,
-    ]);
+    $title = Title::factory()->create(['category' => AttendanceCategory::Rotaractors]);
+    $attendance = Attendance::factory()->create(['title_id' => $title->id]);
 
     expect($attendance->category)->toBe(AttendanceCategory::Rotaractors);
 });
 
-it('casts its title to the AttendanceTitle enum', function () {
-    $attendance = Attendance::factory()->create(['title' => 'Rotarien']);
+it('belongs to a title and an optional position', function () {
+    $title = Title::factory()->create();
+    $attendance = Attendance::factory()->create(['title_id' => $title->id, 'position_id' => null]);
 
-    expect($attendance->title)->toBe(AttendanceTitle::Rotarien);
+    expect($attendance->title->is($title))->toBeTrue()
+        ->and($attendance->position)->toBeNull();
 });
 
 it('belongs to a meeting session', function () {

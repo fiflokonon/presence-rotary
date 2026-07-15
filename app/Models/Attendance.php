@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\AttendanceCategory;
-use App\Enums\AttendanceTitle;
 use Database\Factories\AttendanceFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,7 +15,7 @@ class Attendance extends Model
     use HasFactory;
 
     protected $fillable = [
-        'meeting_session_id', 'member_id', 'title', 'name', 'club', 'phone',
+        'meeting_session_id', 'member_id', 'title_id', 'position_id', 'name', 'club', 'phone',
         'classification', 'email', 'present', 'is_late',
     ];
 
@@ -26,7 +25,6 @@ class Attendance extends Model
     protected function casts(): array
     {
         return [
-            'title' => AttendanceTitle::class,
             'present' => 'boolean',
             'is_late' => 'boolean',
         ];
@@ -42,8 +40,18 @@ class Attendance extends Model
         return $this->belongsTo(Member::class);
     }
 
+    public function title(): BelongsTo
+    {
+        return $this->belongsTo(Title::class);
+    }
+
+    public function position(): BelongsTo
+    {
+        return $this->belongsTo(Position::class);
+    }
+
     protected function category(): Attribute
     {
-        return Attribute::get(fn (): AttendanceCategory => $this->title->category());
+        return Attribute::get(fn (): AttendanceCategory => $this->title->category);
     }
 }

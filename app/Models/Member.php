@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use App\Enums\AttendanceTitle;
 use Database\Factories\MemberFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
@@ -14,16 +14,16 @@ class Member extends Model
     /** @use HasFactory<MemberFactory> */
     use HasFactory;
 
-    protected $fillable = ['title', 'name', 'club', 'phone', 'classification', 'email'];
+    protected $fillable = ['title_id', 'position_id', 'name', 'club', 'phone', 'classification', 'email'];
 
-    /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    public function title(): BelongsTo
     {
-        return [
-            'title' => AttendanceTitle::class,
-        ];
+        return $this->belongsTo(Title::class);
+    }
+
+    public function position(): BelongsTo
+    {
+        return $this->belongsTo(Position::class);
     }
 
     public function attendances(): HasMany
