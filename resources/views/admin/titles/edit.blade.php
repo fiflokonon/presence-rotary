@@ -28,7 +28,7 @@
                         <label class="flex items-center gap-2 text-sm">
                             <input type="checkbox" name="position_ids[]" value="{{ $position->id }}"
                                 @checked(collect(old('position_ids', $linkedPositionIds))->contains($position->id))>
-                            {{ $position->name }}
+                            {{ $position->name }}{{ $position->is_active ? '' : ' (inactif)' }}
                         </label>
                     @endforeach
                 </div>

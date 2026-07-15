@@ -23,7 +23,7 @@ class TitleController extends Controller
     public function create(): View
     {
         return view('admin.titles.create', [
-            'positions' => Position::orderBy('name')->get(),
+            'positions' => Position::active()->orderBy('name')->get(),
         ]);
     }
 
@@ -37,10 +37,16 @@ class TitleController extends Controller
 
     public function edit(Title $title): View
     {
+        $linkedPositionIds = $title->positions()->pluck('positions.id')->all();
+
         return view('admin.titles.edit', [
             'title' => $title,
-            'positions' => Position::orderBy('name')->get(),
-            'linkedPositionIds' => $title->positions()->pluck('positions.id')->all(),
+            'positions' => Position::query()
+                ->where('is_active', true)
+                ->orWhereIn('id', $linkedPositionIds)
+                ->orderBy('name')
+                ->get(),
+            'linkedPositionIds' => $linkedPositionIds,
         ]);
     }
 

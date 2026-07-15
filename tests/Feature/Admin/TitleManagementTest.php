@@ -106,3 +106,48 @@ it('blocks deleting a title referenced by a member with a friendly message', fun
 
     expect(Title::find($title->id))->not->toBeNull();
 });
+
+it('does not offer an inactive position when creating a new title', function () {
+    Position::factory()->create(['name' => 'Poste Retraité', 'is_active' => false]);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.titles.create'))
+        ->assertOk()
+        ->assertDontSee('Poste Retraité');
+});
+
+it('still shows an inactive position already linked to a title being edited', function () {
+    $title = Title::factory()->create();
+    $inactivePosition = Position::factory()->create(['name' => 'Poste Retraité', 'is_active' => false]);
+    $title->positions()->attach($inactivePosition);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.titles.edit', $title))
+        ->assertOk()
+        ->assertSee('Poste Retraité (inactif)');
+});
+
+it('does not offer an inactive position not linked to a title being edited', function () {
+    $title = Title::factory()->create();
+    Position::factory()->create(['name' => 'Poste Non Lié', 'is_active' => false]);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.titles.edit', $title))
+        ->assertOk()
+        ->assertDontSee('Poste Non Lié');
+});
+
+it('detaches an inactive linked position when unchecked on update', function () {
+    $title = Title::factory()->create(['category' => AttendanceCategory::Guests]);
+    $inactivePosition = Position::factory()->create(['is_active' => false]);
+    $title->positions()->attach($inactivePosition);
+
+    $this->actingAs(User::factory()->create())
+        ->put(route('admin.titles.update', $title), [
+            'name' => $title->name,
+            'category' => AttendanceCategory::Guests->value,
+            'position_ids' => [],
+        ])->assertRedirect(route('admin.titles.index'));
+
+    expect($title->positions()->count())->toBe(0);
+});
