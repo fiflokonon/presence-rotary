@@ -21,6 +21,7 @@ return new class extends Migration
         foreach ($titles as $title) {
             $titleIds[$title['name']] = DB::table('titles')->insertGetId([
                 ...$title,
+                'is_active' => false,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -36,6 +37,7 @@ return new class extends Migration
         foreach ($positionNames as $name) {
             $positionIds[$name] = DB::table('positions')->insertGetId([
                 'name' => $name,
+                'is_active' => false,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
