@@ -80,7 +80,7 @@ class MeetingSessionController extends Controller
     {
         return view('admin.sessions.show', [
             'meetingSession' => $meetingSession,
-            'attendances' => $meetingSession->attendances,
+            'attendances' => $meetingSession->attendances()->with('title')->get(),
             'upcomingSessions' => MeetingSession::where('id', '!=', $meetingSession->id)
                 ->where('date', '>=', now()->toDateString())
                 ->orderBy('date')
@@ -92,7 +92,7 @@ class MeetingSessionController extends Controller
     {
         $pdf = Pdf::loadView('admin.sessions.pdf', [
             'meetingSession' => $meetingSession,
-            'attendances' => $meetingSession->attendances,
+            'attendances' => $meetingSession->attendances()->with('title')->get(),
         ]);
 
         return $pdf->download("liste-presence-{$meetingSession->id}.pdf");

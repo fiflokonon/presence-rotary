@@ -1,8 +1,8 @@
 <?php
 
-use App\Enums\AttendanceTitle;
 use App\Models\Attendance;
 use App\Models\MeetingSession;
+use App\Models\Title;
 use App\Models\User;
 
 it('redirects guests to login', function () {
@@ -14,8 +14,16 @@ it('redirects guests to login', function () {
 
 it('shows counters and the roster to an authenticated admin', function () {
     $meetingSession = MeetingSession::factory()->create();
-    Attendance::factory()->for($meetingSession)->create(['title' => AttendanceTitle::Rotarien, 'name' => 'Jean Dupont', 'present' => true]);
-    Attendance::factory()->for($meetingSession)->create(['title' => AttendanceTitle::Invite, 'name' => 'Awa Bello', 'present' => false]);
+    Attendance::factory()->for($meetingSession)->create([
+        'title_id' => Title::where('name', 'Rotary')->sole()->id,
+        'name' => 'Jean Dupont',
+        'present' => true,
+    ]);
+    Attendance::factory()->for($meetingSession)->create([
+        'title_id' => Title::where('name', 'Invité')->sole()->id,
+        'name' => 'Awa Bello',
+        'present' => false,
+    ]);
 
     $this->actingAs(User::factory()->create())
         ->get(route('admin.sessions.show', $meetingSession))
@@ -57,15 +65,21 @@ it('exposes a QR code panel for sharing the public form link', function () {
 
 it('exposes a title/qualité filter listing the titles present in the roster', function () {
     $meetingSession = MeetingSession::factory()->create();
-    Attendance::factory()->for($meetingSession)->create(['title' => AttendanceTitle::Rotarien, 'name' => 'Jean Dupont']);
-    Attendance::factory()->for($meetingSession)->create(['title' => AttendanceTitle::Invite, 'name' => 'Awa Bello']);
+    Attendance::factory()->for($meetingSession)->create([
+        'title_id' => Title::where('name', 'Rotary')->sole()->id,
+        'name' => 'Jean Dupont',
+    ]);
+    Attendance::factory()->for($meetingSession)->create([
+        'title_id' => Title::where('name', 'Invité')->sole()->id,
+        'name' => 'Awa Bello',
+    ]);
 
     $this->actingAs(User::factory()->create())
         ->get(route('admin.sessions.show', $meetingSession))
         ->assertOk()
         ->assertSee('x-model="activeTitle"', false)
         ->assertSee('Tous les titres')
-        ->assertSee('Rotarien')
+        ->assertSee('Rotary')
         ->assertSee('Invité');
 });
 

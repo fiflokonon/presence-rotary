@@ -3,7 +3,7 @@
         x-data="attendanceDashboard(@js($attendances->map(fn ($attendance) => [
             'id' => $attendance->id,
             'name' => $attendance->name,
-            'title' => $attendance->title->value,
+            'title' => $attendance->title->name,
             'club' => $attendance->club,
             'phone' => $attendance->phone,
             'category' => $attendance->category->value,
