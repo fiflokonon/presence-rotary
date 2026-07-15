@@ -340,11 +340,17 @@ it('seeds the starter titles with their categories', function () {
 });
 
 it('seeds the starter positions', function () {
-    expect(Position::pluck('name')->sort()->values()->all())->toBe([
-        'AdG', 'DG', 'DGE', 'DGN', 'Membre', 'PAdG', 'PDG', 'Past Président',
-        'Président', 'Président Elu', 'Président Nommé', 'Président de Commission',
-        'Protocole', 'Secrétaire', 'Trésorier', 'Vice-Président',
-    ]);
+    // Sort both sides with the same PHP `sort()` call rather than hand-typing
+    // an expected order — PHP's default string comparison is byte-wise, not
+    // locale-aware French collation, so accented names don't sort where a
+    // human would expect (e.g. "Protocole" sorts before "Président").
+    $expected = collect([
+        'PDG', 'DG', 'DGE', 'DGN', 'AdG', 'PAdG', 'Past Président', 'Président',
+        'Président Elu', 'Président Nommé', 'Secrétaire', 'Trésorier', 'Protocole',
+        'Président de Commission', 'Vice-Président', 'Membre',
+    ])->sort()->values()->all();
+
+    expect(Position::pluck('name')->sort()->values()->all())->toBe($expected);
 });
 
 it('links Rotary to every seeded position', function () {
