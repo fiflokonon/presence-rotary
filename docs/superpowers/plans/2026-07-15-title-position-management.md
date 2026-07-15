@@ -477,6 +477,19 @@ git commit -m "Seed starter titles, positions, and their pivot links"
 
 - [ ] **Step 1: Write the failing test**
 
+Follow the same pattern as the existing
+`tests/Feature/BackfillMembersFromAttendancesTest.php`: `include` the
+migration file directly and call `->up()` on it, rather than going through
+Artisan. This is required, not just stylistic — `RefreshDatabase` already
+applies every migration under `database/migrations/` (including the two
+schema migrations and the backfill migration itself) before each test runs,
+so by the time this test body executes, the `migrations` table already
+marks the backfill migration as applied against an empty table. Calling
+`Artisan::call('migrate', ...)` again would silently no-op (Artisan skips
+migrations it already tracks as run) — `include $path; $migration->up();`
+bypasses that tracking and re-runs the migration's logic directly against
+the rows this test just inserted.
+
 ```php
 <?php
 
@@ -502,10 +515,12 @@ it('backfills title_id and position_id for every old AttendanceTitle value', fun
         ]);
     }
 
-    // Run the two just-written schema migrations plus the backfill migration.
-    Artisan::call('migrate', ['--path' => 'database/migrations/2026_07_15_120004_add_title_and_position_to_members_table.php', '--force' => true]);
-    Artisan::call('migrate', ['--path' => 'database/migrations/2026_07_15_120005_add_title_and_position_to_attendances_table.php', '--force' => true]);
-    Artisan::call('migrate', ['--path' => 'database/migrations/2026_07_15_120006_backfill_title_and_position_ids.php', '--force' => true]);
+    // These rows now have title_id/position_id = null (columns added by the
+    // schema migrations from Step 3, which RefreshDatabase already ran).
+    // Re-run the backfill migration's logic directly against them.
+    $migrationPath = glob(database_path('migrations/*_backfill_title_and_position_ids.php'))[0];
+    $migration = include $migrationPath;
+    $migration->up();
 
     foreach ($rotaryPositions as $positionName) {
         $row = DB::table('attendances')->join('titles', 'attendances.title_id', '=', 'titles.id')
@@ -536,12 +551,11 @@ it('backfills title_id and position_id for every old AttendanceTitle value', fun
 });
 ```
 
-Add `use Illuminate\Support\Facades\Artisan;` to the top of the test file.
-
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `php artisan test --filter=BackfillTitleAndPositionIdsTest`
-Expected: FAIL — migration files referenced by `--path` don't exist yet.
+Expected: FAIL — `glob()` returns an empty array (no migration file matches
+yet), so `$migrationPath` access errors.
 
 - [ ] **Step 3: Write the two schema migrations**
 
