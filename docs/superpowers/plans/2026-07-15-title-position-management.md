@@ -704,9 +704,61 @@ git commit -m "Add title_id/position_id columns and backfill from old title valu
 
 ---
 
+### Addendum (discovered during Task 4): legacy `title` columns must become nullable
+
+Task 3 added `title_id`/`position_id` alongside the old `title` string
+column on both tables without changing `title`'s nullability. But the
+original `create_members_table`/`create_attendances_table` migrations
+defined `title` as `NOT NULL` with no default. Task 4 removes `title` from
+both models' `$fillable` and both factories' `definition()` entirely — so
+every `Member::factory()`/`Attendance::factory()` call (used throughout the
+existing test suite, not just the six files Task 4 expects to break) then
+violates that `NOT NULL` constraint at the database layer.
+
+Fix: `database/migrations/2026_07_15_120007_make_legacy_title_columns_nullable.php`,
+applied before Task 4's model/factory changes:
+
+```php
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('members', function (Blueprint $table) {
+            $table->string('title')->nullable()->change();
+        });
+        Schema::table('attendances', function (Blueprint $table) {
+            $table->string('title')->nullable()->change();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('members', function (Blueprint $table) {
+            $table->string('title')->nullable(false)->change();
+        });
+        Schema::table('attendances', function (Blueprint $table) {
+            $table->string('title')->nullable(false)->change();
+        });
+    }
+};
+```
+
+Task 7's finalize migration filename is renumbered from `120007` to
+`120008` (`2026_07_15_120008_finalize_title_and_position_columns.php`) to
+make room for this addendum in the timestamp sequence — see Task 7 below.
+
+---
+
 ### Task 4: Cut over Member and Attendance models to Title/Position relations
 
 **Files:**
+- Create: `database/migrations/2026_07_15_120007_make_legacy_title_columns_nullable.php` (addendum above — must land before the model/factory changes below)
 - Modify: `app/Models/Member.php`
 - Modify: `app/Models/Attendance.php`
 - Modify: `database/factories/MemberFactory.php`
@@ -1511,7 +1563,7 @@ git commit -m "Cut over session dashboard and PDF export to the title relation"
 ### Task 7: Finalize the schema and remove the old enum
 
 **Files:**
-- Create: `database/migrations/2026_07_15_120007_finalize_title_and_position_columns.php`
+- Create: `database/migrations/2026_07_15_120008_finalize_title_and_position_columns.php`
 - Delete: `app/Enums/AttendanceTitle.php`
 - Delete: `tests/Unit/Enums/AttendanceTitleTest.php`
 
@@ -1567,7 +1619,7 @@ return new class extends Migration
 };
 ```
 
-Save as `database/migrations/2026_07_15_120007_finalize_title_and_position_columns.php`.
+Save as `database/migrations/2026_07_15_120008_finalize_title_and_position_columns.php`.
 Note: `->change()` on a column requires `doctrine/dbal` in Laravel <11 —
 this app is Laravel 13, which no longer needs that package for `change()`;
 no dependency change is required.
