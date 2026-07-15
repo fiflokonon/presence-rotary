@@ -1177,7 +1177,7 @@ class StoreAttendanceRequest extends FormRequest
         {
             public bool $implicit = true;
 
-            public function __construct(private FormRequest $request) {}
+            public function __construct(private readonly FormRequest $request) {}
 
             public function validate(string $attribute, mixed $value, \Closure $fail): void
             {
@@ -1256,7 +1256,7 @@ class UpdateMemberRequest extends FormRequest
         {
             public bool $implicit = true;
 
-            public function __construct(private FormRequest $request) {}
+            public function __construct(private readonly FormRequest $request) {}
 
             public function validate(string $attribute, mixed $value, \Closure $fail): void
             {
