@@ -144,6 +144,15 @@ it('re-shows the pre-filled confirmation form after a failed submission', functi
         ->assertDontSee('Adresse e-mail*');
 });
 
+it('does not offer an inactive title when looking up an unknown email', function () {
+    MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
+    Title::factory()->create(['name' => 'Ancien Titre', 'is_active' => false]);
+
+    $this->post(route('attendance.lookup'), ['email' => 'inconnu@example.com'])
+        ->assertOk()
+        ->assertDontSee('Ancien Titre');
+});
+
 it('still shows a returning members inactive title and position, marked inactive', function () {
     MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
     $title = Title::factory()->create(['name' => 'Titre Retraité', 'is_active' => false]);

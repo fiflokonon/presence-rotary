@@ -148,12 +148,3 @@ it('accepts a position that is linked to the submitted title', function () {
 
     expect(Attendance::first())->position_id->toBe($president->id);
 });
-
-it('does not offer an inactive title on a blank check-in form', function () {
-    MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
-    Title::factory()->create(['name' => 'Ancien Titre', 'is_active' => false]);
-
-    $this->get(route('attendance.show'))
-        ->assertOk()
-        ->assertDontSee('Ancien Titre');
-});
