@@ -66,6 +66,14 @@
                     class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.members.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
                     Membres
                 </a>
+                <a href="{{ route('admin.titles.index') }}" @click="close()"
+                    class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.titles.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
+                    Titres
+                </a>
+                <a href="{{ route('admin.positions.index') }}" @click="close()"
+                    class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.positions.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
+                    Postes
+                </a>
             </nav>
 
             @auth
