@@ -54,7 +54,7 @@ class StoreAttendanceRequest extends FormRequest
                 }
 
                 if ($value === null || $value === '') {
-                    if ($title->positions()->exists()) {
+                    if ($title->positions()->where('is_active', true)->exists()) {
                         $fail('Le poste/qualité est obligatoire pour ce titre.');
                     }
 

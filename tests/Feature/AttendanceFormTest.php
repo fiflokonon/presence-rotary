@@ -2,6 +2,7 @@
 
 use App\Models\Attendance;
 use App\Models\MeetingSession;
+use App\Models\Position;
 use App\Models\Title;
 
 it('shows an informational screen when no session is active', function () {
@@ -109,6 +110,25 @@ it('allows no position when the submitted title has none', function () {
 
     expect(Attendance::first())
         ->title_id->toBe($invite->id)
+        ->position_id->toBeNull();
+});
+
+it('allows no position when the submitted title only has inactive positions', function () {
+    MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
+    $title = Title::factory()->create(['is_active' => true]);
+    $title->positions()->attach(Position::factory()->create(['is_active' => false]));
+
+    $this->post(route('attendance.store'), [
+        'title_id' => $title->id,
+        'name' => 'Jean Dupont',
+        'club' => 'RC Cotonou Ife',
+        'phone' => '+229 90 00 00 00',
+        'email' => 'jean.dupont@example.com',
+    ])->assertRedirect(route('attendance.show'))
+        ->assertSessionDoesntHaveErrors();
+
+    expect(Attendance::first())
+        ->title_id->toBe($title->id)
         ->position_id->toBeNull();
 });
 
