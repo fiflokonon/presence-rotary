@@ -16,7 +16,10 @@ class TitleController extends Controller
     public function index(): View
     {
         return view('admin.titles.index', [
-            'titles' => Title::withCount('positions')->orderBy('name')->get(),
+            'titles' => Title::withCount('positions')
+                ->where('name', '!=', Title::GUEST_NAME)
+                ->orderBy('name')
+                ->get(),
         ]);
     }
 
@@ -37,6 +40,8 @@ class TitleController extends Controller
 
     public function edit(Title $title): View
     {
+        abort_if($title->name === Title::GUEST_NAME, 404);
+
         $linkedPositionIds = $title->positions()->pluck('positions.id')->all();
 
         return view('admin.titles.edit', [
@@ -52,6 +57,8 @@ class TitleController extends Controller
 
     public function update(UpdateTitleRequest $request, Title $title): RedirectResponse
     {
+        abort_if($title->name === Title::GUEST_NAME, 404);
+
         $title->update($request->safe()->only(['name', 'category']));
         $title->positions()->sync($request->input('position_ids', []));
 
@@ -60,6 +67,8 @@ class TitleController extends Controller
 
     public function toggleActive(Title $title): RedirectResponse
     {
+        abort_if($title->name === Title::GUEST_NAME, 404);
+
         $title->update(['is_active' => ! $title->is_active]);
 
         return redirect()->route('admin.titles.index');
@@ -67,6 +76,8 @@ class TitleController extends Controller
 
     public function destroy(Title $title): RedirectResponse
     {
+        abort_if($title->name === Title::GUEST_NAME, 404);
+
         try {
             $title->delete();
         } catch (QueryException) {

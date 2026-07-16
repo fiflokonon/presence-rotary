@@ -14,6 +14,8 @@ class Title extends Model
     /** @use HasFactory<TitleFactory> */
     use HasFactory;
 
+    public const GUEST_NAME = 'Invité';
+
     protected $fillable = ['name', 'category', 'is_active'];
 
     /**

@@ -151,3 +151,46 @@ it('detaches an inactive linked position when unchecked on update', function () 
 
     expect($title->positions()->count())->toBe(0);
 });
+
+it('excludes the Invité title from the admin listing', function () {
+    $invite = Title::where('name', Title::GUEST_NAME)->sole();
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.titles.index'))
+        ->assertOk()
+        ->assertDontSee(route('admin.titles.edit', $invite));
+});
+
+it('returns 404 when trying to view the edit form for the Invité title', function () {
+    $invite = Title::where('name', 'Invité')->sole();
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.titles.edit', $invite))
+        ->assertNotFound();
+});
+
+it('returns 404 when trying to update the Invité title', function () {
+    $invite = Title::where('name', 'Invité')->sole();
+
+    $this->actingAs(User::factory()->create())
+        ->put(route('admin.titles.update', $invite), [
+            'name' => 'Invité',
+            'category' => AttendanceCategory::Guests->value,
+        ])->assertNotFound();
+});
+
+it('returns 404 when trying to toggle the Invité titles active state', function () {
+    $invite = Title::where('name', 'Invité')->sole();
+
+    $this->actingAs(User::factory()->create())
+        ->patch(route('admin.titles.toggle-active', $invite))
+        ->assertNotFound();
+});
+
+it('returns 404 when trying to delete the Invité title', function () {
+    $invite = Title::where('name', 'Invité')->sole();
+
+    $this->actingAs(User::factory()->create())
+        ->delete(route('admin.titles.destroy', $invite))
+        ->assertNotFound();
+});
