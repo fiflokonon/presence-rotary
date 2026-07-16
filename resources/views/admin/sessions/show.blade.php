@@ -52,7 +52,7 @@
                             </div>
                         </div>
                     </div>
-                    <a href="{{ route('admin.sessions.export-pdf', $meetingSession) }}"
+                    <a href="{{ route('admin.sessions.export-pdf', $meetingSession) }}" download
                         class="cursor-pointer w-full rounded-lg bg-navy px-4 py-2 text-center text-sm font-bold text-white hover:bg-navy-hover md:w-auto">
                         Exporter en PDF
                     </a>

@@ -95,6 +95,9 @@ class MeetingSessionController extends Controller
             'attendances' => $meetingSession->attendances()->with(['title', 'position'])->get(),
         ]);
 
-        return $pdf->download("liste-presence-{$meetingSession->id}.pdf");
+        $filename = $meetingSession->date->translatedFormat('Y-m-d').' - '.$meetingSession->title.'.pdf';
+        $filename = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '', $filename);
+
+        return $pdf->download($filename);
     }
 }

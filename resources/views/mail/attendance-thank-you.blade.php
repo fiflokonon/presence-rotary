@@ -11,14 +11,8 @@
             <td align="center">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px; background-color:#ffffff; border-radius:12px; overflow:hidden;">
                     <tr>
-                        <td style="background-color:#12213D; padding:24px; text-align:center;">
-                            <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto; background-color:#ffffff; border-radius:12px;">
-                                <tr>
-                                    <td style="padding:8px 16px;">
-                                        <img src="{{ asset('assets/ife-logo.png') }}" alt="RC Cotonou Ife" width="180" style="display:block; height:auto; width:180px;">
-                                    </td>
-                                </tr>
-                            </table>
+                        <td style="background-color:#0073C4; padding:24px; text-align:center;">
+                            <img src="{{ asset('assets/ife-logo.png') }}" alt="RC Cotonou Ife" width="140" style="display:block; height:auto; width:140px; margin:0 auto;">
                             <p style="margin:16px 0 0; color:#ffffff; font-size:16px; font-weight:bold;">RC Cotonou Ife</p>
                             <p style="margin:4px 0 0; color:#F2B94D; font-size:11px; letter-spacing:0.05em; text-transform:uppercase;">District 9103</p>
                         </td>
