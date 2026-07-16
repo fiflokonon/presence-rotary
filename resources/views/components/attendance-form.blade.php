@@ -1,4 +1,4 @@
-@props(['late' => false, 'email', 'member' => null, 'titles'])
+@props(['late' => false, 'email', 'member' => null, 'titles', 'guestTitleId' => null])
 
 <form method="POST" action="{{ route('attendance.store') }}" class="flex flex-col gap-4 px-6 pb-6 pt-4">
     @csrf
@@ -34,6 +34,7 @@
                 ])->values(),
             ])) }},
             get availablePositions() { return this.positionsByTitle[this.titleId] ?? [] },
+            get isGuest() { return this.titleId !== '' && this.titleId == '{{ $guestTitleId }}' },
         }"
         class="contents"
     >
@@ -58,6 +59,14 @@
                 </template>
             </select>
         </div>
+
+        @if ($guestTitleId !== null && $titles->contains('id', $guestTitleId))
+            <div class="flex flex-col gap-1.5" x-show="isGuest" x-cloak>
+                <label for="invited_by" class="text-sm font-semibold text-[#12213D]">Invité par</label>
+                <input type="text" id="invited_by" name="invited_by" value="{{ old('invited_by') }}"
+                    class="rounded-lg border border-[#DEDAD0] px-3 py-2 text-sm">
+            </div>
+        @endif
     </div>
 
     <div class="flex flex-col gap-1.5">

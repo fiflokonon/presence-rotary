@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Http\Requests\LookupAttendanceEmailRequest;
 use App\Http\Requests\StoreAttendanceRequest;
 use App\Models\Attendance;
+use App\Models\CheckinSetting;
 use App\Models\MeetingSession;
 use App\Models\Member;
 use App\Models\Title;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class AttendanceFormController extends Controller
@@ -24,10 +26,7 @@ class AttendanceFormController extends Controller
             'meetingSession' => MeetingSession::active(),
             'email' => $email,
             'member' => $member,
-            'titles' => Title::activeOrId($member?->title_id)
-                ->with(['positions' => fn ($query) => $query->activeOrId($member?->position_id)])
-                ->orderBy('name')
-                ->get(),
+            ...$this->attendanceFormData($member),
         ]);
     }
 
@@ -44,10 +43,7 @@ class AttendanceFormController extends Controller
             'meetingSession' => $meetingSession,
             'email' => $email,
             'member' => $member,
-            'titles' => Title::activeOrId($member?->title_id)
-                ->with(['positions' => fn ($query) => $query->activeOrId($member?->position_id)])
-                ->orderBy('name')
-                ->get(),
+            ...$this->attendanceFormData($member),
         ]);
     }
 
@@ -91,5 +87,34 @@ class AttendanceFormController extends Controller
             ->route('attendance.show')
             ->with('attendanceSubmitted', true)
             ->with('attendanceWasLate', ! $meetingSession->is_open);
+    }
+
+    /**
+     * @return array{titles: Collection<int, Title>, guestTitleId: ?int}
+     */
+    private function attendanceFormData(?Member $member): array
+    {
+        $titles = Title::activeOrId($member?->title_id)
+            ->where(function ($query) use ($member) {
+                $query->where('name', '!=', Title::GUEST_NAME)
+                    ->when(
+                        $member?->title_id !== null,
+                        fn ($q) => $q->orWhere('id', $member->title_id),
+                    );
+            })
+            ->with(['positions' => fn ($query) => $query->activeOrId($member?->position_id)])
+            ->orderBy('name')
+            ->get();
+
+        $guestTitle = Title::with('positions')->firstWhere('name', Title::GUEST_NAME);
+
+        if ($guestTitle !== null && $guestTitle->id !== $member?->title_id && CheckinSetting::guestOptionEnabled()) {
+            $titles->push($guestTitle);
+        }
+
+        return [
+            'titles' => $titles,
+            'guestTitleId' => $guestTitle?->id,
+        ];
     }
 }

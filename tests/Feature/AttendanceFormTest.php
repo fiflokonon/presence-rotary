@@ -1,7 +1,9 @@
 <?php
 
 use App\Models\Attendance;
+use App\Models\CheckinSetting;
 use App\Models\MeetingSession;
+use App\Models\Member;
 use App\Models\Position;
 use App\Models\Title;
 
@@ -199,4 +201,35 @@ it('allows omitting invited_by', function () {
         ->assertSessionDoesntHaveErrors();
 
     expect(Attendance::first()->invited_by)->toBeNull();
+});
+
+it('offers the Invité option when the guest option is enabled', function () {
+    MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
+
+    $this->post(route('attendance.lookup'), ['email' => 'nouveau@example.com'])
+        ->assertOk()
+        ->assertSee('Invité')
+        ->assertSee('Invité par')
+        ->assertSee('name="invited_by"', false);
+});
+
+it('does not offer the Invité option when the guest option is disabled', function () {
+    MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
+    CheckinSetting::create(['show_guest_option' => false]);
+
+    $this->post(route('attendance.lookup'), ['email' => 'nouveau@example.com'])
+        ->assertOk()
+        ->assertDontSee('Invité');
+});
+
+it('still offers a returning guest members Invité title even when the guest option is disabled', function () {
+    MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
+    CheckinSetting::create(['show_guest_option' => false]);
+    $invite = Title::where('name', 'Invité')->sole();
+
+    Member::factory()->create(['email' => 'ancien.invite@example.com', 'title_id' => $invite->id]);
+
+    $this->post(route('attendance.lookup'), ['email' => 'ancien.invite@example.com'])
+        ->assertOk()
+        ->assertSee('Invité');
 });
