@@ -76,7 +76,7 @@
     </div>
 
     <div class="flex flex-col gap-1.5">
-        <label for="club" class="text-sm font-semibold text-[#12213D]">Votre club*</label>
+        <label for="club" class="text-sm font-semibold text-[#12213D]">Nom de votre club*</label>
         <input type="text" id="club" name="club" value="{{ old('club', $member?->club) }}" required
             class="rounded-lg border border-[#DEDAD0] px-3 py-2 text-sm">
     </div>
