@@ -83,8 +83,9 @@ class TitleController extends Controller
         abort_if(! in_array($direction, ['up', 'down']), 404);
 
         if ($direction === 'up') {
-            $swapWith = Title::where('order', '<', $title->order ?? PHP_INT_MAX)
-                ->where('name', '!=', Title::GUEST_NAME)
+            // Find the title with the highest order less than current order
+            $swapWith = Title::where('name', '!=', Title::GUEST_NAME)
+                ->where('order', '<', $title->order)
                 ->orderByDesc('order')
                 ->first();
 
@@ -94,8 +95,9 @@ class TitleController extends Controller
                 $swapWith->update(['order' => $tempOrder]);
             }
         } else {
-            $swapWith = Title::where('order', '>', $title->order ?? -1)
-                ->where('name', '!=', Title::GUEST_NAME)
+            // Find the title with the lowest order greater than current order
+            $swapWith = Title::where('name', '!=', Title::GUEST_NAME)
+                ->where('order', '>', $title->order)
                 ->orderBy('order')
                 ->first();
 
