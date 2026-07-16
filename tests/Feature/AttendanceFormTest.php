@@ -168,3 +168,35 @@ it('accepts a position that is linked to the submitted title', function () {
 
     expect(Attendance::first())->position_id->toBe($president->id);
 });
+
+it('stores the invited_by name when submitted for a guest check-in', function () {
+    MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
+    $invite = Title::where('name', 'Invité')->sole();
+
+    $this->post(route('attendance.store'), [
+        'title_id' => $invite->id,
+        'invited_by' => 'Jean Membre',
+        'name' => 'Awa Bello',
+        'club' => 'RC Porto-Novo',
+        'phone' => '+229 91 00 00 00',
+        'email' => 'awa.bello@example.com',
+    ])->assertRedirect(route('attendance.show'));
+
+    expect(Attendance::first()->invited_by)->toBe('Jean Membre');
+});
+
+it('allows omitting invited_by', function () {
+    MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
+    $invite = Title::where('name', 'Invité')->sole();
+
+    $this->post(route('attendance.store'), [
+        'title_id' => $invite->id,
+        'name' => 'Awa Bello',
+        'club' => 'RC Porto-Novo',
+        'phone' => '+229 91 00 00 00',
+        'email' => 'awa.bello@example.com',
+    ])->assertRedirect(route('attendance.show'))
+        ->assertSessionDoesntHaveErrors();
+
+    expect(Attendance::first()->invited_by)->toBeNull();
+});

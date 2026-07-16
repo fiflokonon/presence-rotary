@@ -22,6 +22,7 @@ class StoreAttendanceRequest extends FormRequest
         return [
             'title_id' => ['required', 'integer', 'exists:titles,id'],
             'position_id' => ['nullable', 'integer', 'exists:positions,id', $this->positionBelongsToTitle()],
+            'invited_by' => ['nullable', 'string', 'max:255'],
             'name' => ['required', 'string', 'max:255'],
             'club' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:50'],

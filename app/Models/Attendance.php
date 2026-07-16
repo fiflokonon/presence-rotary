@@ -15,7 +15,7 @@ class Attendance extends Model
     use HasFactory;
 
     protected $fillable = [
-        'meeting_session_id', 'member_id', 'title_id', 'position_id', 'name', 'club', 'phone',
+        'meeting_session_id', 'member_id', 'title_id', 'position_id', 'invited_by', 'name', 'club', 'phone',
         'classification', 'email', 'present', 'is_late',
     ];
 
