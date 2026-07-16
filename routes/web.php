@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\CheckinSettingController;
 use App\Http\Controllers\Admin\MailSettingController;
 use App\Http\Controllers\Admin\MeetingSessionController;
 use App\Http\Controllers\Admin\MemberController;
@@ -53,5 +54,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('mail-settings', [MailSettingController::class, 'edit'])->name('mail-settings.edit');
         Route::put('mail-settings', [MailSettingController::class, 'update'])->name('mail-settings.update');
         Route::post('mail-settings/test', [MailSettingController::class, 'sendTest'])->name('mail-settings.test');
+        Route::get('checkin-settings', [CheckinSettingController::class, 'edit'])->name('checkin-settings.edit');
+        Route::put('checkin-settings', [CheckinSettingController::class, 'update'])->name('checkin-settings.update');
     });
 });

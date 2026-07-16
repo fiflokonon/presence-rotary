@@ -62,6 +62,10 @@
                     class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.mail-settings.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
                     Paramètres mail
                 </a>
+                <a href="{{ route('admin.checkin-settings.edit') }}" @click="close()"
+                    class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.checkin-settings.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
+                    Paramètres formulaire
+                </a>
                 <a href="{{ route('admin.members.index') }}" @click="close()"
                     class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.members.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
                     Membres
