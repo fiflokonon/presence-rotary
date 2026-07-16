@@ -38,7 +38,7 @@
         class="contents"
     >
         <div class="flex flex-col gap-1.5">
-            <label for="title_id" class="text-sm font-semibold text-[#12213D]">Titre*</label>
+            <label for="title_id" class="text-sm font-semibold text-[#12213D]">Organisation*</label>
             <select x-model="titleId" id="title_id" name="title_id" required
                 class="rounded-lg border border-[#DEDAD0] px-3 py-2 text-sm">
                 <option value="">Sélectionnez…</option>

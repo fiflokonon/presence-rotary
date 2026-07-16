@@ -23,7 +23,7 @@
                 <thead>
                     <tr>
                         <th>Nom</th>
-                        <th>Titre</th>
+                        <th>Organisation</th>
                         <th>Club</th>
                         <th>Téléphone</th>
                         <th>Présent</th>

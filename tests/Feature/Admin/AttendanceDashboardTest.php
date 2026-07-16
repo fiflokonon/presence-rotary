@@ -78,7 +78,7 @@ it('exposes a title/qualité filter listing the titles present in the roster', f
         ->get(route('admin.sessions.show', $meetingSession))
         ->assertOk()
         ->assertSee('x-model="activeTitle"', false)
-        ->assertSee('Tous les titres')
+        ->assertSee('Toutes les organisations')
         ->assertSee('Rotary')
         ->assertSee('Invité');
 });

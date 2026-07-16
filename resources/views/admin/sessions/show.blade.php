@@ -132,7 +132,7 @@
                 class="w-full max-w-[280px] rounded-full border border-border px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy">
             <select x-model="activeTitle"
                 class="cursor-pointer rounded-lg border border-border px-3 py-2 text-sm">
-                <option value="all">Tous les titres</option>
+                <option value="all">Toutes les organisations</option>
                 <template x-for="option in titleOptions" :key="option">
                     <option :value="option" x-text="option"></option>
                 </template>

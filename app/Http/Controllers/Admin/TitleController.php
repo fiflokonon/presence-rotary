@@ -71,7 +71,7 @@ class TitleController extends Controller
             $title->delete();
         } catch (QueryException) {
             return redirect()->route('admin.titles.index')
-                ->with('error', 'Ce titre est utilisé par des membres ou des présences existantes — désactivez-le plutôt que de le supprimer.');
+                ->with('error', 'Cette organisation est utilisée par des membres ou des présences existantes — désactivez-la plutôt que de la supprimer.');
         }
 
         return redirect()->route('admin.titles.index');

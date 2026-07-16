@@ -20,7 +20,7 @@
                 class="contents"
             >
                 <div class="flex flex-col gap-1.5">
-                    <label for="title_id" class="text-sm font-semibold">Titre</label>
+                    <label for="title_id" class="text-sm font-semibold">Organisation</label>
                     <select x-model="titleId" id="title_id" name="title_id" required
                         class="rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy">
                         <option value="">Sélectionnez…</option>

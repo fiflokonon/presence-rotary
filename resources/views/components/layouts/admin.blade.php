@@ -68,7 +68,7 @@
                 </a>
                 <a href="{{ route('admin.titles.index') }}" @click="close()"
                     class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.titles.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
-                    Titres
+                    Organisations
                 </a>
                 <a href="{{ route('admin.positions.index') }}" @click="close()"
                     class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.positions.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
