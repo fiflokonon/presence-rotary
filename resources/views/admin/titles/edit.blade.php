@@ -22,7 +22,7 @@
                 </select>
             </div>
             <div class="flex flex-col gap-1.5">
-                <span class="text-sm font-semibold">Postes liés</span>
+                <span class="text-sm font-semibold">Titres/Qualités liés</span>
                 <div class="flex flex-col gap-1.5 rounded-lg border border-border p-3">
                     @foreach ($positions as $position)
                         <label class="flex items-center gap-2 text-sm">

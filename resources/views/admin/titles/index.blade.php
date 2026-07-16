@@ -20,7 +20,7 @@
                     <tr class="border-b border-divider text-muted-strong">
                         <th class="py-2 pr-4 font-semibold">Nom</th>
                         <th class="py-2 pr-4 font-semibold">Catégorie</th>
-                        <th class="py-2 pr-4 font-semibold">Postes liés</th>
+                        <th class="py-2 pr-4 font-semibold">Titres/Qualités liés</th>
                         <th class="py-2 pr-4 font-semibold">Statut</th>
                         <th class="py-2 pr-4 font-semibold"></th>
                     </tr>

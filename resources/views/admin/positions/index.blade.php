@@ -1,10 +1,10 @@
-<x-layouts.admin title="Postes — Administration">
+<x-layouts.admin title="Titres/Qualités — Administration">
     <div class="rounded-2xl bg-white p-6 shadow-[0_2px_10px_rgba(20,30,50,.06)] md:p-8">
         <div class="flex items-center justify-between gap-3">
-            <h1 class="font-display text-xl font-extrabold text-navy">Postes</h1>
+            <h1 class="font-display text-xl font-extrabold text-navy">Titres/Qualités</h1>
             <a href="{{ route('admin.positions.create') }}"
                 class="cursor-pointer rounded-lg bg-navy px-4 py-2.5 text-sm font-bold text-white hover:bg-navy-hover">
-                Ajouter un poste
+                Ajouter un titre/qualité
             </a>
         </div>
 
@@ -45,7 +45,7 @@
                                         </button>
                                     </form>
                                     <form method="POST" action="{{ route('admin.positions.destroy', $position) }}"
-                                        onsubmit="return confirm('Supprimer définitivement ce poste ?');">
+                                        onsubmit="return confirm('Supprimer définitivement ce titre/qualité ?');">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="cursor-pointer text-sm font-semibold text-error underline">

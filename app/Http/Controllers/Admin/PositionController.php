@@ -56,7 +56,7 @@ class PositionController extends Controller
             $position->delete();
         } catch (QueryException) {
             return redirect()->route('admin.positions.index')
-                ->with('error', 'Ce poste est utilisé par des membres ou des présences existantes — désactivez-le plutôt que de le supprimer.');
+                ->with('error', 'Ce titre/qualité est utilisé par des membres ou des présences existantes — désactivez-le plutôt que de le supprimer.');
         }
 
         return redirect()->route('admin.positions.index');

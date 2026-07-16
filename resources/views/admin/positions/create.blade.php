@@ -1,6 +1,6 @@
-<x-layouts.admin title="Ajouter un poste — Administration">
+<x-layouts.admin title="Ajouter un titre/qualité — Administration">
     <div class="rounded-2xl bg-white p-6 shadow-[0_2px_10px_rgba(20,30,50,.06)] md:p-8">
-        <h1 class="font-display text-xl font-extrabold text-navy">Ajouter un poste</h1>
+        <h1 class="font-display text-xl font-extrabold text-navy">Ajouter un titre/qualité</h1>
 
         <form method="POST" action="{{ route('admin.positions.store') }}" class="mt-4 flex max-w-md flex-col gap-3">
             @csrf
@@ -11,7 +11,7 @@
             </div>
             <button type="submit"
                 class="mt-2 cursor-pointer self-start rounded-lg bg-navy px-4 py-2.5 text-sm font-bold text-white hover:bg-navy-hover">
-                Créer le poste
+                Créer le titre/qualité
             </button>
         </form>
 

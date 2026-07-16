@@ -31,7 +31,7 @@
                 </div>
 
                 <div class="flex flex-col gap-1.5" x-show="availablePositions.length > 0">
-                    <label for="position_id" class="text-sm font-semibold">Poste / Qualité</label>
+                    <label for="position_id" class="text-sm font-semibold">Titre/Qualité</label>
                     <select x-model="positionId" id="position_id" name="position_id" :required="availablePositions.length > 0"
                         class="rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy">
                         <option value="">Sélectionnez…</option>
