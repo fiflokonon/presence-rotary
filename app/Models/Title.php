@@ -16,7 +16,7 @@ class Title extends Model
 
     public const GUEST_NAME = 'Invité';
 
-    protected $fillable = ['name', 'category', 'is_active'];
+    protected $fillable = ['name', 'category', 'is_active', 'order'];
 
     /**
      * @return array<string, string>

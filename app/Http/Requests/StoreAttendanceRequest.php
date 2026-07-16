@@ -28,6 +28,7 @@ class StoreAttendanceRequest extends FormRequest
             'phone' => ['required', 'string', 'max:50'],
             'classification' => ['nullable', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
+            'has_misc' => ['nullable', 'boolean'],
         ];
     }
 

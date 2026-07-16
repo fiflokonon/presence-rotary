@@ -11,6 +11,7 @@
             'categoryLabel' => $attendance->category->label(),
             'present' => $attendance->present,
             'isLate' => $attendance->is_late,
+            'hasMisc' => $attendance->has_misc,
         ])))"
         class="rounded-2xl bg-white shadow-[0_2px_10px_rgba(20,30,50,.06)]"
     >
@@ -145,6 +146,16 @@
                     :class="activeCategory === '{{ $category->value }}' ? 'bg-navy text-white' : 'border border-border text-navy'"
                     class="cursor-pointer rounded-full px-3 py-2 text-xs font-semibold md:py-1.5">{{ $category->label() }}</button>
             @endforeach
+            <span class="h-6 w-px bg-divider md:mx-1"></span>
+            <button type="button" @click="activeMiscFilter = 'all'"
+                :class="activeMiscFilter === 'all' ? 'bg-navy text-white' : 'border border-border text-navy'"
+                class="cursor-pointer rounded-full px-3 py-2 text-xs font-semibold md:py-1.5">Tous (divers)</button>
+            <button type="button" @click="activeMiscFilter = 'yes'"
+                :class="activeMiscFilter === 'yes' ? 'bg-navy text-white' : 'border border-border text-navy'"
+                class="cursor-pointer rounded-full px-3 py-2 text-xs font-semibold md:py-1.5">Avec divers</button>
+            <button type="button" @click="activeMiscFilter = 'no'"
+                :class="activeMiscFilter === 'no' ? 'bg-navy text-white' : 'border border-border text-navy'"
+                class="cursor-pointer rounded-full px-3 py-2 text-xs font-semibold md:py-1.5">Sans divers</button>
         </div>
 
         <div class="max-h-[520px] overflow-y-auto px-4 pb-8 md:px-8">
@@ -160,6 +171,7 @@
                                     <p class="text-[12.5px] text-muted-strong">
                                         <span x-text="record.title + (record.position ? ' — ' + record.position : '') + ' · ' + record.club"></span>
                                         <span x-show="record.isLate" class="font-bold text-gold"> · marqué en retard</span>
+                                        <span x-show="record.hasMisc" class="font-bold text-navy"> · divers</span>
                                     </p>
                                     <p class="mt-0.5 font-mono text-xs text-muted-strong sm:hidden" x-text="record.phone"></p>
                                 </div>

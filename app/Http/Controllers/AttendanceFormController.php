@@ -103,6 +103,7 @@ class AttendanceFormController extends Controller
                     );
             })
             ->with(['positions' => fn ($query) => $query->activeOrId($member?->position_id)])
+            ->orderBy('order')
             ->orderBy('name')
             ->get();
 

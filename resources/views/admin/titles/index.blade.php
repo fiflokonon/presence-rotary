@@ -21,6 +21,7 @@
                         <th class="py-2 pr-4 font-semibold">Nom</th>
                         <th class="py-2 pr-4 font-semibold">Catégorie</th>
                         <th class="py-2 pr-4 font-semibold">Titres/Qualités liés</th>
+                        <th class="py-2 pr-4 font-semibold">Ordre</th>
                         <th class="py-2 pr-4 font-semibold">Statut</th>
                         <th class="py-2 pr-4 font-semibold"></th>
                     </tr>
@@ -31,6 +32,24 @@
                             <td class="py-3 pr-4 font-semibold text-navy">{{ $title->name }}</td>
                             <td class="py-3 pr-4">{{ $title->category->label() }}</td>
                             <td class="py-3 pr-4">{{ $title->positions_count }}</td>
+                            <td class="py-3 pr-4">
+                                <div class="flex items-center gap-2">
+                                    <form method="POST" action="{{ route('admin.titles.move-order', [$title, 'up']) }}" class="inline">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" class="cursor-pointer text-lg leading-none text-muted hover:text-navy" title="Déplacer vers le haut">
+                                            ↑
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{{ route('admin.titles.move-order', [$title, 'down']) }}" class="inline">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" class="cursor-pointer text-lg leading-none text-muted hover:text-navy" title="Déplacer vers le bas">
+                                            ↓
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
                             <td class="py-3 pr-4">
                                 <span class="rounded-full px-2 py-1 text-xs font-semibold {{ $title->is_active ? 'bg-success-bg text-success' : 'bg-divider text-muted' }}">
                                     {{ $title->is_active ? 'Actif' : 'Inactif' }}

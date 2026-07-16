@@ -18,6 +18,7 @@ class TitleController extends Controller
         return view('admin.titles.index', [
             'titles' => Title::withCount('positions')
                 ->where('name', '!=', Title::GUEST_NAME)
+                ->orderBy('order')
                 ->orderBy('name')
                 ->get(),
         ]);
@@ -70,6 +71,40 @@ class TitleController extends Controller
         abort_if($title->name === Title::GUEST_NAME, 404);
 
         $title->update(['is_active' => ! $title->is_active]);
+
+        return redirect()->route('admin.titles.index');
+    }
+
+    public function moveOrder(Title $title, string $direction): RedirectResponse
+    {
+        abort_if($title->name === Title::GUEST_NAME, 404);
+
+        $direction = strtolower($direction);
+        abort_if(! in_array($direction, ['up', 'down']), 404);
+
+        if ($direction === 'up') {
+            $swapWith = Title::where('order', '<', $title->order ?? PHP_INT_MAX)
+                ->where('name', '!=', Title::GUEST_NAME)
+                ->orderByDesc('order')
+                ->first();
+
+            if ($swapWith !== null) {
+                $tempOrder = $title->order;
+                $title->update(['order' => $swapWith->order]);
+                $swapWith->update(['order' => $tempOrder]);
+            }
+        } else {
+            $swapWith = Title::where('order', '>', $title->order ?? -1)
+                ->where('name', '!=', Title::GUEST_NAME)
+                ->orderBy('order')
+                ->first();
+
+            if ($swapWith !== null) {
+                $tempOrder = $title->order;
+                $title->update(['order' => $swapWith->order]);
+                $swapWith->update(['order' => $tempOrder]);
+            }
+        }
 
         return redirect()->route('admin.titles.index');
     }

@@ -16,7 +16,7 @@ class Attendance extends Model
 
     protected $fillable = [
         'meeting_session_id', 'member_id', 'title_id', 'position_id', 'invited_by', 'name', 'club', 'phone',
-        'classification', 'email', 'present', 'is_late',
+        'classification', 'email', 'present', 'is_late', 'has_misc',
     ];
 
     /**
@@ -27,6 +27,7 @@ class Attendance extends Model
         return [
             'present' => 'boolean',
             'is_late' => 'boolean',
+            'has_misc' => 'boolean',
         ];
     }
 

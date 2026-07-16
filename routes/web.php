@@ -43,6 +43,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('titles/{title}/edit', [TitleController::class, 'edit'])->name('titles.edit');
         Route::put('titles/{title}', [TitleController::class, 'update'])->name('titles.update');
         Route::patch('titles/{title}/toggle-active', [TitleController::class, 'toggleActive'])->name('titles.toggle-active');
+        Route::patch('titles/{title}/move-order/{direction}', [TitleController::class, 'moveOrder'])->name('titles.move-order');
         Route::delete('titles/{title}', [TitleController::class, 'destroy'])->name('titles.destroy');
         Route::get('positions', [PositionController::class, 'index'])->name('positions.index');
         Route::get('positions/create', [PositionController::class, 'create'])->name('positions.create');

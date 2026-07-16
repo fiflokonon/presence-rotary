@@ -93,6 +93,22 @@
             class="rounded-lg border border-[#DEDAD0] px-3 py-2 text-sm">
     </div>
 
+    <div class="flex flex-col gap-2">
+        <label class="text-sm font-semibold text-[#12213D]">Avez-vous un divers ?</label>
+        <div class="flex gap-3">
+            <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="has_misc" value="0" class="cursor-pointer"
+                    {{ old('has_misc', '0') === '0' ? 'checked' : '' }}>
+                <span class="text-sm text-[#12213D]">Non</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="has_misc" value="1" class="cursor-pointer"
+                    {{ old('has_misc') === '1' ? 'checked' : '' }}>
+                <span class="text-sm text-[#12213D]">Oui</span>
+            </label>
+        </div>
+    </div>
+
     <button type="submit"
         class="rounded-lg bg-[#12213D] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#1c3559]">
         Envoyer
