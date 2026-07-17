@@ -51,6 +51,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('positions/{position}/edit', [PositionController::class, 'edit'])->name('positions.edit');
         Route::put('positions/{position}', [PositionController::class, 'update'])->name('positions.update');
         Route::patch('positions/{position}/toggle-active', [PositionController::class, 'toggleActive'])->name('positions.toggle-active');
+        Route::patch('positions/{position}/move-order/{direction}', [PositionController::class, 'moveOrder'])->name('positions.move-order');
         Route::delete('positions/{position}', [PositionController::class, 'destroy'])->name('positions.destroy');
         Route::get('mail-settings', [MailSettingController::class, 'edit'])->name('mail-settings.edit');
         Route::put('mail-settings', [MailSettingController::class, 'update'])->name('mail-settings.update');

@@ -82,3 +82,107 @@ it('blocks deleting a position referenced by an attendance with a friendly messa
 
     expect(Position::find($position->id))->not->toBeNull();
 });
+
+it('creates a position with the next order value appended at the end', function () {
+    // Clear seeded positions to test with clean slate
+    Position::query()->delete();
+
+    Position::factory()->create(['order' => 5]);
+
+    $this->actingAs(User::factory()->create())
+        ->post(route('admin.positions.store'), ['name' => 'Porte-étendard']);
+
+    expect(Position::where('name', 'Porte-étendard')->sole()->order)->toBe(6);
+});
+
+it('lists positions ordered by their order value rather than name', function () {
+    // Clear seeded positions to test with clean slate
+    Position::query()->delete();
+
+    Position::factory()->create(['name' => 'Zed', 'order' => 0]);
+    Position::factory()->create(['name' => 'Alpha', 'order' => 1]);
+
+    $response = $this->actingAs(User::factory()->create())
+        ->get(route('admin.positions.index'));
+
+    $response->assertOk();
+    $content = $response->getContent();
+
+    expect(strpos($content, 'Zed'))->toBeLessThan(strpos($content, 'Alpha'));
+});
+
+it('moves a position up, swapping order with the previous one', function () {
+    // Clear seeded positions to test with clean slate
+    Position::query()->delete();
+
+    $first = Position::factory()->create(['order' => 0]);
+    $second = Position::factory()->create(['order' => 1]);
+
+    $this->actingAs(User::factory()->create())
+        ->patch(route('admin.positions.move-order', [$second, 'up']))
+        ->assertRedirect(route('admin.positions.index'));
+
+    expect($second->fresh()->order)->toBe(0)
+        ->and($first->fresh()->order)->toBe(1);
+});
+
+it('moves a position down, swapping order with the next one', function () {
+    // Clear seeded positions to test with clean slate
+    Position::query()->delete();
+
+    $first = Position::factory()->create(['order' => 0]);
+    $second = Position::factory()->create(['order' => 1]);
+
+    $this->actingAs(User::factory()->create())
+        ->patch(route('admin.positions.move-order', [$first, 'down']))
+        ->assertRedirect(route('admin.positions.index'));
+
+    expect($first->fresh()->order)->toBe(1)
+        ->and($second->fresh()->order)->toBe(0);
+});
+
+it('does nothing when moving the first position up', function () {
+    // Clear seeded positions to test with clean slate
+    Position::query()->delete();
+
+    $first = Position::factory()->create(['order' => 0]);
+    Position::factory()->create(['order' => 1]);
+
+    $this->actingAs(User::factory()->create())
+        ->patch(route('admin.positions.move-order', [$first, 'up']))
+        ->assertRedirect(route('admin.positions.index'));
+
+    expect($first->fresh()->order)->toBe(0);
+});
+
+it('assigns an order to a position with a null order before moving it', function () {
+    // Clear seeded positions to test with clean slate
+    Position::query()->delete();
+
+    $position = Position::factory()->create(['order' => null]);
+    Position::factory()->create(['order' => 0]);
+
+    $this->actingAs(User::factory()->create())
+        ->patch(route('admin.positions.move-order', [$position, 'up']))
+        ->assertRedirect(route('admin.positions.index'));
+
+    expect($position->fresh()->order)->not->toBeNull();
+});
+
+it('rejects an invalid move direction', function () {
+    // Clear seeded positions to test with clean slate
+    Position::query()->delete();
+
+    $position = Position::factory()->create(['order' => 0]);
+
+    $this->actingAs(User::factory()->create())
+        ->patch(route('admin.positions.move-order', [$position, 'sideways']))
+        ->assertNotFound();
+});
+
+it('requires authentication to move a positions order', function () {
+    $position = Position::factory()->create();
+
+    $this->patch(route('admin.positions.move-order', [$position, 'up']))
+        ->assertRedirect(route('admin.login'));
+});

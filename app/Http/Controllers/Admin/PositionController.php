@@ -15,7 +15,7 @@ class PositionController extends Controller
     public function index(): View
     {
         return view('admin.positions.index', [
-            'positions' => Position::orderBy('name')->get(),
+            'positions' => Position::orderBy('order')->orderBy('name')->get(),
         ]);
     }
 
@@ -26,7 +26,10 @@ class PositionController extends Controller
 
     public function store(StorePositionRequest $request): RedirectResponse
     {
-        Position::create($request->validated());
+        $maxOrder = Position::max('order');
+        $nextOrder = $maxOrder === null ? 0 : $maxOrder + 1;
+
+        Position::create([...$request->validated(), 'order' => $nextOrder]);
 
         return redirect()->route('admin.positions.index');
     }
@@ -46,6 +49,32 @@ class PositionController extends Controller
     public function toggleActive(Position $position): RedirectResponse
     {
         $position->update(['is_active' => ! $position->is_active]);
+
+        return redirect()->route('admin.positions.index');
+    }
+
+    public function moveOrder(Position $position, string $direction): RedirectResponse
+    {
+        if ($position->order === null) {
+            $maxOrder = Position::max('order');
+            $position->update(['order' => ($maxOrder === null ? 0 : $maxOrder + 1)]);
+            $position->refresh();
+        }
+
+        $direction = strtolower($direction);
+        abort_if(! in_array($direction, ['up', 'down']), 404);
+
+        if ($direction === 'up') {
+            $swapWith = Position::where('order', '<', $position->order)->orderByDesc('order')->first();
+        } else {
+            $swapWith = Position::where('order', '>', $position->order)->orderBy('order')->first();
+        }
+
+        if ($swapWith !== null) {
+            $tempOrder = $position->order;
+            $position->update(['order' => $swapWith->order]);
+            $swapWith->update(['order' => $tempOrder]);
+        }
 
         return redirect()->route('admin.positions.index');
     }
