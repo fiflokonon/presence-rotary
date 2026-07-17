@@ -96,6 +96,7 @@ class MeetingSessionController extends Controller
         $pdf = Pdf::loadView('admin.sessions.pdf', [
             'meetingSession' => $meetingSession,
             'attendances' => $meetingSession->attendances()->with(['title', 'position'])->get(),
+            'groupLabels' => [...$this->principalTitles()->pluck('name')->all(), Title::OTHER_ORGANIZATIONS_LABEL],
         ]);
 
         $filename = $meetingSession->date->translatedFormat('Y-m-d').' - '.$meetingSession->title.'.pdf';

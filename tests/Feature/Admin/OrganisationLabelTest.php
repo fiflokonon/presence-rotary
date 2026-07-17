@@ -45,6 +45,7 @@ it('shows Organisation instead of Titre on the session PDF export header', funct
     $html = view('admin.sessions.pdf', [
         'meetingSession' => $meetingSession,
         'attendances' => $meetingSession->attendances()->with(['title', 'position'])->get(),
+        'groupLabels' => ['Rotary', 'Rotaract', Title::OTHER_ORGANIZATIONS_LABEL],
     ])->render();
 
     expect($html)->toContain('<th>Organisation</th>')

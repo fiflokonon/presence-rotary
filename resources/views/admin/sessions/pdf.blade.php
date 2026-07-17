@@ -15,10 +15,10 @@
     <h1>{{ $meetingSession->title }}</h1>
     <p class="subtitle">{{ $meetingSession->date->translatedFormat('d F Y') }} — RC Cotonou Ife, District 9103</p>
 
-    @foreach (\App\Enums\AttendanceCategory::cases() as $category)
-        @php $categoryAttendances = $attendances->filter(fn ($attendance) => $attendance->category === $category); @endphp
-        @if ($categoryAttendances->isNotEmpty())
-            <h2>{{ $category->label() }} ({{ $categoryAttendances->count() }})</h2>
+    @foreach ($groupLabels as $groupLabel)
+        @php $groupAttendances = $attendances->filter(fn ($attendance) => $attendance->groupLabel === $groupLabel); @endphp
+        @if ($groupAttendances->isNotEmpty())
+            <h2>{{ $groupLabel }} ({{ $groupAttendances->count() }})</h2>
             <table>
                 <thead>
                     <tr>
@@ -30,7 +30,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($categoryAttendances as $attendance)
+                    @foreach ($groupAttendances as $attendance)
                         <tr>
                             <td>{{ $attendance->name }}</td>
                             <td>{{ $attendance->title->name }}{{ $attendance->position ? ' — '.$attendance->position->name : '' }}</td>
