@@ -55,4 +55,9 @@ class Attendance extends Model
     {
         return Attribute::get(fn (): AttendanceCategory => $this->title->category);
     }
+
+    protected function groupLabel(): Attribute
+    {
+        return Attribute::get(fn (): string => $this->title->is_principal ? $this->title->name : Title::OTHER_ORGANIZATIONS_LABEL);
+    }
 }

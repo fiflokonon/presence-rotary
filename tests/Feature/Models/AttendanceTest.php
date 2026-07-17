@@ -33,3 +33,17 @@ it('casts present and is_late to booleans', function () {
     expect($attendance->present)->toBeTrue()
         ->and($attendance->is_late)->toBeFalse();
 });
+
+it('derives its group label from a principal titles own name', function () {
+    $title = Title::factory()->create(['is_principal' => true]);
+    $attendance = Attendance::factory()->create(['title_id' => $title->id]);
+
+    expect($attendance->groupLabel)->toBe($title->name);
+});
+
+it('derives its group label as Autres organisations for a non-principal title', function () {
+    $title = Title::factory()->create(['is_principal' => false]);
+    $attendance = Attendance::factory()->create(['title_id' => $title->id]);
+
+    expect($attendance->groupLabel)->toBe(Title::OTHER_ORGANIZATIONS_LABEL);
+});
