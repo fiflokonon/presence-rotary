@@ -47,3 +47,9 @@ it('links JCI to the five generic officer positions', function () {
     expect($jci->positions()->pluck('name')->sort()->values()->all())
         ->toBe(['Membre', 'Président', 'Secrétaire', 'Trésorier', 'Vice-Président']);
 });
+
+it('assigns the seeded positions a hierarchical order matching alphabetical sort', function () {
+    $expected = Position::query()->orderBy('name')->pluck('name')->all();
+
+    expect(Position::query()->orderBy('order')->pluck('name')->all())->toBe($expected);
+});

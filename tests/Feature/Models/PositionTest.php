@@ -39,3 +39,9 @@ it('activeOrId with a null id behaves like active alone', function () {
     expect($ids)->toContain($active->id)
         ->and($ids)->not->toContain($inactive->id);
 });
+
+it('defaults order to null for a factory-created position', function () {
+    $position = Position::factory()->create();
+
+    expect($position->order)->toBeNull();
+});
