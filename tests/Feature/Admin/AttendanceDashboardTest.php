@@ -122,7 +122,7 @@ it('does not fragment the titre filter by poste', function () {
 
     $response->assertOk();
 
-    preg_match("/attendanceDashboard\(JSON\.parse\('(.+?)'\)\)/s", $response->getContent(), $matches);
+    preg_match("/attendanceDashboard\(JSON\.parse\('(.+?)'\), JSON\.parse\('.+?'\)\)/s", $response->getContent(), $matches);
     $json = str_replace(chr(92).'u0022', '"', $matches[1]);
     $records = json_decode($json, true);
 
@@ -163,7 +163,7 @@ it('includes each attendances position order in the roster payload', function ()
 
     $response->assertOk();
 
-    preg_match("/attendanceDashboard\(JSON\.parse\('(.+?)'\)\)/s", $response->getContent(), $matches);
+    preg_match("/attendanceDashboard\(JSON\.parse\('(.+?)'\), JSON\.parse\('.+?'\)\)/s", $response->getContent(), $matches);
     $json = str_replace(chr(92).'u0022', '"', $matches[1]);
     $records = collect(json_decode($json, true))->keyBy('name');
 
@@ -179,4 +179,70 @@ it('exposes a sort-mode toggle button on the roster', function () {
         ->assertOk()
         ->assertSee('sortMode = sortMode', false)
         ->assertSee('x-show="sortMode === \'position\'"', false);
+});
+
+it('shows one stat tile per principal organisation plus an Autres organisations tile', function () {
+    $meetingSession = MeetingSession::factory()->create();
+    $rotary = Title::where('name', 'Rotary')->sole();
+    $jci = Title::where('name', 'JCI')->sole();
+
+    Attendance::factory()->for($meetingSession)->create(['title_id' => $rotary->id]);
+    Attendance::factory()->for($meetingSession)->create(['title_id' => $jci->id]);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.sessions.show', $meetingSession))
+        ->assertOk()
+        ->assertSee('Rotary')
+        ->assertSee('Rotaract')
+        ->assertSee(Title::OTHER_ORGANIZATIONS_LABEL);
+});
+
+it('exposes group quick-filter buttons instead of the old fixed category buttons', function () {
+    $meetingSession = MeetingSession::factory()->create();
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.sessions.show', $meetingSession))
+        ->assertOk()
+        ->assertSee('activeGroup = ', false)
+        ->assertDontSee('Bureau / Officiels')
+        ->assertDontSee('Rotaractiens');
+});
+
+it('includes each attendances group label in the roster payload', function () {
+    $meetingSession = MeetingSession::factory()->create();
+    $rotary = Title::where('name', 'Rotary')->sole();
+    $jci = Title::where('name', 'JCI')->sole();
+
+    Attendance::factory()->for($meetingSession)->create(['title_id' => $rotary->id, 'name' => 'Jean Dupont']);
+    Attendance::factory()->for($meetingSession)->create(['title_id' => $jci->id, 'name' => 'Awa Bello']);
+
+    $response = $this->actingAs(User::factory()->create())
+        ->get(route('admin.sessions.show', $meetingSession));
+
+    $response->assertOk();
+
+    preg_match("/attendanceDashboard\(JSON\.parse\('(.+?)'\), JSON\.parse\('(.+?)'\)\)/s", $response->getContent(), $matches);
+    $records = collect(json_decode(str_replace(chr(92).'u0022', '"', $matches[1]), true))->keyBy('name');
+
+    expect($records['Jean Dupont']['groupLabel'])->toBe('Rotary')
+        ->and($records['Awa Bello']['groupLabel'])->toBe(Title::OTHER_ORGANIZATIONS_LABEL);
+});
+
+it('orders roster groups with principal organisations first and Autres organisations last', function () {
+    $meetingSession = MeetingSession::factory()->create();
+    $expectedPrincipalOrder = Title::principal()->orderBy('order')->orderBy('name')->pluck('name')->all();
+
+    $response = $this->actingAs(User::factory()->create())
+        ->get(route('admin.sessions.show', $meetingSession));
+
+    $response->assertOk();
+
+    // No attendances are seeded, so the first constructor argument renders as a
+    // literal `[]` rather than `JSON.parse('[]')` (see Illuminate\Support\Js::
+    // convertJsonToJavaScriptExpression, which special-cases empty arrays/objects).
+    // Only the group-order argument matters here, so match its tail directly.
+    preg_match("/, JSON\.parse\('(.+?)'\)\)/s", $response->getContent(), $matches);
+    $groupLabels = json_decode(str_replace(chr(92).'u0022', '"', $matches[1]), true);
+
+    expect($groupLabels)->toBe([...$expectedPrincipalOrder, Title::OTHER_ORGANIZATIONS_LABEL]);
 });

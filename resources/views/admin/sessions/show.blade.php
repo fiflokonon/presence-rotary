@@ -8,12 +8,11 @@
             'positionOrder' => $attendance->position?->order,
             'club' => $attendance->club,
             'phone' => $attendance->phone,
-            'category' => $attendance->category->value,
-            'categoryLabel' => $attendance->category->label(),
+            'groupLabel' => $attendance->groupLabel,
             'present' => $attendance->present,
             'isLate' => $attendance->is_late,
             'hasMisc' => $attendance->has_misc,
-        ])))"
+        ])), @js(collect($groups)->pluck('label')))"
         class="rounded-2xl bg-white shadow-[0_2px_10px_rgba(20,30,50,.06)]"
     >
         <div class="border-b border-divider px-4 pb-5 pt-6 md:px-8 md:pt-7">
@@ -120,11 +119,11 @@
                 <p class="text-lg font-extrabold">{{ $attendances->where('present', true)->count() }}/{{ $attendances->count() }}</p>
                 <p class="text-xs">Présents ({{ $attendances->count() > 0 ? round($attendances->where('present', true)->count() / $attendances->count() * 100) : 0 }}%)</p>
             </div>
-            @foreach (\App\Enums\AttendanceCategory::cases() as $category)
-                @php $categoryCount = $attendances->filter(fn ($attendance) => $attendance->category === $category)->count(); @endphp
-                <div class="rounded-lg p-3" style="background-color: {{ $category->colors()['bg'] }}; color: {{ $category->colors()['accent'] }}">
-                    <p class="text-lg font-extrabold">{{ $categoryCount }}</p>
-                    <p class="text-xs">{{ $category->label() }}</p>
+            @foreach ($groups as $group)
+                @php $groupCount = $attendances->filter(fn ($attendance) => $attendance->groupLabel === $group['label'])->count(); @endphp
+                <div class="rounded-lg p-3" style="background-color: {{ $group['colors']['bg'] }}; color: {{ $group['colors']['accent'] }}">
+                    <p class="text-lg font-extrabold">{{ $groupCount }}</p>
+                    <p class="text-xs">{{ $group['label'] }}</p>
                 </div>
             @endforeach
         </div>
@@ -139,13 +138,13 @@
                     <option :value="option" x-text="option"></option>
                 </template>
             </select>
-            <button type="button" @click="activeCategory = 'all'"
-                :class="activeCategory === 'all' ? 'bg-navy text-white' : 'border border-border text-navy'"
+            <button type="button" @click="activeGroup = 'all'"
+                :class="activeGroup === 'all' ? 'bg-navy text-white' : 'border border-border text-navy'"
                 class="cursor-pointer rounded-full px-3 py-2 text-xs font-semibold md:py-1.5">Tous</button>
-            @foreach (\App\Enums\AttendanceCategory::cases() as $category)
-                <button type="button" @click="activeCategory = '{{ $category->value }}'"
-                    :class="activeCategory === '{{ $category->value }}' ? 'bg-navy text-white' : 'border border-border text-navy'"
-                    class="cursor-pointer rounded-full px-3 py-2 text-xs font-semibold md:py-1.5">{{ $category->label() }}</button>
+            @foreach ($groups as $group)
+                <button type="button" @click="activeGroup = '{{ $group['label'] }}'"
+                    :class="activeGroup === '{{ $group['label'] }}' ? 'bg-navy text-white' : 'border border-border text-navy'"
+                    class="cursor-pointer rounded-full px-3 py-2 text-xs font-semibold md:py-1.5">{{ $group['label'] }}</button>
             @endforeach
             <span class="h-6 w-px bg-divider md:mx-1"></span>
             <button type="button" @click="activeMiscFilter = 'all'"
@@ -168,7 +167,7 @@
             <div x-show="sortMode === 'grouped'">
                 <template x-for="group in groups" :key="group.category">
                     <div class="mb-5">
-                        <p class="mb-2 text-xs font-semibold uppercase text-muted-strong" x-text="group.records[0].categoryLabel + ' (' + group.records.length + ')'"></p>
+                        <p class="mb-2 text-xs font-semibold uppercase text-muted-strong" x-text="group.category + ' (' + group.records.length + ')'"></p>
                         <template x-for="record in group.records" :key="record.id">
                             <x-attendance-row />
                         </template>

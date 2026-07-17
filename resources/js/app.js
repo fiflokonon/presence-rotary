@@ -3,10 +3,11 @@ import QRCode from 'qrcode';
 
 window.Alpine = Alpine;
 
-Alpine.data('attendanceDashboard', (records) => ({
+Alpine.data('attendanceDashboard', (records, groupOrder) => ({
     records,
+    groupOrder,
     search: '',
-    activeCategory: 'all',
+    activeGroup: 'all',
     activeTitle: 'all',
     activeMiscFilter: 'all',
     sortMode: 'grouped',
@@ -17,23 +18,21 @@ Alpine.data('attendanceDashboard', (records) => ({
         const search = this.search.toLowerCase();
 
         return this.records.filter((record) => {
-            const matchesCategory = this.activeCategory === 'all' || record.category === this.activeCategory;
+            const matchesGroup = this.activeGroup === 'all' || record.groupLabel === this.activeGroup;
             const matchesTitle = this.activeTitle === 'all' || record.title === this.activeTitle;
             const matchesSearch = record.name.toLowerCase().includes(search);
-            const matchesMisc = this.activeMiscFilter === 'all' || 
+            const matchesMisc = this.activeMiscFilter === 'all' ||
                 (this.activeMiscFilter === 'yes' && record.hasMisc) ||
                 (this.activeMiscFilter === 'no' && !record.hasMisc);
 
-            return matchesCategory && matchesTitle && matchesSearch && matchesMisc;
+            return matchesGroup && matchesTitle && matchesSearch && matchesMisc;
         });
     },
     get groups() {
-        const order = ['officials', 'members', 'rotaractors', 'guests'];
-
-        return order
-            .map((category) => ({
-                category,
-                records: this.sortByPosition(this.filtered.filter((record) => record.category === category)),
+        return this.groupOrder
+            .map((label) => ({
+                category: label,
+                records: this.sortByPosition(this.filtered.filter((record) => record.groupLabel === label)),
             }))
             .filter((group) => group.records.length > 0);
     },

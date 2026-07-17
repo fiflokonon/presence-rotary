@@ -8,7 +8,9 @@ use App\Http\Requests\ToggleMeetingSessionOpenRequest;
 use App\Mail\AttendanceThankYouMail;
 use App\Models\Attendance;
 use App\Models\MeetingSession;
+use App\Models\Title;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
@@ -85,6 +87,7 @@ class MeetingSessionController extends Controller
                 ->where('date', '>=', now()->toDateString())
                 ->orderBy('date')
                 ->get(),
+            'groups' => $this->buildGroups($this->principalTitles()),
         ]);
     }
 
@@ -99,5 +102,35 @@ class MeetingSessionController extends Controller
         $filename = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '', $filename);
 
         return $pdf->download($filename);
+    }
+
+    /**
+     * @return Collection<int, Title>
+     */
+    private function principalTitles(): Collection
+    {
+        return Title::principal()->orderBy('order')->orderBy('name')->get();
+    }
+
+    /**
+     * @param  Collection<int, Title>  $principalTitles
+     * @return array<int, array{label: string, colors: array{bg: string, accent: string}}>
+     */
+    private function buildGroups(Collection $principalTitles): array
+    {
+        $palette = [
+            ['bg' => '#EAF1FB', 'accent' => '#17458F'],
+            ['bg' => '#E7F5F1', 'accent' => '#0E7C66'],
+            ['bg' => '#FDF3E2', 'accent' => '#C77700'],
+        ];
+
+        $groups = $principalTitles->values()->map(fn (Title $title, int $index): array => [
+            'label' => $title->name,
+            'colors' => $palette[$index],
+        ])->all();
+
+        $groups[] = ['label' => Title::OTHER_ORGANIZATIONS_LABEL, 'colors' => ['bg' => '#F1EFEA', 'accent' => '#6B6558']];
+
+        return $groups;
     }
 }
