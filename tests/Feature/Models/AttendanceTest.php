@@ -1,16 +1,8 @@
 <?php
 
-use App\Enums\AttendanceCategory;
 use App\Models\Attendance;
 use App\Models\MeetingSession;
 use App\Models\Title;
-
-it('derives its category from its title', function () {
-    $title = Title::factory()->create(['category' => AttendanceCategory::Rotaractors]);
-    $attendance = Attendance::factory()->create(['title_id' => $title->id]);
-
-    expect($attendance->category)->toBe(AttendanceCategory::Rotaractors);
-});
 
 it('belongs to a title and an optional position', function () {
     $title = Title::factory()->create();

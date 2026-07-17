@@ -1,14 +1,7 @@
 <?php
 
-use App\Enums\AttendanceCategory;
 use App\Models\Position;
 use App\Models\Title;
-
-it('casts category to the AttendanceCategory enum', function () {
-    $title = Title::factory()->create(['category' => AttendanceCategory::Guests]);
-
-    expect($title->category)->toBe(AttendanceCategory::Guests);
-});
 
 it('can have many positions attached', function () {
     $title = Title::factory()->create();

@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Enums\AttendanceCategory;
 use App\Models\Title;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -20,7 +19,6 @@ class TitleFactory extends Factory
     {
         return [
             'name' => fake()->unique()->word(),
-            'category' => fake()->randomElement(AttendanceCategory::cases()),
             'is_active' => true,
             'is_principal' => false,
         ];

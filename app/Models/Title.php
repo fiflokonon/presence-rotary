@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\AttendanceCategory;
 use Database\Factories\TitleFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,7 +19,7 @@ class Title extends Model
 
     public const MAX_PRINCIPAL = 3;
 
-    protected $fillable = ['name', 'category', 'is_principal', 'is_active', 'order'];
+    protected $fillable = ['name', 'is_principal', 'is_active', 'order'];
 
     /**
      * @return array<string, string>
@@ -28,7 +27,6 @@ class Title extends Model
     protected function casts(): array
     {
         return [
-            'category' => AttendanceCategory::class,
             'is_active' => 'boolean',
             'is_principal' => 'boolean',
         ];

@@ -3,18 +3,6 @@
 use App\Models\Position;
 use App\Models\Title;
 
-it('seeds the starter titles with their categories', function () {
-    expect(Title::pluck('category', 'name')->map(fn ($category) => $category->value)->all())->toBe([
-        'Rotary' => 'members',
-        'Rotaract' => 'rotaractors',
-        'JCI' => 'guests',
-        'Lions' => 'guests',
-        'Inner Wheel' => 'guests',
-        'RRD' => 'guests',
-        'Invité' => 'guests',
-    ]);
-});
-
 it('seeds the starter positions', function () {
     // Sort both sides with the same PHP `sort()` call rather than hand-typing
     // an expected order — PHP's default string comparison is byte-wise, not

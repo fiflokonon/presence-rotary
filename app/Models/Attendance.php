@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\AttendanceCategory;
 use Database\Factories\AttendanceFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -49,11 +48,6 @@ class Attendance extends Model
     public function position(): BelongsTo
     {
         return $this->belongsTo(Position::class);
-    }
-
-    protected function category(): Attribute
-    {
-        return Attribute::get(fn (): AttendanceCategory => $this->title->category);
     }
 
     protected function groupLabel(): Attribute
