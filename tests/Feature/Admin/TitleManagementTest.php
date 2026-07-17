@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\AttendanceCategory;
 use App\Models\Member;
 use App\Models\Position;
 use App\Models\Title;
@@ -18,8 +17,8 @@ it('redirects guests to login for every title route', function () {
     $this->delete(route('admin.titles.destroy', $title))->assertRedirect(route('admin.login'));
 });
 
-it('lists titles with their category to an authenticated admin', function () {
-    Title::factory()->create(['name' => 'Zonta', 'category' => AttendanceCategory::Guests]);
+it('lists titles to an authenticated admin', function () {
+    Title::factory()->create(['name' => 'Zonta']);
 
     $this->actingAs(User::factory()->create())
         ->get(route('admin.titles.index'))
@@ -34,26 +33,75 @@ it('creates a title and links the selected positions', function () {
     $this->actingAs(User::factory()->create())
         ->post(route('admin.titles.store'), [
             'name' => 'Kiwanis',
-            'category' => AttendanceCategory::Guests->value,
             'position_ids' => [$president->id, $secretary->id],
         ])->assertRedirect(route('admin.titles.index'));
 
     $title = Title::where('name', 'Kiwanis')->sole();
-    expect($title->category)->toBe(AttendanceCategory::Guests)
-        ->and($title->positions()->pluck('id')->sort()->values()->all())
+    expect($title->positions()->pluck('id')->sort()->values()->all())
         ->toBe([$president->id, $secretary->id]);
+});
+
+it('creates a title flagged as principal', function () {
+    $this->actingAs(User::factory()->create())
+        ->post(route('admin.titles.store'), ['name' => 'Kiwanis', 'is_principal' => '1'])
+        ->assertRedirect(route('admin.titles.index'));
+
+    expect(Title::where('name', 'Kiwanis')->sole()->is_principal)->toBeTrue();
+});
+
+it('creates a title without flagging it as principal by default', function () {
+    $this->actingAs(User::factory()->create())
+        ->post(route('admin.titles.store'), ['name' => 'Kiwanis'])
+        ->assertRedirect(route('admin.titles.index'));
+
+    expect(Title::where('name', 'Kiwanis')->sole()->is_principal)->toBeFalse();
+});
+
+it('blocks flagging a 4th title as principal', function () {
+    Title::factory()->count(3)->create(['is_principal' => true]);
+
+    $response = $this->actingAs(User::factory()->create())
+        ->post(route('admin.titles.store'), ['name' => 'Kiwanis', 'is_principal' => '1']);
+
+    $response->assertSessionHasErrors(['is_principal']);
+    expect(Title::where('name', 'Kiwanis')->exists())->toBeFalse();
+});
+
+it('does not count a title against its own cap when updating it without changing the flag', function () {
+    // The seeded Rotary/Rotaract titles already carry is_principal = true; neutralize
+    // that baseline so this test's cap math starts from a clean slate.
+    Title::query()->update(['is_principal' => false]);
+
+    Title::factory()->count(2)->create(['is_principal' => true]);
+    $title = Title::factory()->create(['is_principal' => true]);
+
+    $this->actingAs(User::factory()->create())
+        ->put(route('admin.titles.update', $title), ['name' => $title->name, 'is_principal' => '1'])
+        ->assertRedirect(route('admin.titles.index'));
+
+    expect($title->fresh()->is_principal)->toBeTrue();
+});
+
+it('unflags a principal title on update when the checkbox is unchecked', function () {
+    $title = Title::factory()->create(['is_principal' => true]);
+
+    $this->actingAs(User::factory()->create())
+        ->put(route('admin.titles.update', $title), ['name' => $title->name])
+        ->assertRedirect(route('admin.titles.index'));
+
+    expect($title->fresh()->is_principal)->toBeFalse();
 });
 
 it('rejects a duplicate title name', function () {
     Title::factory()->create(['name' => 'Zonta']);
 
     $this->actingAs(User::factory()->create())
-        ->post(route('admin.titles.store'), ['name' => 'Zonta', 'category' => AttendanceCategory::Guests->value])
+        ->post(route('admin.titles.store'), ['name' => 'Zonta'])
         ->assertSessionHasErrors(['name']);
 });
 
 it('updates a title and replaces its linked positions', function () {
-    $title = Title::factory()->create(['category' => AttendanceCategory::Guests]);
+    $title = Title::factory()->create();
     $oldPosition = Position::factory()->create();
     $newPosition = Position::factory()->create();
     $title->positions()->attach($oldPosition);
@@ -61,12 +109,10 @@ it('updates a title and replaces its linked positions', function () {
     $this->actingAs(User::factory()->create())
         ->put(route('admin.titles.update', $title), [
             'name' => $title->name,
-            'category' => AttendanceCategory::Members->value,
             'position_ids' => [$newPosition->id],
         ])->assertRedirect(route('admin.titles.index'));
 
-    expect($title->fresh()->category)->toBe(AttendanceCategory::Members)
-        ->and($title->positions()->pluck('id')->all())->toBe([$newPosition->id]);
+    expect($title->positions()->pluck('id')->all())->toBe([$newPosition->id]);
 });
 
 it('toggles a titles active status', function () {
@@ -138,14 +184,13 @@ it('does not offer an inactive position not linked to a title being edited', fun
 });
 
 it('detaches an inactive linked position when unchecked on update', function () {
-    $title = Title::factory()->create(['category' => AttendanceCategory::Guests]);
+    $title = Title::factory()->create();
     $inactivePosition = Position::factory()->create(['is_active' => false]);
     $title->positions()->attach($inactivePosition);
 
     $this->actingAs(User::factory()->create())
         ->put(route('admin.titles.update', $title), [
             'name' => $title->name,
-            'category' => AttendanceCategory::Guests->value,
             'position_ids' => [],
         ])->assertRedirect(route('admin.titles.index'));
 
@@ -173,10 +218,8 @@ it('returns 404 when trying to update the Invité title', function () {
     $invite = Title::where('name', 'Invité')->sole();
 
     $this->actingAs(User::factory()->create())
-        ->put(route('admin.titles.update', $invite), [
-            'name' => 'Invité',
-            'category' => AttendanceCategory::Guests->value,
-        ])->assertNotFound();
+        ->put(route('admin.titles.update', $invite), ['name' => 'Invité'])
+        ->assertNotFound();
 });
 
 it('returns 404 when trying to toggle the Invité titles active state', function () {

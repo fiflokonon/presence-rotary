@@ -33,11 +33,14 @@ class TitleController extends Controller
 
     public function store(StoreTitleRequest $request): RedirectResponse
     {
-        // Compute next order value (append at the end)
         $maxOrder = Title::where('name', '!=', Title::GUEST_NAME)->max('order');
         $nextOrder = $maxOrder === null ? 0 : $maxOrder + 1;
 
-        $title = Title::create(array_merge($request->safe()->only(['name', 'category']), ['order' => $nextOrder]));
+        $title = Title::create([
+            ...$request->safe()->only(['name']),
+            'is_principal' => $request->boolean('is_principal'),
+            'order' => $nextOrder,
+        ]);
         $title->positions()->sync($request->input('position_ids', []));
 
         return redirect()->route('admin.titles.index');
@@ -64,7 +67,10 @@ class TitleController extends Controller
     {
         abort_if($title->name === Title::GUEST_NAME, 404);
 
-        $title->update($request->safe()->only(['name', 'category']));
+        $title->update([
+            ...$request->safe()->only(['name']),
+            'is_principal' => $request->boolean('is_principal'),
+        ]);
         $title->positions()->sync($request->input('position_ids', []));
 
         return redirect()->route('admin.titles.index');

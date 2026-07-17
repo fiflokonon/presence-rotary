@@ -19,7 +19,7 @@
                 <thead>
                     <tr class="border-b border-divider text-muted-strong">
                         <th class="py-2 pr-4 font-semibold">Nom</th>
-                        <th class="py-2 pr-4 font-semibold">Catégorie</th>
+                        <th class="py-2 pr-4 font-semibold">Principale</th>
                         <th class="py-2 pr-4 font-semibold">Titres/Qualités liés</th>
                         <th class="py-2 pr-4 font-semibold">Ordre</th>
                         <th class="py-2 pr-4 font-semibold">Statut</th>
@@ -30,7 +30,13 @@
                     @foreach ($titles as $title)
                         <tr>
                             <td class="py-3 pr-4 font-semibold text-navy">{{ $title->name }}</td>
-                            <td class="py-3 pr-4">{{ $title->category->label() }}</td>
+                            <td class="py-3 pr-4">
+                                @if ($title->is_principal)
+                                    <span class="rounded-full bg-success-bg px-2 py-1 text-xs font-semibold text-success">Oui</span>
+                                @else
+                                    <span class="text-muted">—</span>
+                                @endif
+                            </td>
                             <td class="py-3 pr-4">{{ $title->positions_count }}</td>
                             <td class="py-3 pr-4">
                                 <div class="flex items-center gap-2">

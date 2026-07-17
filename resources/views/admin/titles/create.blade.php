@@ -10,16 +10,10 @@
                     class="rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy">
             </div>
             <div class="flex flex-col gap-1.5">
-                <label for="category" class="text-sm font-semibold">Catégorie</label>
-                <select id="category" name="category" required
-                    class="rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy">
-                    <option value="">Sélectionnez…</option>
-                    @foreach (\App\Enums\AttendanceCategory::cases() as $categoryOption)
-                        <option value="{{ $categoryOption->value }}" @selected(old('category') === $categoryOption->value)>
-                            {{ $categoryOption->label() }}
-                        </option>
-                    @endforeach
-                </select>
+                <label class="flex items-center gap-2 text-sm font-semibold">
+                    <input type="checkbox" name="is_principal" value="1" @checked(old('is_principal'))>
+                    Organisation principale (comptée sur le tableau de bord)
+                </label>
             </div>
             <div class="flex flex-col gap-1.5">
                 <span class="text-sm font-semibold">Titres/Qualités liés</span>

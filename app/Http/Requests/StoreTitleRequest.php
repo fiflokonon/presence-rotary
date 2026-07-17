@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\AttendanceCategory;
+use App\Models\Title;
+use Closure;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreTitleRequest extends FormRequest
 {
@@ -20,7 +20,15 @@ class StoreTitleRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255', 'unique:titles,name'],
-            'category' => ['required', Rule::enum(AttendanceCategory::class)],
+            'is_principal' => ['boolean', function (string $attribute, mixed $value, Closure $fail): void {
+                if (! $value) {
+                    return;
+                }
+
+                if (Title::principal()->count() >= Title::MAX_PRINCIPAL) {
+                    $fail('Maximum '.Title::MAX_PRINCIPAL.' organisations principales — déflaggez-en une avant d\'en ajouter une nouvelle.');
+                }
+            }],
             'position_ids' => ['array'],
             'position_ids.*' => ['integer', 'exists:positions,id'],
         ];
