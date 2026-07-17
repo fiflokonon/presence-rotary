@@ -170,3 +170,13 @@ it('includes each attendances position order in the roster payload', function ()
     expect($records['Jean Dupont']['positionOrder'])->toBe(0)
         ->and($records['Awa Bello']['positionOrder'])->toBe(10);
 });
+
+it('exposes a sort-mode toggle button on the roster', function () {
+    $meetingSession = MeetingSession::factory()->create();
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.sessions.show', $meetingSession))
+        ->assertOk()
+        ->assertSee('sortMode = sortMode', false)
+        ->assertSee('x-show="sortMode === \'position\'"', false);
+});

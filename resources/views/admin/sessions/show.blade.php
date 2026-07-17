@@ -157,42 +157,79 @@
             <button type="button" @click="activeMiscFilter = 'no'"
                 :class="activeMiscFilter === 'no' ? 'bg-navy text-white' : 'border border-border text-navy'"
                 class="cursor-pointer rounded-full px-3 py-2 text-xs font-semibold md:py-1.5">Sans divers</button>
+            <span class="h-6 w-px bg-divider md:mx-1"></span>
+            <button type="button" @click="sortMode = sortMode === 'grouped' ? 'position' : 'grouped'"
+                class="cursor-pointer rounded-full border border-border px-3 py-2 text-xs font-semibold text-navy">
+                <span x-text="sortMode === 'grouped' ? 'Trier par poste' : 'Grouper par organisation'"></span>
+            </button>
         </div>
 
         <div class="max-h-[520px] overflow-y-auto px-4 pb-8 md:px-8">
-            <template x-for="group in groups" :key="group.category">
-                <div class="mb-5">
-                    <p class="mb-2 text-xs font-semibold uppercase text-muted-strong" x-text="group.records[0].categoryLabel + ' (' + group.records.length + ')'"></p>
-                    <template x-for="record in group.records" :key="record.id">
-                        <div class="flex flex-col gap-2 border-b border-divider py-2.5 sm:flex-row sm:items-center sm:justify-between">
-                            <div class="flex items-center gap-3">
-                                <div class="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full bg-divider text-xs font-bold" x-text="initials(record.name)"></div>
-                                <div>
-                                    <p class="text-[14.5px] font-semibold text-navy" x-text="record.name"></p>
-                                    <p class="text-[12.5px] text-muted-strong">
-                                        <span x-text="record.title + (record.position ? ' — ' + record.position : '') + ' · ' + record.club"></span>
-                                        <span x-show="record.isLate" class="font-bold text-gold"> · marqué en retard</span>
-                                        <span x-show="record.hasMisc" class="font-bold text-navy"> · divers</span>
-                                    </p>
-                                    <p class="mt-0.5 font-mono text-xs text-muted-strong sm:hidden" x-text="record.phone"></p>
+            <div x-show="sortMode === 'grouped'">
+                <template x-for="group in groups" :key="group.category">
+                    <div class="mb-5">
+                        <p class="mb-2 text-xs font-semibold uppercase text-muted-strong" x-text="group.records[0].categoryLabel + ' (' + group.records.length + ')'"></p>
+                        <template x-for="record in group.records" :key="record.id">
+                            <div class="flex flex-col gap-2 border-b border-divider py-2.5 sm:flex-row sm:items-center sm:justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full bg-divider text-xs font-bold" x-text="initials(record.name)"></div>
+                                    <div>
+                                        <p class="text-[14.5px] font-semibold text-navy" x-text="record.name"></p>
+                                        <p class="text-[12.5px] text-muted-strong">
+                                            <span x-text="record.title + (record.position ? ' — ' + record.position : '') + ' · ' + record.club"></span>
+                                            <span x-show="record.isLate" class="font-bold text-gold"> · marqué en retard</span>
+                                            <span x-show="record.hasMisc" class="font-bold text-navy"> · divers</span>
+                                        </p>
+                                        <p class="mt-0.5 font-mono text-xs text-muted-strong sm:hidden" x-text="record.phone"></p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between gap-3 sm:justify-end">
+                                    <span class="hidden font-mono text-sm text-muted-strong sm:inline" x-text="record.phone"></span>
+                                    <form method="POST" :action="'/admin/attendances/' + record.id + '/toggle-present'">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit"
+                                            :class="record.present ? 'bg-success-bg text-success' : 'border border-border text-muted'"
+                                            class="cursor-pointer rounded-lg px-3 py-1.5 text-xs font-semibold">
+                                            <span x-text="record.present ? 'Présent' : 'Marquer présent'"></span>
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
-                            <div class="flex items-center justify-between gap-3 sm:justify-end">
-                                <span class="hidden font-mono text-sm text-muted-strong sm:inline" x-text="record.phone"></span>
-                                <form method="POST" :action="'/admin/attendances/' + record.id + '/toggle-present'">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit"
-                                        :class="record.present ? 'bg-success-bg text-success' : 'border border-border text-muted'"
-                                        class="cursor-pointer rounded-lg px-3 py-1.5 text-xs font-semibold">
-                                        <span x-text="record.present ? 'Présent' : 'Marquer présent'"></span>
-                                    </button>
-                                </form>
+                        </template>
+                    </div>
+                </template>
+            </div>
+            <div x-show="sortMode === 'position'">
+                <template x-for="record in flatSorted" :key="record.id">
+                    <div class="flex flex-col gap-2 border-b border-divider py-2.5 sm:flex-row sm:items-center sm:justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full bg-divider text-xs font-bold" x-text="initials(record.name)"></div>
+                            <div>
+                                <p class="text-[14.5px] font-semibold text-navy" x-text="record.name"></p>
+                                <p class="text-[12.5px] text-muted-strong">
+                                    <span x-text="record.title + (record.position ? ' — ' + record.position : '') + ' · ' + record.club"></span>
+                                    <span x-show="record.isLate" class="font-bold text-gold"> · marqué en retard</span>
+                                    <span x-show="record.hasMisc" class="font-bold text-navy"> · divers</span>
+                                </p>
+                                <p class="mt-0.5 font-mono text-xs text-muted-strong sm:hidden" x-text="record.phone"></p>
                             </div>
                         </div>
-                    </template>
-                </div>
-            </template>
+                        <div class="flex items-center justify-between gap-3 sm:justify-end">
+                            <span class="hidden font-mono text-sm text-muted-strong sm:inline" x-text="record.phone"></span>
+                            <form method="POST" :action="'/admin/attendances/' + record.id + '/toggle-present'">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit"
+                                    :class="record.present ? 'bg-success-bg text-success' : 'border border-border text-muted'"
+                                    class="cursor-pointer rounded-lg px-3 py-1.5 text-xs font-semibold">
+                                    <span x-text="record.present ? 'Présent' : 'Marquer présent'"></span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </template>
+            </div>
         </div>
     </div>
 </x-layouts.admin>

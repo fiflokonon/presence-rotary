@@ -9,6 +9,7 @@ Alpine.data('attendanceDashboard', (records) => ({
     activeCategory: 'all',
     activeTitle: 'all',
     activeMiscFilter: 'all',
+    sortMode: 'grouped',
     get titleOptions() {
         return [...new Set(this.records.map((record) => record.title))].sort();
     },
@@ -35,6 +36,9 @@ Alpine.data('attendanceDashboard', (records) => ({
                 records: this.sortByPosition(this.filtered.filter((record) => record.category === category)),
             }))
             .filter((group) => group.records.length > 0);
+    },
+    get flatSorted() {
+        return this.sortByPosition(this.filtered);
     },
     sortByPosition(records) {
         return [...records].sort((a, b) => {
