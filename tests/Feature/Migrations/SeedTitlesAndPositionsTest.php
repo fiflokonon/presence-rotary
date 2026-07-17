@@ -53,3 +53,8 @@ it('assigns the seeded positions a hierarchical order matching alphabetical sort
 
     expect(Position::query()->orderBy('order')->pluck('name')->all())->toBe($expected);
 });
+
+it('flags Rotary and Rotaract as principal organisations', function () {
+    expect(Title::whereIn('name', ['Rotary', 'Rotaract'])->pluck('is_principal')->all())->toBe([true, true])
+        ->and(Title::where('name', 'JCI')->sole()->is_principal)->toBeFalse();
+});

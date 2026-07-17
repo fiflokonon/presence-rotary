@@ -16,7 +16,11 @@ class Title extends Model
 
     public const GUEST_NAME = 'Invité';
 
-    protected $fillable = ['name', 'category', 'is_active', 'order'];
+    public const OTHER_ORGANIZATIONS_LABEL = 'Autres organisations';
+
+    public const MAX_PRINCIPAL = 3;
+
+    protected $fillable = ['name', 'category', 'is_principal', 'is_active', 'order'];
 
     /**
      * @return array<string, string>
@@ -26,6 +30,7 @@ class Title extends Model
         return [
             'category' => AttendanceCategory::class,
             'is_active' => 'boolean',
+            'is_principal' => 'boolean',
         ];
     }
 
@@ -50,5 +55,10 @@ class Title extends Model
                 fn (Builder $q2) => $q2->orWhere('id', $id),
             );
         });
+    }
+
+    public function scopePrincipal(Builder $query): void
+    {
+        $query->where('is_principal', true);
     }
 }

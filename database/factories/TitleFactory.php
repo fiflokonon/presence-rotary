@@ -22,6 +22,7 @@ class TitleFactory extends Factory
             'name' => fake()->unique()->word(),
             'category' => fake()->randomElement(AttendanceCategory::cases()),
             'is_active' => true,
+            'is_principal' => false,
         ];
     }
 }

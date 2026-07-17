@@ -67,3 +67,19 @@ it('activeOrId with a null id behaves like active alone', function () {
     expect($ids)->toContain($active->id)
         ->and($ids)->not->toContain($inactive->id);
 });
+
+it('defaults is_principal to false', function () {
+    $title = Title::factory()->create();
+
+    expect($title->is_principal)->toBeFalse();
+});
+
+it('scopes to principal titles only', function () {
+    $principal = Title::factory()->create(['is_principal' => true]);
+    $other = Title::factory()->create(['is_principal' => false]);
+
+    $ids = Title::principal()->pluck('id');
+
+    expect($ids)->toContain($principal->id)
+        ->and($ids)->not->toContain($other->id);
+});
