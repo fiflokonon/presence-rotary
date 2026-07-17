@@ -186,3 +186,13 @@ it('requires authentication to move a positions order', function () {
     $this->patch(route('admin.positions.move-order', [$position, 'up']))
         ->assertRedirect(route('admin.login'));
 });
+
+it('shows up and down order controls on the positions index', function () {
+    $position = Position::factory()->create(['order' => 0]);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.positions.index'))
+        ->assertOk()
+        ->assertSee('action="'.route('admin.positions.move-order', [$position, 'up']).'"', false)
+        ->assertSee('action="'.route('admin.positions.move-order', [$position, 'down']).'"', false);
+});
