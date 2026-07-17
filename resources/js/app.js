@@ -32,9 +32,19 @@ Alpine.data('attendanceDashboard', (records) => ({
         return order
             .map((category) => ({
                 category,
-                records: this.filtered.filter((record) => record.category === category),
+                records: this.sortByPosition(this.filtered.filter((record) => record.category === category)),
             }))
             .filter((group) => group.records.length > 0);
+    },
+    sortByPosition(records) {
+        return [...records].sort((a, b) => {
+            const aOrder = a.positionOrder ?? Infinity;
+            const bOrder = b.positionOrder ?? Infinity;
+
+            if (aOrder !== bOrder) return aOrder - bOrder;
+
+            return a.name.localeCompare(b.name);
+        });
     },
     initials(name) {
         return name

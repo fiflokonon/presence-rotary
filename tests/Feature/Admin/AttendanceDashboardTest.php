@@ -138,3 +138,35 @@ it('shows a link back to the sessions list', function () {
         ->assertSee('Retour aux séances')
         ->assertSee('href="'.route('admin.sessions.index').'"', false);
 });
+
+it('includes each attendances position order in the roster payload', function () {
+    $meetingSession = MeetingSession::factory()->create();
+    $rotaryTitle = Title::where('name', 'Rotary')->sole();
+    $president = $rotaryTitle->positions()->where('name', 'Président')->sole();
+    $member = $rotaryTitle->positions()->where('name', 'Membre')->sole();
+    $president->update(['order' => 0]);
+    $member->update(['order' => 10]);
+
+    Attendance::factory()->for($meetingSession)->create([
+        'title_id' => $rotaryTitle->id,
+        'position_id' => $member->id,
+        'name' => 'Awa Bello',
+    ]);
+    Attendance::factory()->for($meetingSession)->create([
+        'title_id' => $rotaryTitle->id,
+        'position_id' => $president->id,
+        'name' => 'Jean Dupont',
+    ]);
+
+    $response = $this->actingAs(User::factory()->create())
+        ->get(route('admin.sessions.show', $meetingSession));
+
+    $response->assertOk();
+
+    preg_match("/attendanceDashboard\(JSON\.parse\('(.+?)'\)\)/s", $response->getContent(), $matches);
+    $json = str_replace(chr(92).'u0022', '"', $matches[1]);
+    $records = collect(json_decode($json, true))->keyBy('name');
+
+    expect($records['Jean Dupont']['positionOrder'])->toBe(0)
+        ->and($records['Awa Bello']['positionOrder'])->toBe(10);
+});

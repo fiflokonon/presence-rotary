@@ -5,6 +5,7 @@
             'name' => $attendance->name,
             'title' => $attendance->title->name,
             'position' => $attendance->position?->name,
+            'positionOrder' => $attendance->position?->order,
             'club' => $attendance->club,
             'phone' => $attendance->phone,
             'category' => $attendance->category->value,
