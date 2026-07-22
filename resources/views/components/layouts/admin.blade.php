@@ -1,4 +1,5 @@
-@props(['title' => 'Administration — RC Cotonou Ife'])
+@props(['title' => 'Administration — '.(\App\Models\ClubSetting::current()?->name ?? 'RC Cotonou Ife')])
+@php $clubSetting = \App\Models\ClubSetting::current(); @endphp
 <!doctype html>
 <html lang="fr" class="h-full">
 <head>
@@ -12,10 +13,10 @@
     <div x-data="adminShell()" class="flex min-h-full flex-col md:flex-row">
         <div class="flex items-center justify-between border-b border-divider bg-white px-4 py-3 md:hidden">
             <div class="flex items-center gap-2">
-                <div class="inline-flex items-center justify-center rounded-lg bg-[linear-gradient(135deg,#17A8E5_0%,#0B73C5_55%,#0A5CA6_100%)] p-1 shadow-[0_6px_14px_rgba(10,92,166,.3)]">
-                    <img src="{{ asset('assets/ife-logo.png') }}" alt="RC Cotonou Ife" class="h-8 w-8 object-contain">
+                <div class="inline-flex items-center justify-center rounded-lg p-1 shadow-[0_6px_14px_rgba(10,92,166,.3)]" style="background: linear-gradient(135deg, {{ $clubSetting->secondary_color }} 0%, {{ $clubSetting->primary_color }} 100%);">
+                    <img src="{{ $clubSetting->logoUrl() }}" alt="{{ $clubSetting->name }}" class="h-8 w-8 object-contain">
                 </div>
-                <span class="text-sm font-semibold text-navy">RC Cotonou Ife</span>
+                <span class="text-sm font-semibold text-navy">{{ $clubSetting->name }}</span>
             </div>
             <button type="button" @click="toggle()" aria-label="Ouvrir le menu"
                 class="cursor-pointer rounded-lg p-2 text-navy hover:bg-cream">
@@ -33,10 +34,10 @@
             class="fixed inset-y-0 left-0 z-40 flex w-60 flex-col border-r border-divider bg-white px-4 py-6 transition-transform duration-200 md:static md:translate-x-0"
         >
             <div class="hidden items-center gap-2 px-2 md:flex">
-                <div class="inline-flex items-center justify-center rounded-lg bg-[linear-gradient(135deg,#17A8E5_0%,#0B73C5_55%,#0A5CA6_100%)] p-1 shadow-[0_6px_14px_rgba(10,92,166,.3)]">
-                    <img src="{{ asset('assets/ife-logo.png') }}" alt="RC Cotonou Ife" class="h-10 w-10 object-contain">
+                <div class="inline-flex items-center justify-center rounded-lg p-1 shadow-[0_6px_14px_rgba(10,92,166,.3)]" style="background: linear-gradient(135deg, {{ $clubSetting->secondary_color }} 0%, {{ $clubSetting->primary_color }} 100%);">
+                    <img src="{{ $clubSetting->logoUrl() }}" alt="{{ $clubSetting->name }}" class="h-10 w-10 object-contain">
                 </div>
-                <span class="text-sm font-semibold text-navy">RC Cotonou Ife</span>
+                <span class="text-sm font-semibold text-navy">{{ $clubSetting->name }}</span>
             </div>
 
             <div class="flex items-center justify-between px-2 md:hidden">
