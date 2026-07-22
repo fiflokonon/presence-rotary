@@ -1,3 +1,4 @@
+@php $clubSetting = \App\Models\ClubSetting::current(); @endphp
 <!doctype html>
 <html lang="fr">
 <head>
@@ -11,22 +12,19 @@
             <td align="center">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px; background-color:#ffffff; border-radius:12px; overflow:hidden;">
                     <tr>
-                        <td style="background-color:#0073C4; padding:24px; text-align:center;">
-                            <img src="{{ asset('assets/ife-logo.png') }}" alt="RC Cotonou Ife" width="140" style="display:block; height:auto; width:140px; margin:0 auto;">
-                            <p style="margin:16px 0 0; color:#ffffff; font-size:16px; font-weight:bold;">RC Cotonou Ife</p>
-                            <p style="margin:4px 0 0; color:#F2B94D; font-size:11px; letter-spacing:0.05em; text-transform:uppercase;">District 9103</p>
-                        </td>
+                        <x-mail.header :club-setting="$clubSetting" />
                     </tr>
                     <tr>
                         <td style="padding:32px 24px;">
                             <p style="margin:0 0 16px; font-size:15px; line-height:1.6;">
-                                Ceci est un mail de test envoyé depuis les paramètres mail de l'administration RC Cotonou Ife.
+                                Ceci est un mail de test envoyé depuis les paramètres mail de l'administration {{ $clubSetting->name }}.
                             </p>
                             <p style="margin:0; font-size:15px; line-height:1.6;">
                                 Si vous le recevez, la configuration fonctionne.
                             </p>
                         </td>
                     </tr>
+                    <x-mail.footer :club-setting="$clubSetting" />
                 </table>
             </td>
         </tr>

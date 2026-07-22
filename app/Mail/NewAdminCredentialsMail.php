@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Models\ClubSetting;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -22,7 +23,7 @@ class NewAdminCredentialsMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Vos identifiants d\'administration — RC Cotonou Ife',
+            subject: 'Vos identifiants d\'administration — '.(ClubSetting::current()?->name ?? 'RC Cotonou Ife'),
         );
     }
 

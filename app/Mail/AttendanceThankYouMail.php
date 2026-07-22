@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\Attendance;
+use App\Models\ClubSetting;
 use App\Models\MeetingSession;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -26,7 +27,7 @@ class AttendanceThankYouMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Merci pour votre présence — RC Cotonou Ife',
+            subject: 'Merci pour votre présence — '.(ClubSetting::current()?->name ?? 'RC Cotonou Ife'),
         );
     }
 
