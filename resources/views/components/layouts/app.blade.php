@@ -1,4 +1,4 @@
-@props(['title' => 'Liste de présence — RC Cotonou Ife'])
+@props(['title' => 'Liste de présence — '.(\App\Models\ClubSetting::current()?->name ?? 'RC Cotonou Ife')])
 <!doctype html>
 <html lang="fr" class="h-full">
 <head>
