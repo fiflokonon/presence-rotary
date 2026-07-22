@@ -58,6 +58,10 @@
                     class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.users.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
                     Administrateurs
                 </a>
+                <a href="{{ route('admin.club-settings.edit') }}" @click="close()"
+                    class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.club-settings.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
+                    Identité du club
+                </a>
                 <a href="{{ route('admin.mail-settings.edit') }}" @click="close()"
                     class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.mail-settings.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
                     Paramètres mail
