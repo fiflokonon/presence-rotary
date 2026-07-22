@@ -1,3 +1,6 @@
+@php
+    $clubSetting = \App\Models\ClubSetting::current();
+@endphp
 <!doctype html>
 <html lang="fr">
 <head>
@@ -9,11 +12,12 @@
         h2 { font-size: 13px; margin-top: 18px; margin-bottom: 4px; }
         table { width: 100%; border-collapse: collapse; }
         th, td { text-align: left; padding: 4px 6px; border-bottom: 1px solid #EDEAE2; font-size: 11px; }
+        .footer { margin-top: 18px; font-size: 10px; color: #6B6558; border-top: 1px solid #EDEAE2; padding-top: 8px; }
     </style>
 </head>
 <body>
     <h1>{{ $meetingSession->title }}</h1>
-    <p class="subtitle">{{ $meetingSession->date->translatedFormat('d F Y') }} — RC Cotonou Ife, District 9103</p>
+    <p class="subtitle">{{ $meetingSession->date->translatedFormat('d F Y') }} — {{ $clubSetting->name }}{{ $clubSetting->tagline ? ', '.$clubSetting->tagline : '' }}</p>
 
     @foreach ($groupLabels as $groupLabel)
         @php $groupAttendances = $attendances->filter(fn ($attendance) => $attendance->groupLabel === $groupLabel); @endphp
@@ -43,5 +47,17 @@
             </table>
         @endif
     @endforeach
+
+    @if ($clubSetting->hasContactInfo() || $clubSetting->hasSocialLinks())
+        <div class="footer">
+            @if ($clubSetting->address){{ $clubSetting->address }}@endif
+            @if ($clubSetting->address && ($clubSetting->phone || $clubSetting->email)) &middot; @endif
+            {{ collect([$clubSetting->phone, $clubSetting->email])->filter()->join(' · ') }}
+            @if ($clubSetting->hasSocialLinks())
+                <br>
+                {{ collect([$clubSetting->website, $clubSetting->facebook_url, $clubSetting->instagram_url])->filter()->join(' · ') }}
+            @endif
+        </div>
+    @endif
 </body>
 </html>
