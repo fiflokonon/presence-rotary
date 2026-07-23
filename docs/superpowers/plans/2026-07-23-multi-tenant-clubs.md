@@ -2065,12 +2065,12 @@ Expected: PASS (1 test).
 - [ ] **Step 9: Re-run Task 8's provisioning test (it depended on this route existing in the view)**
 
 Run: `php artisan test --compact tests/Feature/SuperAdmin/TenantProvisioningTest.php`
-Expected: PASS now, all 3 tests (the `index.blade.php` view's `route('super-admin.impersonate.start', ...)` call now resolves).
+Expected: still 2 of 3 passing, **not** 3 of 3 — `it('lists existing tenants', ...)` still fails, but now with a *different* `RouteNotFoundException`: `super-admin.dashboard`, not `super-admin.impersonate.start`. This isn't a regression from this task. `resources/views/components/layouts/super-admin.blade.php` (Task 7) already unconditionally calls `route('super-admin.dashboard')` in its nav bar whenever `@auth('super_admin')` is true — that route doesn't exist until Task 10. It stayed hidden until now purely because Blade renders a component's slot content (the `index.blade.php` table, with the `impersonate.start` call this task just fixed) before the parent layout's own markup (the nav bar) — so the *first* missing route always masked the second. Confirm the failure message specifically names `super-admin.dashboard`, not `super-admin.impersonate.start` (that would indicate this task's own fix didn't actually land). Task 10 resolves this for good.
 
 - [ ] **Step 10: Run the full suite**
 
 Run: `php artisan test --compact --testsuite=Unit,Feature`
-Expected: PASS.
+Expected: same one pre-existing failure as above (`super-admin.dashboard` missing), no other regressions.
 
 Run: `php artisan test --compact --testsuite=Tenancy`
 Expected: PASS (now covers Task 8's and this task's cross-tenant tests together).
