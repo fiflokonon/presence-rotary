@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\TitleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AttendanceFormController;
 use App\Http\Controllers\SuperAdmin\AuthController as SuperAdminAuthController;
+use App\Http\Controllers\SuperAdmin\ImpersonationController;
 use App\Http\Controllers\SuperAdmin\TenantController;
 use App\Http\Middleware\ResolveTenant;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +28,8 @@ Route::domain(config('tenancy.super_admin_host'))->prefix('superadmin')->name('s
         Route::get('tenants', [TenantController::class, 'index'])->name('tenants.index');
         Route::get('tenants/create', [TenantController::class, 'create'])->name('tenants.create');
         Route::post('tenants', [TenantController::class, 'store'])->name('tenants.store');
+        Route::post('tenants/{tenant}/impersonate', [ImpersonationController::class, 'start'])->name('impersonate.start');
+        Route::post('impersonate/stop', [ImpersonationController::class, 'stop'])->name('impersonate.stop');
     });
 });
 
@@ -41,7 +44,7 @@ Route::middleware(ResolveTenant::class)->group(function () {
             Route::post('login', [AuthController::class, 'store'])->name('login.store');
         });
 
-        Route::middleware('auth')->group(function () {
+        Route::middleware('auth:web,super_admin')->group(function () {
             Route::post('logout', [AuthController::class, 'destroy'])->name('logout');
             Route::get('sessions', [MeetingSessionController::class, 'index'])->name('sessions.index');
             Route::post('sessions', [MeetingSessionController::class, 'store'])->name('sessions.store');

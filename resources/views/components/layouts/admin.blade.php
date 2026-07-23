@@ -9,6 +9,15 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="h-full bg-cream font-sans text-navy antialiased">
+    @if (session()->has('impersonating_tenant_id'))
+        <div class="flex items-center justify-between bg-navy px-4 py-2 text-sm text-white">
+            <span>Vous consultez : {{ $clubSetting?->name ?? 'ce club' }}</span>
+            <form method="POST" action="{{ route('super-admin.impersonate.stop') }}">
+                @csrf
+                <button type="submit" class="cursor-pointer font-semibold underline">Quitter la vue</button>
+            </form>
+        </div>
+    @endif
     <x-page-loading-overlay />
     <div x-data="adminShell()" class="flex min-h-full flex-col md:flex-row">
         <div class="flex items-center justify-between border-b border-divider bg-white px-4 py-3 md:hidden">
