@@ -1,10 +1,18 @@
 <?php
 
 use App\Models\MailSetting;
-use App\Providers\AppServiceProvider;
+use App\Models\Tenant;
+use App\Services\TenantContext;
+
+function switchToTenantUsingCurrentSqliteFile(): void
+{
+    app(TenantContext::class)->use(
+        Tenant::factory()->make(['sqlite_path' => config('database.connections.sqlite.database')])
+    );
+}
 
 it('leaves the default mail config untouched when no MailSetting row exists', function () {
-    (new AppServiceProvider($this->app))->overrideMailConfigFromDatabase();
+    switchToTenantUsingCurrentSqliteFile();
 
     expect(config('mail.default'))->toBe('array')
         ->and(config('mail.mailers.smtp.host'))->toBe('127.0.0.1')
@@ -24,7 +32,7 @@ it('overrides the runtime mail config when a MailSetting row exists', function (
         'from_name' => 'Custom Sender',
     ]);
 
-    (new AppServiceProvider($this->app))->overrideMailConfigFromDatabase();
+    switchToTenantUsingCurrentSqliteFile();
 
     expect(config('mail.default'))->toBe('smtp')
         ->and(config('mail.mailers.smtp.host'))->toBe('smtp.custom.test')
@@ -47,7 +55,7 @@ it('maps tls encryption to the smtp scheme', function () {
         'from_name' => 'Custom Sender',
     ]);
 
-    (new AppServiceProvider($this->app))->overrideMailConfigFromDatabase();
+    switchToTenantUsingCurrentSqliteFile();
 
     expect(config('mail.mailers.smtp.scheme'))->toBe('smtp');
 });
@@ -63,7 +71,7 @@ it('maps null encryption to a null scheme', function () {
         'from_name' => 'Custom Sender',
     ]);
 
-    (new AppServiceProvider($this->app))->overrideMailConfigFromDatabase();
+    switchToTenantUsingCurrentSqliteFile();
 
     expect(config('mail.mailers.smtp.scheme'))->toBeNull();
 });
