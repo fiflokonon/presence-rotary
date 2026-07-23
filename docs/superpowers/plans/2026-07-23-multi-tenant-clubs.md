@@ -1518,7 +1518,7 @@ Expected: FAIL still on the redirect-target routes (`super-admin.tenants.index` 
 
 ```bash
 vendor/bin/pint --dirty --format agent
-git add app/Http/Controllers/SuperAdmin/AuthController.php app/Http/Requests/SuperAdmin/SuperAdminLoginRequest.php resources/views/super-admin/auth/login.blade.php resources/views/components/layouts/super-admin.blade.php routes/web.php tests/Feature/SuperAdmin/AuthTest.php
+git add app/Http/Controllers/SuperAdmin/AuthController.php app/Http/Requests/SuperAdmin/SuperAdminLoginRequest.php resources/views/super-admin/auth/login.blade.php resources/views/components/layouts/super-admin.blade.php routes/web.php tests/Pest.php tests/Feature/SuperAdmin/AuthTest.php
 git commit -m "feat: add super-admin authentication"
 ```
 
