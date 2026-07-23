@@ -5,12 +5,15 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateClubSettingRequest;
 use App\Models\ClubSetting;
+use App\Services\TenantContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class ClubSettingController extends Controller
 {
+    public function __construct(private readonly TenantContext $tenantContext) {}
+
     public function edit(): View
     {
         return view('admin.club-settings.edit', [
@@ -28,7 +31,8 @@ class ClubSettingController extends Controller
                 Storage::disk('public')->delete($clubSetting->logo_path);
             }
 
-            $data['logo_path'] = $request->file('logo')->store('club', 'public');
+            $tenantId = $this->tenantContext->current()->id;
+            $data['logo_path'] = $request->file('logo')->store("tenants/{$tenantId}/club", 'public');
         }
 
         if ($clubSetting !== null) {

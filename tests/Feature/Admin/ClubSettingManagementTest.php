@@ -2,6 +2,7 @@
 
 use App\Models\ClubSetting;
 use App\Models\User;
+use App\Services\TenantContext;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
@@ -59,9 +60,12 @@ it('rejects an invalid payload', function () {
 it('uploads and stores a new logo, replacing the previous file', function () {
     Storage::fake('public');
 
+    $tenantId = app(TenantContext::class)->current()->id;
+    $oldPath = "tenants/{$tenantId}/club/old-logo.png";
+
     $clubSetting = ClubSetting::current();
-    $clubSetting->update(['logo_path' => 'club/old-logo.png']);
-    Storage::disk('public')->put('club/old-logo.png', 'fake-image-content');
+    $clubSetting->update(['logo_path' => $oldPath]);
+    Storage::disk('public')->put($oldPath, 'fake-image-content');
 
     $this->actingAs(User::factory()->create())
         ->put(route('admin.club-settings.update'), [
@@ -71,10 +75,11 @@ it('uploads and stores a new logo, replacing the previous file', function () {
             'logo' => UploadedFile::fake()->image('logo.png'),
         ])->assertRedirect(route('admin.club-settings.edit'));
 
-    Storage::disk('public')->assertMissing('club/old-logo.png');
+    Storage::disk('public')->assertMissing($oldPath);
 
     $newPath = ClubSetting::current()->logo_path;
 
-    expect($newPath)->not->toBeNull();
+    expect($newPath)->not->toBeNull()
+        ->and($newPath)->toStartWith("tenants/{$tenantId}/club/");
     Storage::disk('public')->assertExists($newPath);
 });
