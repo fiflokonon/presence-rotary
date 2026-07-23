@@ -2118,6 +2118,7 @@ it('shows member and attendance counts per tenant', function () {
     $tenantContext = app(TenantContext::class);
 
     $tenantA = Tenant::factory()->create(['name' => 'Club A']);
+    touch($tenantA->sqlite_path);
     $tenantContext->use($tenantA);
     Artisan::call('migrate', ['--database' => 'sqlite', '--force' => true]);
     Member::factory()->count(3)->create();
@@ -2125,6 +2126,7 @@ it('shows member and attendance counts per tenant', function () {
     Attendance::factory()->for($session)->create(['present' => true]);
 
     $tenantB = Tenant::factory()->create(['name' => 'Club B']);
+    touch($tenantB->sqlite_path);
     $tenantContext->use($tenantB);
     Artisan::call('migrate', ['--database' => 'sqlite', '--force' => true]);
     Member::factory()->count(5)->create();
@@ -2141,6 +2143,8 @@ it('shows member and attendance counts per tenant', function () {
     @unlink($tenantB->sqlite_path);
 });
 ```
+
+The `touch()` calls before each `$tenantContext->use(...)` are required — `TenantFactory` (Task 1) only creates the *directory* its generated `sqlite_path` lives in, not the file itself, and `TenantContext::use()` immediately calls `applyMailSettings()` → `Schema::hasTable('mail_settings')`, which needs a real, already-existing file (Laravel's SQLite connector refuses to open a path that doesn't exist yet — it won't create one for you). This is different from `Artisan::call('migrate', ...)` on its own, which *does* create a missing SQLite file automatically — that's why Tasks 8's and 9's tests, which never call `TenantContext::use()` directly before their own `migrate` call, didn't need this. `TenantController::store()` (Task 8) already does the same `touch()` before its own `TenantContext::use()` call, for the identical reason.
 
 - [ ] **Step 2: Run the test to verify it fails**
 
