@@ -48,7 +48,7 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function superAdminUrl(string $path = ''): string
 {
-    // ..
+    return 'http://'.config('tenancy.super_admin_host').'/'.ltrim($path, '/');
 }

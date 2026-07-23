@@ -11,8 +11,20 @@ use App\Http\Controllers\Admin\PositionController;
 use App\Http\Controllers\Admin\TitleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AttendanceFormController;
+use App\Http\Controllers\SuperAdmin\AuthController as SuperAdminAuthController;
 use App\Http\Middleware\ResolveTenant;
 use Illuminate\Support\Facades\Route;
+
+Route::domain(config('tenancy.super_admin_host'))->prefix('superadmin')->name('super-admin.')->group(function () {
+    Route::middleware('guest:super_admin')->group(function () {
+        Route::get('login', [SuperAdminAuthController::class, 'create'])->name('login');
+        Route::post('login', [SuperAdminAuthController::class, 'store'])->name('login.store');
+    });
+
+    Route::middleware('auth:super_admin')->group(function () {
+        Route::post('logout', [SuperAdminAuthController::class, 'destroy'])->name('logout');
+    });
+});
 
 Route::middleware(ResolveTenant::class)->group(function () {
     Route::get('/', [AttendanceFormController::class, 'show'])->name('attendance.show');
