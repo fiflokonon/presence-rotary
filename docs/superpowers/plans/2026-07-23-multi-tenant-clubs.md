@@ -1532,6 +1532,7 @@ git commit -m "feat: add super-admin authentication"
 - Create: `resources/views/super-admin/tenants/index.blade.php`
 - Create: `resources/views/super-admin/tenants/create.blade.php`
 - Modify: `routes/web.php`
+- Modify: `bootstrap/app.php` (guest-redirect target needs to depend on host — see Step 7)
 - Test: `tests/Feature/SuperAdmin/TenantProvisioningTest.php`
 - Test: `tests/Tenancy/TenantProvisioningMigrationTest.php`
 
@@ -1815,19 +1816,44 @@ Create `resources/views/super-admin/tenants/create.blade.php`:
 
 Note the `index.blade.php` view already references `route('super-admin.impersonate.start', $tenant)`, which Task 9 adds — this view will 500 until Task 9 lands; that's expected within this in-progress plan and is resolved by the very next task.
 
-- [ ] **Step 7: Run the provisioning tests to verify list/store pass, and only the impersonate-link rendering fails**
+- [ ] **Step 7: Fix the guest-redirect target for super-admin routes**
+
+This step exists because of a real bug caught by an implementer subagent while running this task's tests: `bootstrap/app.php` currently has `$middleware->redirectGuestsTo(fn () => route('admin.login'))` — a single, guard-agnostic redirect target used for *every* unauthenticated request, regardless of which guard rejected it. Task 7 added the `super_admin` guard and its own login page, but nothing exercised an unauthenticated `GET` against an `auth:super_admin`-protected route until this task's "redirects guests to the super-admin login" test — which now fails because it's redirected to `admin/login` (the *club* admin login) instead of `superadmin/login`. This isn't just a test artifact: in production, an unauthenticated visitor to `admin.<domain>/superadmin/tenants` would be sent to the wrong login page entirely.
+
+Fix by making the redirect target depend on which host the request came in on — the same signal `ResolveTenant` already uses to distinguish super-admin requests from club requests. Laravel's `redirectGuestsTo()` callback receives the current `Request` (verified against `vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php`, which calls it as `call_user_func($callback, $request)`).
+
+Replace the one line in `bootstrap/app.php`:
+
+```php
+$middleware->redirectGuestsTo(fn () => route('admin.login'));
+```
+
+with:
+
+```php
+$middleware->redirectGuestsTo(fn (Request $request) => $request->getHost() === config('tenancy.super_admin_host')
+    ? route('super-admin.login')
+    : route('admin.login'));
+```
+
+(`Request` is already imported at the top of `bootstrap/app.php` — no new `use` statement needed.)
+
+- [ ] **Step 8: Run the provisioning tests to verify list/store pass, and only the impersonate-link rendering fails**
 
 Run: `php artisan test --compact tests/Feature/SuperAdmin/TenantProvisioningTest.php`
-Expected: the `it('lists existing tenants', ...)` test will FAIL with a `RouteNotFoundException` from the view (since `index.blade.php` references `super-admin.impersonate.start`). This is expected and resolved in Task 9. Confirm the other two tests (`redirects guests`, `rejects a duplicate host`) PASS — they don't render the index view with a populated table row triggering that route call.
+Expected: the `it('lists existing tenants', ...)` test will FAIL with a `RouteNotFoundException` from the view (since `index.blade.php` references `super-admin.impersonate.start`). This is expected and resolved in Task 9. Confirm the other two tests (`redirects guests`, `rejects a duplicate host`) PASS — they don't render the index view with a populated table row triggering that route call. `redirects guests` specifically now needs Step 7's fix to pass.
 
 Run: `php artisan test --compact tests/Tenancy/TenantProvisioningMigrationTest.php`
 Expected: PASS — this test never renders `index.blade.php`, so it's unaffected by the not-yet-existing impersonate route.
 
-- [ ] **Step 8: Format and commit**
+Run: `php artisan test --compact --testsuite=Unit,Feature`
+Expected: PASS, no regressions — Step 7's redirect change only adds a host-based branch, it doesn't change behavior for any request to a host other than `config('tenancy.super_admin_host')`, which covers every existing test.
+
+- [ ] **Step 9: Format and commit**
 
 ```bash
 vendor/bin/pint --dirty --format agent
-git add app/Http/Controllers/SuperAdmin/TenantController.php app/Http/Requests/SuperAdmin/StoreTenantRequest.php resources/views/super-admin/tenants routes/web.php tests/Feature/SuperAdmin/TenantProvisioningTest.php tests/Tenancy/TenantProvisioningMigrationTest.php
+git add app/Http/Controllers/SuperAdmin/TenantController.php app/Http/Requests/SuperAdmin/StoreTenantRequest.php resources/views/super-admin/tenants routes/web.php bootstrap/app.php tests/Feature/SuperAdmin/TenantProvisioningTest.php tests/Tenancy/TenantProvisioningMigrationTest.php
 git commit -m "feat: add tenant provisioning (list + create)"
 ```
 
