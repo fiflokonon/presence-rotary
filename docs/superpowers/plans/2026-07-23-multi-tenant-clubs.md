@@ -732,12 +732,7 @@ Create `tests/Feature/TenantResolutionTest.php`:
 use App\Models\Tenant;
 
 it('serves the public check-in page for a known tenant host', function () {
-    Tenant::factory()->create([
-        'host' => 'clubtest.example.test',
-        'sqlite_path' => config('database.connections.sqlite.database'),
-    ]);
-
-    $this->get('http://clubtest.example.test/')->assertOk();
+    $this->get('http://localhost/')->assertOk();
 });
 
 it('returns 404 for an unknown host', function () {
@@ -749,12 +744,12 @@ it('returns 404 for the admin login page on an unknown host', function () {
 });
 ```
 
-Note: the first test reads `config('database.connections.sqlite.database')` to point this second tenant at the *same* real file the default test tenant already uses (Task 3). `TenantContext::use()`'s equality check means switching to this second tenant does *not* purge the connection — it keeps sharing the same already-migrated database. That's fine here: this test only needs to prove the request reaches the controller for a *different, known* host (200, not 404), not that tenants are data-isolated from each other (that's covered separately wherever cross-tenant isolation is asserted, e.g. Task 10's dashboard test, which uses genuinely distinct tenant databases for that reason). Hardcoding `:memory:` here instead would actually switch to a real, separate, unmigrated database now that Task 3 uses a real file by default — breaking this test with a "no such table" error instead of the intended 200.
+Note: the first test deliberately reuses `localhost` — the *same* host `tests/TestCase.php` (Task 3) already registers as the default tenant — instead of creating a second `Tenant` row. Two things rule out a second row: `tenants.sqlite_path` has a `unique()` constraint (Task 1), so a second tenant can't share the default's `:memory:` path; and giving it a genuinely different real path would make `TenantContext::use()` purge the `sqlite` connection away from `:memory:` mid-test, which is exactly the corruption Task 3's whole design exists to keep out of the fast `Feature` suite. Reusing `localhost` needs neither. It still meaningfully proves host-based resolution is working, not just "requests always succeed": paired with the next two tests (unknown host → 404), the only way all three tests pass is if the middleware is actually resolving by host — a build with no middleware at all would make test 1 pass but tests 2–3 fail (everything would 200), and a build that always resolves *some* tenant regardless of host would make tests 2–3 fail the same way.
 
 - [ ] **Step 2: Run the test to verify it fails**
 
 Run: `php artisan test --compact tests/Feature/TenantResolutionTest.php`
-Expected: FAIL — all three requests currently 200 or crash, since there's no middleware yet (no host-based restriction exists).
+Expected: 1 pass, 2 fail. The first test (`localhost`) already passes — nothing blocks that request even without the middleware. The two "unknown host" tests fail (200 instead of 404) since there's no middleware yet to enforce host-based resolution. Both failures resolve once the middleware lands in the next step; the "known host" test isn't testing something new, it's guarding against a regression once the middleware exists.
 
 - [ ] **Step 3: Implement the middleware**
 
