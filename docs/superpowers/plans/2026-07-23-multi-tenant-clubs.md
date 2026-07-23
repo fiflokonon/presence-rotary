@@ -24,7 +24,7 @@
 
 1. **`database/migrations/2026_07_22_120001_seed_club_settings_table.php`** hardcodes a `club_settings` row named "RC Cotonou Ife" — every new tenant's database runs this migration too, so **every newly provisioned tenant starts with this placeholder branding** (name, tagline, colors). This is intentional for this plan (changing it would break existing tests that assert on the seeded values — see `tests/Feature/Admin/ClubSettingManagementTest.php`). Whoever provisions a real tenant edits the club identity via `admin.club-settings.edit` right after creation, same as it works today. Not a bug to fix in this plan.
 2. **`AppServiceProvider::overrideMailConfigFromDatabase()`** currently runs once at request boot, reading `MailSetting::current()` off whatever the default `sqlite` connection happens to be — before any tenant is resolved. In the multi-tenant world this would read the wrong (or no) tenant's mail settings. Task 2 moves this logic into `TenantContext::use()` so it re-applies every time the active tenant changes. The existing direct-provider test (`tests/Feature/MailSettingConfigOverrideTest.php`) is adapted accordingly in Task 2, not deleted-and-forgotten.
-3. **Route guard**: the existing `admin.*` route group's `auth` middleware checks the `web` guard only. For super-admin impersonation (Task 9) to reuse these same routes, that middleware becomes `auth:web,super_admin`. No existing controller or view calls `Auth::user()`/`auth()->user()`/`Auth::id()` (verified by grep), so accepting either guard is safe — nothing downstream assumes a `web`-guard user.
+3. **Route guard**: the existing `admin.*` route group's `auth` middleware checks the `web` guard only. For super-admin impersonation (Task 9) to reuse these same routes, that middleware becomes `auth:web,super_admin` — but only once Task 9 lands, once the `super_admin` guard actually exists (Task 6). Making that change any earlier (e.g. in Task 4) breaks every currently-passing "guest redirected to login" test: Laravel's `Authenticate` middleware calls `Auth::guard($name)` for every guard in a comma-separated list and throws `InvalidArgumentException` on an undefined guard name instead of skipping it, turning an expected 302 into a 500. No existing controller or view calls `Auth::user()`/`auth()->user()`/`Auth::id()` (verified by grep), so accepting either guard, once both exist, is safe — nothing downstream assumes a `web`-guard user.
 
 ---
 
@@ -815,7 +815,7 @@ Route::middleware(ResolveTenant::class)->group(function () {
             Route::post('login', [AuthController::class, 'store'])->name('login.store');
         });
 
-        Route::middleware('auth:web,super_admin')->group(function () {
+        Route::middleware('auth')->group(function () {
             Route::post('logout', [AuthController::class, 'destroy'])->name('logout');
             Route::get('sessions', [MeetingSessionController::class, 'index'])->name('sessions.index');
             Route::post('sessions', [MeetingSessionController::class, 'store'])->name('sessions.store');
@@ -858,7 +858,7 @@ Route::middleware(ResolveTenant::class)->group(function () {
 });
 ```
 
-Only two changes from the original file: the whole body is now wrapped in `Route::middleware(ResolveTenant::class)->group(...)`, and `'auth'` became `'auth:web,super_admin'` (needed by Task 9's impersonation; harmless before that task lands since no `super_admin` guard exists to match against yet — Task 6 adds it).
+Only one change from the original file: the whole body is now wrapped in `Route::middleware(ResolveTenant::class)->group(...)`. The `admin.*` group's `auth` middleware stays `'auth'` (plain `web` guard) for now — Task 9 changes it to `'auth:web,super_admin'` once the `super_admin` guard actually exists (Task 6). Doing that swap here instead would break immediately: Laravel's `Authenticate` middleware calls `Auth::guard($name)` for every guard in the list and throws `InvalidArgumentException` on an undefined guard name rather than skipping it — turning every "guest redirected to login" test's expected 302 into a 500. This was caught by an implementer subagent running the full suite, not anticipated in the original design.
 
 - [ ] **Step 5: Register the middleware alias (not required, but confirm route-level class reference resolves)**
 
@@ -2000,7 +2000,19 @@ use App\Http\Controllers\SuperAdmin\ImpersonationController;
         Route::post('impersonate/stop', [ImpersonationController::class, 'stop'])->name('impersonate.stop');
 ```
 
-- [ ] **Step 6: Add the impersonation banner to the admin layout**
+- [ ] **Step 6: Let the `admin.*` group accept a super-admin session, not just a club admin**
+
+Still in `routes/web.php`, change the `admin.*` protected group's middleware from `'auth'` to `'auth:web,super_admin'`:
+
+```php
+        Route::middleware('auth:web,super_admin')->group(function () {
+```
+
+This is the change Task 4's plan text already explained but deliberately deferred to here: making it before the `super_admin` guard existed (it now does, since Task 6) would have made Laravel's `Authenticate` middleware throw `InvalidArgumentException` on every request to these routes, since it resolves every guard named in the list and errors on an undefined one rather than skipping it. Now that `config/auth.php` defines `super_admin` (Task 6), this is safe: a request authenticated on *either* guard passes. No existing controller or view calls `Auth::user()`/`auth()->user()`/`Auth::id()` (verified by grep during planning), so accepting either guard doesn't create ambiguity anywhere downstream.
+
+Run the full suite once after this specific change, before moving to Step 6, to confirm the guard-list change itself doesn't regress anything: `php artisan test --compact --testsuite=Unit,Feature`. Expected: PASS, same count as before this step (the `super_admin` guard is now satisfiable, so no request should error; nothing yet authenticates against it, so no request that previously needed a plain `web` session should behave differently).
+
+- [ ] **Step 7: Add the impersonation banner to the admin layout**
 
 In `resources/views/components/layouts/admin.blade.php`, right after the opening `<body ...>` tag (before `<x-page-loading-overlay />`), add:
 
@@ -2016,7 +2028,7 @@ In `resources/views/components/layouts/admin.blade.php`, right after the opening
     @endif
 ```
 
-- [ ] **Step 7: Run the tests to verify they pass**
+- [ ] **Step 8: Run the tests to verify they pass**
 
 Run: `php artisan test --compact tests/Feature/SuperAdmin/ImpersonationTest.php`
 Expected: PASS (2 tests).
@@ -2024,12 +2036,12 @@ Expected: PASS (2 tests).
 Run: `php artisan test --compact tests/Tenancy/ImpersonationViewTest.php`
 Expected: PASS (1 test).
 
-- [ ] **Step 8: Re-run Task 8's provisioning test (it depended on this route existing in the view)**
+- [ ] **Step 9: Re-run Task 8's provisioning test (it depended on this route existing in the view)**
 
 Run: `php artisan test --compact tests/Feature/SuperAdmin/TenantProvisioningTest.php`
 Expected: PASS now, all 3 tests (the `index.blade.php` view's `route('super-admin.impersonate.start', ...)` call now resolves).
 
-- [ ] **Step 9: Run the full suite**
+- [ ] **Step 10: Run the full suite**
 
 Run: `php artisan test --compact --testsuite=Unit,Feature`
 Expected: PASS.
@@ -2037,7 +2049,7 @@ Expected: PASS.
 Run: `php artisan test --compact --testsuite=Tenancy`
 Expected: PASS (now covers Task 8's and this task's cross-tenant tests together).
 
-- [ ] **Step 10: Format and commit**
+- [ ] **Step 11: Format and commit**
 
 ```bash
 vendor/bin/pint --dirty --format agent
