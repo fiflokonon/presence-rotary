@@ -2879,6 +2879,651 @@ git commit -m "chore: migrate the central database and every tenant database on 
 
 ---
 
+## Post-review addendum
+
+Tasks 13 and 14 below were **not** part of the original design spec or the original 12-task
+plan. They were added after the final whole-branch review (dispatched once Tasks 1–12 were all
+individually complete and reviewed clean) found two real gaps only visible at the whole-feature
+level — neither is a defect in any single task, both are things nothing in Tasks 1–12 was ever
+asked to cover:
+
+1. **Critical, production-breaking**: `SESSION_DRIVER`, `CACHE_STORE`, and `QUEUE_CONNECTION` all
+   default to Laravel's `database` driver, and none of them set an explicit connection — so all
+   three silently fall back to `config('database.default')`, which is the `sqlite` connection
+   `TenantContext` dynamically repoints per-tenant. Laravel's session middleware runs globally,
+   before route-level `ResolveTenant` ever executes, and queue workers never run `ResolveTenant`
+   at all (they're a separate long-running process, not an HTTP request). Combined with
+   `docker-compose.yml` still hardcoding a `DB_DATABASE` path
+   (`/var/www/html/database/data/database.sqlite`) that Task 12's new entrypoint no longer creates
+   or migrates, `SQLiteConnector::parseDatabasePath()` throws
+   `SQLiteDatabaseDoesNotExistException` on the very first request's session bootstrap — **every
+   HTTP request would 500 immediately on first deploy of this branch**. None of the 12 tasks'
+   test suites catch this because `phpunit.xml` correctly uses `array`/`sync` drivers for test
+   speed, which never touch a database connection at all. Fixed by Task 13.
+2. **Important**: nothing creates a newly-provisioned tenant's first admin user. Task 12
+   correctly removed `db:seed` from the entrypoint (per-tenant seeding now happens via migrations,
+   as documented in that task), but nothing replaced the admin-bootstrap step it used to perform.
+   `TenantController::store()` (Task 8) only runs `migrate`; `UserController::store()` (Task 11)
+   requires already being authenticated as an admin. A freshly created club has an empty `users`
+   table and is completely locked out of its own admin panel. Fixed by Task 14.
+
+The user was consulted on both before proceeding — specifically because fixing #1 properly means
+touching `docker-compose.yml`, which the original approved design spec explicitly listed as
+**out of scope** ("Any change to `docker-compose.yml` itself"). The user chose to fix both now,
+in this same session, explicitly overriding that scope boundary for #1 since it fixes a real
+deploy-blocking regression the original spec didn't anticipate rather than being scope creep.
+
+### Task 13: Stabilize sessions, cache, and the queue on the `central` connection
+
+**Files:**
+- Modify: `.env`, `.env.example` — add `SESSION_CONNECTION=central`, `DB_CACHE_CONNECTION=central`,
+  `DB_QUEUE_CONNECTION=central`.
+- Modify: `phpunit.xml` — add the same three env vars, so config resolution is deterministic in
+  tests regardless of the developer's local uncommitted `.env` (matches this project's existing
+  convention — see `DB_DATABASE_CENTRAL`/`SUPER_ADMIN_HOST`, already pinned there for the same
+  reason).
+- Modify: `docker-compose.yml` — remove the stale `environment: DB_DATABASE: ...` override from
+  both the `app` and `queue` services (it points at a file the new entrypoint never creates in
+  this file layout, and after this task nothing needs it — `TenantContext` always sets the
+  `sqlite` connection's path explicitly per-request/per-command; nothing critical touches its
+  boot-time default value anymore).
+- Modify: `database/migrations/0001_01_01_000000_create_users_table.php` — remove the `sessions`
+  table creation (and its `down()` drop). `users`/`password_reset_tokens` stay exactly as-is,
+  still per-tenant.
+- Move `database/migrations/0001_01_01_000001_create_cache_table.php` →
+  `database/migrations/central/2026_07_24_090000_create_cache_table.php`, adding
+  `protected $connection = 'central';`. Content otherwise unchanged.
+- Move `database/migrations/0001_01_01_000002_create_jobs_table.php` →
+  `database/migrations/central/2026_07_24_090001_create_jobs_table.php`, adding
+  `protected $connection = 'central';`. Content otherwise unchanged.
+- Create `database/migrations/central/2026_07_24_090002_create_sessions_table.php` — the
+  `sessions` table, now central, `protected $connection = 'central';`.
+- Test additions: `tests/Feature/CentralInfrastructureTest.php`.
+
+**Interfaces:**
+- None new — this task doesn't add application code, it corrects which connection three existing
+  Laravel subsystems (session, cache, queue) target.
+
+Why `central` and not a new dedicated connection: nothing in this app uses the `cache` store
+today (`grep -rln "Cache::" app/` finds zero hits), sessions are just opaque per-browser blobs
+keyed by a random session ID (moving their storage location doesn't create any cross-tenant
+leakage — a browser only ever presents its own session cookie back to its own host, regardless of
+which physical table the row lives in), and the queue's `jobs` table **must** be a stable,
+tenant-independent location by design — Task 11's jobs already carry their tenant as a plain
+scalar `tenant_id` precisely so a queue worker (which has no ambient tenant context at all) can
+look it up itself inside `handle()`. Centralizing all three onto the one connection that's never
+tenant-switched is the natural fix, not a new abstraction.
+
+- [ ] **Step 1: Write the failing tests**
+
+Create `tests/Feature/CentralInfrastructureTest.php`:
+
+```php
+<?php
+
+use Illuminate\Support\Facades\Schema;
+
+it('creates session, cache, and queue tables on the central connection, not the tenant connection', function () {
+    expect(Schema::connection('central')->hasTable('sessions'))->toBeTrue();
+    expect(Schema::connection('central')->hasTable('cache'))->toBeTrue();
+    expect(Schema::connection('central')->hasTable('cache_locks'))->toBeTrue();
+    expect(Schema::connection('central')->hasTable('jobs'))->toBeTrue();
+    expect(Schema::connection('central')->hasTable('job_batches'))->toBeTrue();
+    expect(Schema::connection('central')->hasTable('failed_jobs'))->toBeTrue();
+
+    expect(Schema::hasTable('sessions'))->toBeFalse();
+    expect(Schema::hasTable('cache'))->toBeFalse();
+    expect(Schema::hasTable('jobs'))->toBeFalse();
+    expect(Schema::hasTable('users'))->toBeTrue();
+});
+
+it('points the session, cache, and queue database connections at central', function () {
+    expect(config('session.connection'))->toBe('central');
+    expect(config('cache.stores.database.connection'))->toBe('central');
+    expect(config('queue.connections.database.connection'))->toBe('central');
+});
+```
+
+- [ ] **Step 2: Run the test to verify it fails**
+
+Run: `php artisan test --compact tests/Feature/CentralInfrastructureTest.php`
+Expected: FAIL — `sessions`/`cache`/`jobs` etc. don't exist on `central` yet (they're still on the
+default `sqlite` connection, or in cache/jobs' case, still in the un-migrated old file location),
+and `config('session.connection')` etc. are still `null`.
+
+- [ ] **Step 3: Move the migrations**
+
+Delete the `sessions` table block from `database/migrations/0001_01_01_000000_create_users_table.php`,
+leaving:
+
+```php
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password');
+            $table->rememberToken();
+            $table->timestamps();
+        });
+
+        Schema::create('password_reset_tokens', function (Blueprint $table) {
+            $table->string('email')->primary();
+            $table->string('token');
+            $table->timestamp('created_at')->nullable();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('users');
+        Schema::dropIfExists('password_reset_tokens');
+    }
+};
+```
+
+Delete `database/migrations/0001_01_01_000001_create_cache_table.php` and
+`database/migrations/0001_01_01_000002_create_jobs_table.php` (their content moves below, this
+removes them from the per-tenant migration path).
+
+Create `database/migrations/central/2026_07_24_090000_create_cache_table.php`:
+
+```php
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    protected $connection = 'central';
+
+    public function up(): void
+    {
+        Schema::create('cache', function (Blueprint $table) {
+            $table->string('key')->primary();
+            $table->mediumText('value');
+            $table->bigInteger('expiration')->index();
+        });
+
+        Schema::create('cache_locks', function (Blueprint $table) {
+            $table->string('key')->primary();
+            $table->string('owner');
+            $table->bigInteger('expiration')->index();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('cache');
+        Schema::dropIfExists('cache_locks');
+    }
+};
+```
+
+Create `database/migrations/central/2026_07_24_090001_create_jobs_table.php`:
+
+```php
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    protected $connection = 'central';
+
+    public function up(): void
+    {
+        Schema::create('jobs', function (Blueprint $table) {
+            $table->id();
+            $table->string('queue')->index();
+            $table->longText('payload');
+            $table->unsignedSmallInteger('attempts');
+            $table->unsignedInteger('reserved_at')->nullable();
+            $table->unsignedInteger('available_at');
+            $table->unsignedInteger('created_at');
+        });
+
+        Schema::create('job_batches', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('name');
+            $table->integer('total_jobs');
+            $table->integer('pending_jobs');
+            $table->integer('failed_jobs');
+            $table->longText('failed_job_ids');
+            $table->mediumText('options')->nullable();
+            $table->integer('cancelled_at')->nullable();
+            $table->integer('created_at');
+            $table->integer('finished_at')->nullable();
+        });
+
+        Schema::create('failed_jobs', function (Blueprint $table) {
+            $table->id();
+            $table->string('uuid')->unique();
+            $table->string('connection');
+            $table->string('queue');
+            $table->longText('payload');
+            $table->longText('exception');
+            $table->timestamp('failed_at')->useCurrent();
+
+            $table->index(['connection', 'queue', 'failed_at']);
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('jobs');
+        Schema::dropIfExists('job_batches');
+        Schema::dropIfExists('failed_jobs');
+    }
+};
+```
+
+Create `database/migrations/central/2026_07_24_090002_create_sessions_table.php`:
+
+```php
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    protected $connection = 'central';
+
+    public function up(): void
+    {
+        Schema::create('sessions', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->foreignId('user_id')->nullable()->index();
+            $table->string('ip_address', 45)->nullable();
+            $table->text('user_agent')->nullable();
+            $table->longText('payload');
+            $table->integer('last_activity')->index();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('sessions');
+    }
+};
+```
+
+- [ ] **Step 4: Set the connection env vars**
+
+In `.env` and `.env.example`, add (near the existing `SESSION_DRIVER`/`QUEUE_CONNECTION`/
+`CACHE_STORE` lines):
+
+```
+SESSION_CONNECTION=central
+```
+```
+DB_QUEUE_CONNECTION=central
+```
+```
+DB_CACHE_CONNECTION=central
+```
+
+In `phpunit.xml`, add the same three lines to the `<php>` block (alongside the existing
+`DB_DATABASE_CENTRAL`/`SUPER_ADMIN_HOST` entries):
+
+```xml
+<env name="SESSION_CONNECTION" value="central"/>
+<env name="DB_CACHE_CONNECTION" value="central"/>
+<env name="DB_QUEUE_CONNECTION" value="central"/>
+```
+
+- [ ] **Step 5: Remove the stale `docker-compose.yml` override**
+
+In `docker-compose.yml`, remove the `environment: DB_DATABASE: ...` block from both the `app` and
+`queue` services (keep `env_file: .env`, `ports`, `volumes`, `command` etc. unchanged):
+
+```yaml
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "${APP_PORT:-8080}:80"
+    volumes:
+      - sqlite-data:/var/www/html/database/data
+      - storage-data:/var/www/html/storage
+
+  queue:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    command: php artisan queue:work --tries=3 --max-time=3600
+    volumes:
+      - sqlite-data:/var/www/html/database/data
+      - storage-data:/var/www/html/storage
+
+volumes:
+  sqlite-data:
+  storage-data:
+```
+
+- [ ] **Step 6: Run the test to verify it passes**
+
+Run: `php artisan test --compact tests/Feature/CentralInfrastructureTest.php`
+Expected: PASS (2 tests).
+
+- [ ] **Step 7: Run the full suites**
+
+Run: `php artisan test --compact --testsuite=Unit,Feature`
+Expected: PASS, baseline (235) + 2 new tests = 237.
+
+Run: `php artisan test --compact --testsuite=Tenancy`
+Expected: PASS (3/3, unchanged — `TenancyTestCase` migrates `central` the same way `TestCase`
+does, so it picks up these moved migrations automatically; the per-tenant `sqlite` migration no
+longer creates `sessions`/`cache`/`jobs`, which is exactly the point).
+
+- [ ] **Step 8: Format and commit**
+
+```bash
+vendor/bin/pint --dirty --format agent
+git add .env.example phpunit.xml docker-compose.yml \
+  database/migrations/0001_01_01_000000_create_users_table.php \
+  database/migrations/central/2026_07_24_090000_create_cache_table.php \
+  database/migrations/central/2026_07_24_090001_create_jobs_table.php \
+  database/migrations/central/2026_07_24_090002_create_sessions_table.php \
+  tests/Feature/CentralInfrastructureTest.php
+git rm database/migrations/0001_01_01_000001_create_cache_table.php \
+  database/migrations/0001_01_01_000002_create_jobs_table.php
+git commit -m "fix: move sessions, cache, and the queue off the tenant-switched connection"
+```
+
+(`.env` itself is gitignored in this project — verify with `git check-ignore .env` before trying
+to add it; if it's tracked, add it too. Do not commit `.env` if it's gitignored.)
+
+---
+
+### Task 14: Bootstrap the first admin user during tenant provisioning
+
+**Files:**
+- Modify: `app/Http/Requests/SuperAdmin/StoreTenantRequest.php`
+- Modify: `app/Http/Controllers/SuperAdmin/TenantController.php`
+- Modify: `resources/views/super-admin/tenants/create.blade.php`
+- Modify: `tests/Tenancy/TenantProvisioningMigrationTest.php`
+
+**Interfaces:**
+- Consumes: `App\Jobs\SendNewAdminCredentialsMailJob` (Task 11), `App\Models\User`.
+
+- [ ] **Step 1: Update the failing test first**
+
+Replace `tests/Tenancy/TenantProvisioningMigrationTest.php`:
+
+```php
+<?php
+
+use App\Jobs\SendNewAdminCredentialsMailJob;
+use App\Models\SuperAdmin;
+use App\Models\Tenant;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Schema;
+
+it('provisions a new tenant with a migrated database and its first admin user', function () {
+    Queue::fake();
+
+    $this->actingAs(SuperAdmin::factory()->create(), 'super_admin')
+        ->post(superAdminUrl('superadmin/tenants'), [
+            'name' => 'Rotary Club Nouveau',
+            'host' => 'nouveau.example.test',
+            'admin_name' => 'Première Admin',
+            'admin_email' => 'premiere.admin@example.test',
+        ])->assertRedirect(superAdminUrl('superadmin/tenants'));
+
+    $tenant = Tenant::where('host', 'nouveau.example.test')->firstOrFail();
+
+    expect($tenant->name)->toBe('Rotary Club Nouveau')
+        ->and($tenant->sqlite_path)->toEndWith('.sqlite')
+        ->and(file_exists($tenant->sqlite_path))->toBeTrue();
+
+    config(['database.connections.sqlite.database' => $tenant->sqlite_path]);
+    DB::purge('sqlite');
+
+    expect(Schema::hasTable('club_settings'))->toBeTrue();
+
+    $admin = User::where('email', 'premiere.admin@example.test')->firstOrFail();
+    expect($admin->name)->toBe('Première Admin');
+
+    Queue::assertPushed(
+        SendNewAdminCredentialsMailJob::class,
+        fn (SendNewAdminCredentialsMailJob $job) => $job->tenantId === $tenant->id && $job->userId === $admin->id
+    );
+
+    @unlink($tenant->sqlite_path);
+});
+```
+
+(`tests/Feature/SuperAdmin/TenantProvisioningTest.php`'s "rejects a duplicate host" test doesn't
+need updating — it only asserts `host` is among the validation errors, which still holds even
+though `admin_name`/`admin_email` are now also missing/required in that same request.)
+
+- [ ] **Step 2: Run the test to verify it fails**
+
+Run: `php artisan test --compact --testsuite=Tenancy --filter=TenantProvisioningMigrationTest`
+Expected: FAIL — `admin_name`/`admin_email` aren't valid rules yet, so the POST 422s instead of
+redirecting (or, once validation is loosened, the `User::where(...)->firstOrFail()` throws because
+no admin was ever created).
+
+- [ ] **Step 3: Update `StoreTenantRequest`**
+
+```php
+<?php
+
+namespace App\Http\Requests\SuperAdmin;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class StoreTenantRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @return array<string, array<int, string>>
+     */
+    public function rules(): array
+    {
+        return [
+            'name' => ['required', 'string', 'max:255'],
+            'host' => ['required', 'string', 'max:255', 'unique:central.tenants,host'],
+            'admin_name' => ['required', 'string', 'max:255'],
+            'admin_email' => ['required', 'string', 'email', 'max:255'],
+        ];
+    }
+}
+```
+
+No `unique:users,email` rule on `admin_email` — the new tenant's `users` table doesn't exist on
+the currently-active connection yet at validation time (validation runs before `TenantContext`
+switches to the new tenant), and it would always be empty anyway for a brand-new tenant.
+
+- [ ] **Step 4: Update `TenantController::store()`**
+
+```php
+<?php
+
+namespace App\Http\Controllers\SuperAdmin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\SuperAdmin\StoreTenantRequest;
+use App\Jobs\SendNewAdminCredentialsMailJob;
+use App\Models\Tenant;
+use App\Models\User;
+use App\Services\TenantContext;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Str;
+use Illuminate\View\View;
+
+class TenantController extends Controller
+{
+    public function __construct(private readonly TenantContext $tenantContext) {}
+
+    public function index(): View
+    {
+        return view('super-admin.tenants.index', [
+            'tenants' => Tenant::orderBy('name')->get(),
+        ]);
+    }
+
+    public function create(): View
+    {
+        return view('super-admin.tenants.create');
+    }
+
+    public function store(StoreTenantRequest $request): RedirectResponse
+    {
+        $previousTenant = $this->tenantContext->current();
+
+        $directory = database_path('data/tenants');
+
+        if (! is_dir($directory)) {
+            mkdir($directory, recursive: true);
+        }
+
+        $sqlitePath = $directory.'/'.Str::uuid().'.sqlite';
+        touch($sqlitePath);
+
+        $this->tenantContext->use(new Tenant([
+            'name' => $request->validated('name'),
+            'host' => $request->validated('host'),
+            'sqlite_path' => $sqlitePath,
+        ]));
+        Artisan::call('migrate', ['--database' => 'sqlite', '--force' => true]);
+
+        $tenant = Tenant::create([
+            'name' => $request->validated('name'),
+            'host' => $request->validated('host'),
+            'sqlite_path' => $sqlitePath,
+        ]);
+
+        $password = Str::password(16);
+
+        $admin = User::create([
+            'name' => $request->validated('admin_name'),
+            'email' => $request->validated('admin_email'),
+            'password' => $password,
+        ]);
+
+        SendNewAdminCredentialsMailJob::dispatch($tenant->id, $admin->id, $password);
+
+        if ($previousTenant !== null) {
+            $this->tenantContext->use($previousTenant);
+        } else {
+            $this->tenantContext->clear();
+        }
+
+        return redirect()->route('super-admin.tenants.index')->with('status', 'Club créé.');
+    }
+}
+```
+
+The admin `User` is created (and the job dispatched) while `TenantContext` is still pointed at
+the brand-new tenant's `sqlite` connection — i.e. *before* the restore/clear block at the end,
+matching where `Tenant::create()` already runs relative to the switch.
+
+- [ ] **Step 5: Update the create-tenant view**
+
+Add two fields to `resources/views/super-admin/tenants/create.blade.php`, between `host` and the
+submit button:
+
+```blade
+<x-layouts.super-admin title="Nouveau club — Super-admin">
+    <div class="mx-auto max-w-[480px] rounded-2xl bg-white p-6 shadow-[0_2px_10px_rgba(20,30,50,.06)]">
+        <h1 class="font-display text-xl font-extrabold text-navy">Nouveau club</h1>
+
+        @if ($errors->any())
+            <div class="mt-4 rounded-lg bg-error-bg px-4 py-3 text-sm text-error">
+                {{ $errors->first() }}
+            </div>
+        @endif
+
+        <form method="POST" action="{{ route('super-admin.tenants.store') }}" class="mt-4 flex flex-col gap-4">
+            @csrf
+            <div class="flex flex-col gap-1.5">
+                <label for="name" class="text-sm font-semibold">Nom du club</label>
+                <input type="text" id="name" name="name" value="{{ old('name') }}" required
+                    class="rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy">
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <label for="host" class="text-sm font-semibold">Sous-domaine (ex. club2.tondomaine.org)</label>
+                <input type="text" id="host" name="host" value="{{ old('host') }}" required
+                    class="rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy">
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <label for="admin_name" class="text-sm font-semibold">Nom du premier admin</label>
+                <input type="text" id="admin_name" name="admin_name" value="{{ old('admin_name') }}" required
+                    class="rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy">
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <label for="admin_email" class="text-sm font-semibold">Email du premier admin</label>
+                <input type="email" id="admin_email" name="admin_email" value="{{ old('admin_email') }}" required
+                    class="rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy">
+            </div>
+            <p class="text-sm text-muted">
+                Un mot de passe sera généré automatiquement et envoyé par email au premier admin du club.
+            </p>
+            <button type="submit"
+                class="cursor-pointer rounded-lg bg-navy px-4 py-2.5 text-sm font-bold text-white hover:bg-navy-hover">
+                Créer le club
+            </button>
+        </form>
+    </div>
+</x-layouts.super-admin>
+```
+
+- [ ] **Step 6: Run the test to verify it passes**
+
+Run: `php artisan test --compact --testsuite=Tenancy --filter=TenantProvisioningMigrationTest`
+Expected: PASS (1 test).
+
+- [ ] **Step 7: Run the full suites**
+
+Run: `php artisan test --compact --testsuite=Unit,Feature`
+Expected: PASS, same count as after Task 13 (no new Feature tests added by this task — the
+"rejects a duplicate host" test needs no changes, and the happy-path provisioning test lives only
+in the Tenancy suite, matching Task 8's established convention that real cross-tenant DB
+verification belongs there, not in the `:memory:` suite).
+
+Run: `php artisan test --compact --testsuite=Tenancy`
+Expected: PASS, same count as after Task 13.
+
+- [ ] **Step 8: Format and commit**
+
+```bash
+vendor/bin/pint --dirty --format agent
+git add app/Http/Requests/SuperAdmin/StoreTenantRequest.php \
+  app/Http/Controllers/SuperAdmin/TenantController.php \
+  resources/views/super-admin/tenants/create.blade.php \
+  tests/Tenancy/TenantProvisioningMigrationTest.php
+git commit -m "feat: create the first admin user when provisioning a new tenant"
+```
+
+---
+
 ## Final full-suite check
 
 - [ ] Run `php artisan test --compact --testsuite=Unit,Feature` — expect PASS, no skipped/incomplete tests, and still only a few seconds (this is the command `composer test` now runs by default — see Task 3).
