@@ -2427,12 +2427,14 @@ class SendNewAdminCredentialsMailJob implements ShouldQueue
 }
 ```
 
-- [ ] **Step 4: Run the job unit tests to verify they pass**
+- [ ] **Step 4: Drop `ShouldQueue` from the Mailables**
 
-Run: `php artisan test --compact tests/Feature/Jobs`
-Expected: PASS (2 tests).
-
-- [ ] **Step 5: Drop `ShouldQueue` from the Mailables**
+**Do this step before running the Step 4→5 checkpoint below.** `Mail::to(...)->send($mailable)` internally
+branches on `$mailable instanceof ShouldQueue` (`Illuminate\Mail\Mailer::sendMailable()`) — if the Mailable still
+implements `ShouldQueue` at this point, the job's own `Mail::...->send()` call silently *queues* the mail instead
+of sending it synchronously, so the job tests below would see nothing "sent" and fail
+(`Mail::assertSent()` reports "did you mean assertQueued()?"). Dropping `ShouldQueue` here first, before the
+verification run, avoids that false failure.
 
 In `app/Mail/AttendanceThankYouMail.php`, remove the `ShouldQueue` interface and `Queueable`/`SerializesModels` traits (matching `MailSettingTestMail`'s pattern — a synchronous Mailable). Replace the class declaration lines:
 
@@ -2473,6 +2475,12 @@ class NewAdminCredentialsMail extends Mailable
         public string $password,
     ) {}
 ```
+
+- [ ] **Step 5: Run the job unit tests to verify they pass**
+
+Run: `php artisan test --compact tests/Feature/Jobs`
+Expected: PASS (2 tests). (Now that Step 4 has dropped `ShouldQueue`, `Mail::to()->send()` inside each job sends
+synchronously and `Mail::assertSent()` sees it.)
 
 - [ ] **Step 6: Update `MeetingSessionController` to dispatch the job**
 
