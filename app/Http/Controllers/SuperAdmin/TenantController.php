@@ -4,7 +4,9 @@ namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SuperAdmin\StoreTenantRequest;
+use App\Jobs\SendNewAdminCredentialsMailJob;
 use App\Models\Tenant;
+use App\Models\User;
 use App\Services\TenantContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Artisan;
@@ -40,13 +42,28 @@ class TenantController extends Controller
         $sqlitePath = $directory.'/'.Str::uuid().'.sqlite';
         touch($sqlitePath);
 
-        $this->tenantContext->use(new Tenant([...$request->validated(), 'sqlite_path' => $sqlitePath]));
+        $this->tenantContext->use(new Tenant([
+            'name' => $request->validated('name'),
+            'host' => $request->validated('host'),
+            'sqlite_path' => $sqlitePath,
+        ]));
         Artisan::call('migrate', ['--database' => 'sqlite', '--force' => true]);
 
         $tenant = Tenant::create([
-            ...$request->validated(),
+            'name' => $request->validated('name'),
+            'host' => $request->validated('host'),
             'sqlite_path' => $sqlitePath,
         ]);
+
+        $password = Str::password(16);
+
+        $admin = User::create([
+            'name' => $request->validated('admin_name'),
+            'email' => $request->validated('admin_email'),
+            'password' => $password,
+        ]);
+
+        SendNewAdminCredentialsMailJob::dispatch($tenant->id, $admin->id, $password);
 
         if ($previousTenant !== null) {
             $this->tenantContext->use($previousTenant);

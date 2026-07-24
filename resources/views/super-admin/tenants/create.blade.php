@@ -20,6 +20,19 @@
                 <input type="text" id="host" name="host" value="{{ old('host') }}" required
                     class="rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy">
             </div>
+            <div class="flex flex-col gap-1.5">
+                <label for="admin_name" class="text-sm font-semibold">Nom du premier admin</label>
+                <input type="text" id="admin_name" name="admin_name" value="{{ old('admin_name') }}" required
+                    class="rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy">
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <label for="admin_email" class="text-sm font-semibold">Email du premier admin</label>
+                <input type="email" id="admin_email" name="admin_email" value="{{ old('admin_email') }}" required
+                    class="rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy">
+            </div>
+            <p class="text-sm text-muted">
+                Un mot de passe sera généré automatiquement et envoyé par email au premier admin du club.
+            </p>
             <button type="submit"
                 class="cursor-pointer rounded-lg bg-navy px-4 py-2.5 text-sm font-bold text-white hover:bg-navy-hover">
                 Créer le club
