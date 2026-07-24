@@ -1,23 +1,23 @@
 <?php
 
-use App\Mail\AttendanceThankYouMail;
+use App\Jobs\SendAttendanceThankYouMailJob;
 use App\Models\Attendance;
 use App\Models\MeetingSession;
 use App\Models\User;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Queue;
 
 it('does not send any email when closing without checking the box', function () {
     $meetingSession = MeetingSession::factory()->create(['is_open' => true]);
     Attendance::factory()->for($meetingSession)->create(['present' => true, 'email' => 'present@example.com']);
     $admin = User::factory()->create();
 
-    Mail::fake();
+    Queue::fake();
 
     $this->actingAs($admin)
         ->post(route('admin.sessions.toggle-open', $meetingSession))
         ->assertRedirect();
 
-    Mail::assertNothingQueued();
+    Queue::assertNothingPushed();
 });
 
 it('queues a thank-you email only to present attendees with an email when closing with the box checked', function () {
@@ -27,7 +27,7 @@ it('queues a thank-you email only to present attendees with an email when closin
     Attendance::factory()->for($meetingSession)->create(['present' => false, 'email' => 'absent@example.com']);
     $admin = User::factory()->create();
 
-    Mail::fake();
+    Queue::fake();
 
     $this->actingAs($admin)
         ->post(route('admin.sessions.toggle-open', $meetingSession), [
@@ -35,11 +35,11 @@ it('queues a thank-you email only to present attendees with an email when closin
         ])
         ->assertRedirect();
 
-    Mail::assertQueued(
-        AttendanceThankYouMail::class,
-        fn (AttendanceThankYouMail $mail) => $mail->hasTo($withEmail->email)
+    Queue::assertPushed(
+        SendAttendanceThankYouMailJob::class,
+        fn (SendAttendanceThankYouMailJob $job) => $job->attendanceId === $withEmail->id
     );
-    Mail::assertQueuedCount(1);
+    Queue::assertPushed(SendAttendanceThankYouMailJob::class, 1);
 });
 
 it('never sends mail when reopening an already-closed session', function () {
@@ -47,7 +47,7 @@ it('never sends mail when reopening an already-closed session', function () {
     Attendance::factory()->for($meetingSession)->create(['present' => true, 'email' => 'present@example.com']);
     $admin = User::factory()->create();
 
-    Mail::fake();
+    Queue::fake();
 
     $this->actingAs($admin)
         ->post(route('admin.sessions.toggle-open', $meetingSession), [
@@ -55,7 +55,7 @@ it('never sends mail when reopening an already-closed session', function () {
         ])
         ->assertRedirect();
 
-    Mail::assertNothingQueued();
+    Queue::assertNothingPushed();
 });
 
 it('passes the selected upcoming session title and date when mentioning the next session', function () {
@@ -67,7 +67,7 @@ it('passes the selected upcoming session title and date when mentioning the next
     ]);
     $admin = User::factory()->create();
 
-    Mail::fake();
+    Queue::fake();
 
     $this->actingAs($admin)
         ->post(route('admin.sessions.toggle-open', $meetingSession), [
@@ -77,10 +77,10 @@ it('passes the selected upcoming session title and date when mentioning the next
         ])
         ->assertRedirect();
 
-    Mail::assertQueued(
-        AttendanceThankYouMail::class,
-        fn (AttendanceThankYouMail $mail) => $mail->nextSessionTitle === $nextSession->title
-            && $mail->nextSessionDate->isSameDay($nextSession->date)
+    Queue::assertPushed(
+        SendAttendanceThankYouMailJob::class,
+        fn (SendAttendanceThankYouMailJob $job) => $job->nextSessionTitle === $nextSession->title
+            && $job->nextSessionDate->isSameDay($nextSession->date)
     );
 });
 
@@ -89,7 +89,7 @@ it('passes a manually typed next session date without a title', function () {
     Attendance::factory()->for($meetingSession)->create(['present' => true, 'email' => 'present@example.com']);
     $admin = User::factory()->create();
 
-    Mail::fake();
+    Queue::fake();
 
     $this->actingAs($admin)
         ->post(route('admin.sessions.toggle-open', $meetingSession), [
@@ -100,10 +100,10 @@ it('passes a manually typed next session date without a title', function () {
         ])
         ->assertRedirect();
 
-    Mail::assertQueued(
-        AttendanceThankYouMail::class,
-        fn (AttendanceThankYouMail $mail) => $mail->nextSessionTitle === null
-            && $mail->nextSessionDate->toDateString() === '2026-08-15'
+    Queue::assertPushed(
+        SendAttendanceThankYouMailJob::class,
+        fn (SendAttendanceThankYouMailJob $job) => $job->nextSessionTitle === null
+            && $job->nextSessionDate->toDateString() === '2026-08-15'
     );
 });
 

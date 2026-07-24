@@ -4,15 +4,17 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
-use App\Mail\NewAdminCredentialsMail;
+use App\Jobs\SendNewAdminCredentialsMailJob;
 use App\Models\User;
+use App\Services\TenantContext;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class UserController extends Controller
 {
+    public function __construct(private readonly TenantContext $tenantContext) {}
+
     public function index(): View
     {
         return view('admin.users.index', [
@@ -34,7 +36,7 @@ class UserController extends Controller
             'password' => $password,
         ]);
 
-        Mail::to($user->email)->queue(new NewAdminCredentialsMail($user, $password));
+        SendNewAdminCredentialsMailJob::dispatch($this->tenantContext->current()->id, $user->id, $password);
 
         return redirect()->route('admin.users.index');
     }

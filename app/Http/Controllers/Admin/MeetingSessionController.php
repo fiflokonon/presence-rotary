@@ -5,20 +5,22 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreMeetingSessionRequest;
 use App\Http\Requests\ToggleMeetingSessionOpenRequest;
-use App\Mail\AttendanceThankYouMail;
+use App\Jobs\SendAttendanceThankYouMailJob;
 use App\Models\Attendance;
 use App\Models\MeetingSession;
 use App\Models\Title;
+use App\Services\TenantContext;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class MeetingSessionController extends Controller
 {
+    public function __construct(private readonly TenantContext $tenantContext) {}
+
     public function index(): View
     {
         return view('admin.sessions.index', [
@@ -68,13 +70,15 @@ class MeetingSessionController extends Controller
             }
         }
 
+        $tenantId = $this->tenantContext->current()->id;
+
         $meetingSession->attendances()
             ->where('present', true)
             ->whereNotNull('email')
             ->where('email', '!=', '')
             ->get()
-            ->each(fn (Attendance $attendance) => Mail::to($attendance->email)->queue(
-                new AttendanceThankYouMail($attendance, $meetingSession, $nextSessionTitle, $nextSessionDate)
+            ->each(fn (Attendance $attendance) => SendAttendanceThankYouMailJob::dispatch(
+                $tenantId, $attendance->id, $meetingSession->id, $nextSessionTitle, $nextSessionDate
             ));
     }
 
