@@ -7,6 +7,8 @@ if [ ! -f database/data/central.sqlite ]; then
     touch database/data/central.sqlite
 fi
 
+chown -R www-data:www-data database/data
+
 php artisan migrate --database=central --path=database/migrations/central --force
 
 for tenant_db in database/data/tenants/*.sqlite; do
