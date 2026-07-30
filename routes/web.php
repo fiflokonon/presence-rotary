@@ -15,23 +15,28 @@ use App\Http\Controllers\SuperAdmin\AuthController as SuperAdminAuthController;
 use App\Http\Controllers\SuperAdmin\DashboardController;
 use App\Http\Controllers\SuperAdmin\ImpersonationController;
 use App\Http\Controllers\SuperAdmin\TenantController;
+use App\Http\Controllers\SuperAdmin\WelcomeController;
 use App\Http\Middleware\ResolveTenant;
 use Illuminate\Support\Facades\Route;
 
-Route::domain(config('tenancy.super_admin_host'))->prefix('superadmin')->name('super-admin.')->group(function () {
-    Route::middleware('guest:super_admin')->group(function () {
-        Route::get('login', [SuperAdminAuthController::class, 'create'])->name('login');
-        Route::post('login', [SuperAdminAuthController::class, 'store'])->name('login.store');
-    });
+Route::domain(config('tenancy.super_admin_host'))->group(function () {
+    Route::get('/', [WelcomeController::class, 'show'])->name('super-admin.welcome');
 
-    Route::middleware('auth:super_admin')->group(function () {
-        Route::post('logout', [SuperAdminAuthController::class, 'destroy'])->name('logout');
-        Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        Route::get('tenants', [TenantController::class, 'index'])->name('tenants.index');
-        Route::get('tenants/create', [TenantController::class, 'create'])->name('tenants.create');
-        Route::post('tenants', [TenantController::class, 'store'])->name('tenants.store');
-        Route::post('tenants/{tenant}/impersonate', [ImpersonationController::class, 'start'])->name('impersonate.start');
-        Route::post('impersonate/stop', [ImpersonationController::class, 'stop'])->name('impersonate.stop');
+    Route::prefix('superadmin')->name('super-admin.')->group(function () {
+        Route::middleware('guest:super_admin')->group(function () {
+            Route::get('login', [SuperAdminAuthController::class, 'create'])->name('login');
+            Route::post('login', [SuperAdminAuthController::class, 'store'])->name('login.store');
+        });
+
+        Route::middleware('auth:super_admin')->group(function () {
+            Route::post('logout', [SuperAdminAuthController::class, 'destroy'])->name('logout');
+            Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+            Route::get('tenants', [TenantController::class, 'index'])->name('tenants.index');
+            Route::get('tenants/create', [TenantController::class, 'create'])->name('tenants.create');
+            Route::post('tenants', [TenantController::class, 'store'])->name('tenants.store');
+            Route::post('tenants/{tenant}/impersonate', [ImpersonationController::class, 'start'])->name('impersonate.start');
+            Route::post('impersonate/stop', [ImpersonationController::class, 'stop'])->name('impersonate.stop');
+        });
     });
 });
 
