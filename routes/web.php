@@ -15,6 +15,7 @@ use App\Http\Controllers\AttendanceFormController;
 use App\Http\Controllers\SuperAdmin\AuthController as SuperAdminAuthController;
 use App\Http\Controllers\SuperAdmin\DashboardController;
 use App\Http\Controllers\SuperAdmin\ImpersonationController;
+use App\Http\Controllers\SuperAdmin\PasswordController as SuperAdminPasswordController;
 use App\Http\Controllers\SuperAdmin\TenantController;
 use App\Http\Controllers\SuperAdmin\WelcomeController;
 use App\Http\Middleware\ResolveTenant;
@@ -29,7 +30,7 @@ Route::domain(config('tenancy.super_admin_host'))->group(function () {
             Route::post('login', [SuperAdminAuthController::class, 'store'])->name('login.store');
         });
 
-        Route::middleware('auth:super_admin')->group(function () {
+        Route::middleware(['auth:super_admin', 'auth.session.guard:super_admin'])->group(function () {
             Route::post('logout', [SuperAdminAuthController::class, 'destroy'])->name('logout');
             Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
             Route::get('tenants', [TenantController::class, 'index'])->name('tenants.index');
@@ -37,6 +38,8 @@ Route::domain(config('tenancy.super_admin_host'))->group(function () {
             Route::post('tenants', [TenantController::class, 'store'])->name('tenants.store');
             Route::post('tenants/{tenant}/impersonate', [ImpersonationController::class, 'start'])->name('impersonate.start');
             Route::post('impersonate/stop', [ImpersonationController::class, 'stop'])->name('impersonate.stop');
+            Route::get('password', [SuperAdminPasswordController::class, 'edit'])->name('password.edit');
+            Route::put('password', [SuperAdminPasswordController::class, 'update'])->name('password.update');
         });
     });
 });
