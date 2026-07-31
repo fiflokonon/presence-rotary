@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\ClubSettingController;
 use App\Http\Controllers\Admin\MailSettingController;
 use App\Http\Controllers\Admin\MeetingSessionController;
 use App\Http\Controllers\Admin\MemberController;
+use App\Http\Controllers\Admin\PasswordController;
 use App\Http\Controllers\Admin\PositionController;
 use App\Http\Controllers\Admin\TitleController;
 use App\Http\Controllers\Admin\UserController;
@@ -51,7 +52,7 @@ Route::middleware(ResolveTenant::class)->group(function () {
             Route::post('login', [AuthController::class, 'store'])->name('login.store');
         });
 
-        Route::middleware('auth:web,super_admin')->group(function () {
+        Route::middleware(['auth:web,super_admin', 'auth.session.guard:web'])->group(function () {
             Route::post('logout', [AuthController::class, 'destroy'])->name('logout');
             Route::get('sessions', [MeetingSessionController::class, 'index'])->name('sessions.index');
             Route::post('sessions', [MeetingSessionController::class, 'store'])->name('sessions.store');
@@ -89,6 +90,11 @@ Route::middleware(ResolveTenant::class)->group(function () {
             Route::put('checkin-settings', [CheckinSettingController::class, 'update'])->name('checkin-settings.update');
             Route::get('club-settings', [ClubSettingController::class, 'edit'])->name('club-settings.edit');
             Route::put('club-settings', [ClubSettingController::class, 'update'])->name('club-settings.update');
+        });
+
+        Route::middleware(['auth:web', 'auth.session.guard:web'])->group(function () {
+            Route::get('password', [PasswordController::class, 'edit'])->name('password.edit');
+            Route::put('password', [PasswordController::class, 'update'])->name('password.update');
         });
     });
 });

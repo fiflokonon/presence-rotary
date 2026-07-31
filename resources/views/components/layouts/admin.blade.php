@@ -95,6 +95,12 @@
             </nav>
 
             @auth
+                @unless (session()->has('impersonating_tenant_id'))
+                    <a href="{{ route('admin.password.edit') }}" @click="close()"
+                        class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.password.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
+                        Mon mot de passe
+                    </a>
+                @endunless
                 <form method="POST" action="{{ route('admin.logout') }}">
                     @csrf
                     <button type="submit"
