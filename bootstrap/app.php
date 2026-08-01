@@ -21,6 +21,10 @@ return Application::configure(basePath: dirname(__DIR__))
             ? route('super-admin.login')
             : route('admin.login'));
 
+        $middleware->redirectUsersTo(fn (Request $request) => $request->getHost() === config('tenancy.super_admin_host')
+            ? route('super-admin.dashboard')
+            : route('admin.sessions.index'));
+
         $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {

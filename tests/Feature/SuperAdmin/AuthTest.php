@@ -17,6 +17,14 @@ it('logs a super admin in with valid credentials', function () {
     $this->assertAuthenticatedAs($superAdmin, 'super_admin');
 });
 
+it('redirects an already-authenticated super admin visiting the login form to the dashboard', function () {
+    $superAdmin = SuperAdmin::factory()->create();
+
+    $this->actingAs($superAdmin, 'super_admin')
+        ->get(superAdminUrl('superadmin/login'))
+        ->assertRedirect(superAdminUrl('superadmin/dashboard'));
+});
+
 it('rejects invalid credentials', function () {
     SuperAdmin::factory()->create(['email' => 'root@example.test', 'password' => 'secret-password']);
 

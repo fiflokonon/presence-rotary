@@ -33,6 +33,14 @@ it('rejects invalid credentials', function () {
     $this->assertGuest();
 });
 
+it('redirects an already-authenticated admin visiting the login form to the admin panel', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get(route('admin.login'))
+        ->assertRedirect(route('admin.sessions.index'));
+});
+
 it('logs an admin out', function () {
     $user = User::factory()->create();
 
