@@ -13,7 +13,7 @@ class ImpersonationController extends Controller
     {
         $request->session()->put('impersonating_tenant_id', $tenant->id);
 
-        return redirect()->route('admin.sessions.index');
+        return redirect()->route('admin.dashboard');
     }
 
     public function stop(Request $request): RedirectResponse

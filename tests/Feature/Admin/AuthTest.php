@@ -17,7 +17,7 @@ it('logs an admin in with valid credentials', function () {
     $this->post(route('admin.login'), [
         'email' => $user->email,
         'password' => 'secret123',
-    ])->assertRedirect(route('admin.sessions.index'));
+    ])->assertRedirect(route('admin.dashboard'));
 
     $this->assertAuthenticatedAs($user);
 });
@@ -38,7 +38,7 @@ it('redirects an already-authenticated admin visiting the login form to the admi
 
     $this->actingAs($user)
         ->get(route('admin.login'))
-        ->assertRedirect(route('admin.sessions.index'));
+        ->assertRedirect(route('admin.dashboard'));
 });
 
 it('logs an admin out', function () {

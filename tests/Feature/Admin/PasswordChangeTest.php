@@ -55,7 +55,7 @@ it('updates the password and lets the admin log in with the new one', function (
     $this->post(route('admin.login'), [
         'email' => $user->email,
         'password' => 'new-password-123',
-    ])->assertRedirect(route('admin.sessions.index'));
+    ])->assertRedirect(route('admin.dashboard'));
 });
 
 it('logs out other active sessions on the same account when the password changes', function () {
@@ -68,7 +68,7 @@ it('logs out other active sessions on the same account when the password changes
         'email' => $user->email,
         'password' => 'old-password-123',
     ]);
-    $deviceA->assertRedirect(route('admin.sessions.index'));
+    $deviceA->assertRedirect(route('admin.dashboard'));
     $cookieA = collect($deviceA->headers->getCookies())->first(fn ($c) => $c->getName() === $cookieName)->getValue();
 
     // A real browser immediately follows the post-login redirect with a GET,
@@ -76,7 +76,7 @@ it('logs out other active sessions on the same account when the password changes
     // middleware. Without this, device A's login alone leaves nothing to
     // compare against later.
     simulateNewRequestBoundary();
-    $this->withUnencryptedCookie($cookieName, $cookieA)->get(route('admin.sessions.index'))->assertOk();
+    $this->withUnencryptedCookie($cookieName, $cookieA)->get(route('admin.dashboard'))->assertOk();
 
     simulateNewRequestBoundary();
 
@@ -89,13 +89,13 @@ it('logs out other active sessions on the same account when the password changes
         'email' => $user->email,
         'password' => 'old-password-123',
     ]);
-    $deviceB->assertRedirect(route('admin.sessions.index'));
+    $deviceB->assertRedirect(route('admin.dashboard'));
     $cookieB = collect($deviceB->headers->getCookies())->first(fn ($c) => $c->getName() === $cookieName)->getValue();
 
     // Same as device A above: follow the redirect to seed device B's own
     // baseline hash before the password change happens elsewhere.
     simulateNewRequestBoundary();
-    $this->withUnencryptedCookie($cookieName, $cookieB)->get(route('admin.sessions.index'))->assertOk();
+    $this->withUnencryptedCookie($cookieName, $cookieB)->get(route('admin.dashboard'))->assertOk();
 
     simulateNewRequestBoundary();
     $this->withUnencryptedCookie($cookieName, $cookieA)
@@ -107,11 +107,11 @@ it('logs out other active sessions on the same account when the password changes
 
     simulateNewRequestBoundary();
     $this->withUnencryptedCookie($cookieName, $cookieA)
-        ->get(route('admin.sessions.index'))
+        ->get(route('admin.dashboard'))
         ->assertOk();
 
     simulateNewRequestBoundary();
     $this->withUnencryptedCookie($cookieName, $cookieB)
-        ->get(route('admin.sessions.index'))
+        ->get(route('admin.dashboard'))
         ->assertRedirect(route('admin.login'));
 });

@@ -60,6 +60,10 @@
             </div>
 
             <nav class="mt-6 flex flex-1 flex-col gap-1">
+                <a href="{{ route('admin.dashboard') }}" @click="close()"
+                    class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.dashboard') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
+                    Tableau de bord
+                </a>
                 <a href="{{ route('admin.sessions.index') }}" @click="close()"
                     class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.sessions.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
                     Séances

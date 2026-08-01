@@ -15,11 +15,11 @@ it('lets a super admin view a tenant admin panel after starting impersonation', 
 
     $this->actingAs(SuperAdmin::factory()->create(), 'super_admin')
         ->post(superAdminUrl("superadmin/tenants/{$tenant->id}/impersonate"))
-        ->assertRedirect(route('admin.sessions.index'));
+        ->assertRedirect(route('admin.dashboard'));
 
     $this->withSession(['impersonating_tenant_id' => $tenant->id])
         ->actingAs($tenantAdmin)
-        ->get(superAdminUrl('admin/sessions'))
+        ->get(superAdminUrl('admin/dashboard'))
         ->assertOk()
         ->assertSee('RC Cotonou Ife');
 

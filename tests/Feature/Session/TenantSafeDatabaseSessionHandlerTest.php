@@ -19,7 +19,7 @@ it('persists a session for an authenticated user without touching the tenant con
     $this->post(route('admin.login'), [
         'email' => $user->email,
         'password' => 'secret12345',
-    ])->assertRedirect(route('admin.sessions.index'));
+    ])->assertRedirect(route('admin.dashboard'));
 
     $sessionId = session()->getId();
     $originalPath = config('database.connections.sqlite.database');
