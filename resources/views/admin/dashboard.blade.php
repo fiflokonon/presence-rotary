@@ -31,6 +31,25 @@
                 <p class="text-sm text-muted">Pas encore de séance. Créez votre première séance depuis « Séances ».</p>
             </div>
         @else
+            <div
+                x-data="dashboardCharts(
+                    @js($attendanceTrend->map(fn ($s) => $s->date->translatedFormat('d/m'))),
+                    @js($attendanceTrend->map(fn ($s) => $s->attendances_count > 0 ? round($s->present_count / $s->attendances_count * 100) : 0)),
+                    @js($lastSessionBreakdown->keys()),
+                    @js($lastSessionBreakdown->values())
+                )"
+                class="grid grid-cols-1 gap-4 lg:grid-cols-2"
+            >
+                <div class="rounded-2xl bg-white p-6 shadow-[0_2px_10px_rgba(20,30,50,.06)]">
+                    <h2 class="font-display text-sm font-extrabold uppercase text-muted-strong">Évolution du taux de présence</h2>
+                    <canvas x-ref="trendCanvas" class="mt-4"></canvas>
+                </div>
+                <div class="rounded-2xl bg-white p-6 shadow-[0_2px_10px_rgba(20,30,50,.06)]">
+                    <h2 class="font-display text-sm font-extrabold uppercase text-muted-strong">Répartition (dernière séance)</h2>
+                    <canvas x-ref="breakdownCanvas" class="mt-4"></canvas>
+                </div>
+            </div>
+
             <div class="rounded-2xl bg-white p-6 shadow-[0_2px_10px_rgba(20,30,50,.06)] md:p-8">
                 <h2 class="font-display text-lg font-extrabold text-navy">Activité récente</h2>
                 <ul class="mt-4 divide-y divide-divider">

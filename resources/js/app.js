@@ -1,5 +1,6 @@
 import Alpine from 'alpinejs';
 import QRCode from 'qrcode';
+import Chart from 'chart.js/auto';
 
 window.Alpine = Alpine;
 
@@ -115,6 +116,49 @@ Alpine.data('adminShell', () => ({
     },
     close() {
         this.sidebarOpen = false;
+    },
+}));
+
+Alpine.data('dashboardCharts', (trendLabels, trendRates, breakdownLabels, breakdownCounts) => ({
+    init() {
+        if (trendLabels.length > 0) {
+            new Chart(this.$refs.trendCanvas, {
+                type: 'line',
+                data: {
+                    labels: trendLabels,
+                    datasets: [{
+                        label: 'Taux de présence (%)',
+                        data: trendRates,
+                        borderColor: '#12213D',
+                        backgroundColor: 'rgba(18, 33, 61, 0.08)',
+                        tension: 0.3,
+                        fill: true,
+                    }],
+                },
+                options: {
+                    scales: { y: { min: 0, max: 100, ticks: { callback: (value) => value + ' %' } } },
+                    plugins: { legend: { display: false } },
+                },
+            });
+        }
+
+        if (breakdownLabels.length > 0) {
+            new Chart(this.$refs.breakdownCanvas, {
+                type: 'bar',
+                data: {
+                    labels: breakdownLabels,
+                    datasets: [{
+                        label: 'Présents',
+                        data: breakdownCounts,
+                        backgroundColor: '#C77700',
+                    }],
+                },
+                options: {
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                    plugins: { legend: { display: false } },
+                },
+            });
+        }
     },
 }));
 
