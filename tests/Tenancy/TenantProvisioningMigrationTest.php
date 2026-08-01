@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\SendNewAdminCredentialsMailJob;
+use App\Models\ClubSetting;
 use App\Models\SuperAdmin;
 use App\Models\Tenant;
 use App\Models\User;
@@ -29,6 +30,10 @@ it('provisions a new tenant with a migrated database and its first admin user', 
     DB::purge('sqlite');
 
     expect(Schema::hasTable('club_settings'))->toBeTrue();
+
+    $clubSetting = ClubSetting::current();
+    expect($clubSetting->name)->toBe('Rotary Club Nouveau')
+        ->and($clubSetting->tagline)->toBeNull();
 
     $admin = User::where('email', 'premiere.admin@example.test')->firstOrFail();
     expect($admin->name)->toBe('Première Admin');

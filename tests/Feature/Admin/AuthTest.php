@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\ClubSetting;
 use App\Models\User;
 
 it('shows the login form to a guest', function () {
@@ -46,4 +47,16 @@ it('shows the club logo on the login page', function () {
     $this->get(route('admin.login'))
         ->assertOk()
         ->assertSee('ife-logo.png', false);
+});
+
+it('shows the tenant club name and logo on the login page instead of the default branding', function () {
+    ClubSetting::current()->update([
+        'name' => 'Rotary Club Ailleurs',
+        'logo_path' => 'tenants/1/club/custom-logo.png',
+    ]);
+
+    $this->get(route('admin.login'))
+        ->assertOk()
+        ->assertSee('Rotary Club Ailleurs', false)
+        ->assertSee('custom-logo.png', false);
 });

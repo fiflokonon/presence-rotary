@@ -5,6 +5,7 @@ namespace App\Http\Controllers\SuperAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SuperAdmin\StoreTenantRequest;
 use App\Jobs\SendNewAdminCredentialsMailJob;
+use App\Models\ClubSetting;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\TenantContext;
@@ -48,6 +49,11 @@ class TenantController extends Controller
             'sqlite_path' => $sqlitePath,
         ]));
         Artisan::call('migrate', ['--database' => 'sqlite', '--force' => true]);
+
+        ClubSetting::current()?->update([
+            'name' => $request->validated('name'),
+            'tagline' => null,
+        ]);
 
         $tenant = Tenant::create([
             'name' => $request->validated('name'),
