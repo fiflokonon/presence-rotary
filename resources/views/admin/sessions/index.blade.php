@@ -20,8 +20,8 @@
                     class="rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy">
             </div>
             <button type="submit"
-                class="cursor-pointer rounded-lg bg-navy px-4 py-2.5 text-sm font-bold text-white hover:bg-navy-hover">
-                Créer et activer
+                class="cursor-pointer flex items-center gap-2 rounded-lg bg-navy px-4 py-2.5 text-sm font-bold text-white hover:bg-navy-hover">
+                <i class="fa-solid fa-plus" aria-hidden="true"></i> Créer et activer
             </button>
         </form>
 

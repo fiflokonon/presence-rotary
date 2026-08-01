@@ -53,8 +53,8 @@
                         </div>
                     </div>
                     <a href="{{ route('admin.sessions.export-pdf', $meetingSession) }}" download
-                        class="cursor-pointer w-full rounded-lg bg-navy px-4 py-2 text-center text-sm font-bold text-white hover:bg-navy-hover md:w-auto">
-                        Exporter en PDF
+                        class="cursor-pointer flex w-full items-center justify-center gap-2 rounded-lg bg-navy px-4 py-2 text-center text-sm font-bold text-white hover:bg-navy-hover md:w-auto">
+                        <i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Exporter en PDF
                     </a>
                     <span class="w-full rounded-full {{ $meetingSession->is_open ? 'bg-success-bg text-success' : 'bg-divider text-muted' }} px-3 py-1 text-center text-xs font-semibold md:w-auto">
                         ● {{ $meetingSession->is_open ? 'Séance ouverte' : 'Séance clôturée' }}

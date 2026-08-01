@@ -3,8 +3,8 @@
         <div class="flex items-center justify-between gap-3">
             <h1 class="font-display text-xl font-extrabold text-navy">Organisations</h1>
             <a href="{{ route('admin.titles.create') }}"
-                class="cursor-pointer rounded-lg bg-navy px-4 py-2.5 text-sm font-bold text-white hover:bg-navy-hover">
-                Ajouter une organisation
+                class="cursor-pointer flex items-center gap-2 rounded-lg bg-navy px-4 py-2.5 text-sm font-bold text-white hover:bg-navy-hover">
+                <i class="fa-solid fa-plus" aria-hidden="true"></i> Ajouter une organisation
             </a>
         </div>
 
@@ -77,8 +77,8 @@
                                         onsubmit="return confirm('Supprimer définitivement cette organisation ?');">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="cursor-pointer text-sm font-semibold text-error underline">
-                                            Supprimer
+                                        <button type="submit" class="cursor-pointer inline-flex items-center gap-1 text-sm font-semibold text-error underline">
+                                            <i class="fa-solid fa-trash" aria-hidden="true"></i> Supprimer
                                         </button>
                                     </form>
                                 </div>

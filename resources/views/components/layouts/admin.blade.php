@@ -6,6 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title }}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="h-full bg-cream font-sans text-navy antialiased">
@@ -61,55 +62,55 @@
 
             <nav class="mt-6 flex flex-1 flex-col gap-1">
                 <a href="{{ route('admin.dashboard') }}" @click="close()"
-                    class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.dashboard') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
-                    Tableau de bord
+                    class="cursor-pointer flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.dashboard') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
+                    <i class="fa-solid fa-gauge w-4 text-center" aria-hidden="true"></i> Tableau de bord
                 </a>
                 <a href="{{ route('admin.sessions.index') }}" @click="close()"
-                    class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.sessions.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
-                    Séances
+                    class="cursor-pointer flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.sessions.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
+                    <i class="fa-solid fa-calendar-days w-4 text-center" aria-hidden="true"></i> Séances
                 </a>
                 <a href="{{ route('admin.users.index') }}" @click="close()"
-                    class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.users.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
-                    Administrateurs
+                    class="cursor-pointer flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.users.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
+                    <i class="fa-solid fa-user-shield w-4 text-center" aria-hidden="true"></i> Administrateurs
                 </a>
                 <a href="{{ route('admin.club-settings.edit') }}" @click="close()"
-                    class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.club-settings.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
-                    Identité du club
+                    class="cursor-pointer flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.club-settings.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
+                    <i class="fa-solid fa-palette w-4 text-center" aria-hidden="true"></i> Identité du club
                 </a>
                 <a href="{{ route('admin.mail-settings.edit') }}" @click="close()"
-                    class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.mail-settings.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
-                    Paramètres mail
+                    class="cursor-pointer flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.mail-settings.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
+                    <i class="fa-solid fa-envelope w-4 text-center" aria-hidden="true"></i> Paramètres mail
                 </a>
                 <a href="{{ route('admin.checkin-settings.edit') }}" @click="close()"
-                    class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.checkin-settings.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
-                    Paramètres formulaire
+                    class="cursor-pointer flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.checkin-settings.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
+                    <i class="fa-solid fa-list-check w-4 text-center" aria-hidden="true"></i> Paramètres formulaire
                 </a>
                 <a href="{{ route('admin.members.index') }}" @click="close()"
-                    class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.members.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
-                    Membres
+                    class="cursor-pointer flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.members.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
+                    <i class="fa-solid fa-users w-4 text-center" aria-hidden="true"></i> Membres
                 </a>
                 <a href="{{ route('admin.titles.index') }}" @click="close()"
-                    class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.titles.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
-                    Organisations
+                    class="cursor-pointer flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.titles.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
+                    <i class="fa-solid fa-sitemap w-4 text-center" aria-hidden="true"></i> Organisations
                 </a>
                 <a href="{{ route('admin.positions.index') }}" @click="close()"
-                    class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.positions.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
-                    Titres/Qualités
+                    class="cursor-pointer flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.positions.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
+                    <i class="fa-solid fa-id-badge w-4 text-center" aria-hidden="true"></i> Titres/Qualités
                 </a>
             </nav>
 
             @auth
                 @unless (session()->has('impersonating_tenant_id'))
                     <a href="{{ route('admin.password.edit') }}" @click="close()"
-                        class="cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.password.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
-                        Mon mot de passe
+                        class="cursor-pointer flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.password.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
+                        <i class="fa-solid fa-key w-4 text-center" aria-hidden="true"></i> Mon mot de passe
                     </a>
                 @endunless
                 <form method="POST" action="{{ route('admin.logout') }}">
                     @csrf
                     <button type="submit"
-                        class="cursor-pointer w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-gold hover:bg-cream">
-                        Se déconnecter
+                        class="cursor-pointer flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-semibold text-gold hover:bg-cream">
+                        <i class="fa-solid fa-right-from-bracket w-4 text-center" aria-hidden="true"></i> Se déconnecter
                     </button>
                 </form>
             @endauth

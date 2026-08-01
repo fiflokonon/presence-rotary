@@ -18,8 +18,8 @@
                 Un mot de passe sera généré automatiquement et envoyé par email au nouvel admin.
             </p>
             <button type="submit"
-                class="mt-2 cursor-pointer self-start rounded-lg bg-navy px-4 py-2.5 text-sm font-bold text-white hover:bg-navy-hover">
-                Créer l'admin
+                class="mt-2 cursor-pointer flex items-center gap-2 self-start rounded-lg bg-navy px-4 py-2.5 text-sm font-bold text-white hover:bg-navy-hover">
+                <i class="fa-solid fa-plus" aria-hidden="true"></i> Créer l'admin
             </button>
         </form>
 
