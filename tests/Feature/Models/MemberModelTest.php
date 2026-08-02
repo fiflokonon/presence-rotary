@@ -27,3 +27,15 @@ it('links an attendance to a member', function () {
 it('normalizes an email by trimming and lowercasing it', function () {
     expect(Member::normalizeEmail('  JEAN@Example.com  '))->toBe('jean@example.com');
 });
+
+it('defaults is_club_member to false', function () {
+    $member = Member::factory()->create();
+
+    expect($member->fresh()->is_club_member)->toBeFalse();
+});
+
+it('casts is_club_member to a boolean and persists true', function () {
+    $member = Member::factory()->create(['is_club_member' => true]);
+
+    expect($member->fresh()->is_club_member)->toBeTrue();
+});

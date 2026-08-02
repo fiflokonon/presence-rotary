@@ -14,7 +14,12 @@ class Member extends Model
     /** @use HasFactory<MemberFactory> */
     use HasFactory;
 
-    protected $fillable = ['title_id', 'position_id', 'name', 'club', 'phone', 'classification', 'email'];
+    protected $fillable = ['title_id', 'position_id', 'name', 'club', 'phone', 'classification', 'email', 'is_club_member'];
+
+    protected function casts(): array
+    {
+        return ['is_club_member' => 'boolean'];
+    }
 
     public function title(): BelongsTo
     {
