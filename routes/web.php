@@ -69,6 +69,8 @@ Route::middleware(ResolveTenant::class)->group(function () {
             Route::get('users/create', [UserController::class, 'create'])->name('users.create');
             Route::post('users', [UserController::class, 'store'])->name('users.store');
             Route::get('members', [MemberController::class, 'index'])->name('members.index');
+            Route::get('members/create', [MemberController::class, 'create'])->name('members.create');
+            Route::post('members', [MemberController::class, 'store'])->name('members.store');
             Route::get('members/{member}', [MemberController::class, 'show'])->name('members.show');
             Route::get('members/{member}/edit', [MemberController::class, 'edit'])->name('members.edit');
             Route::put('members/{member}', [MemberController::class, 'update'])->name('members.update');

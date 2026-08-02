@@ -16,6 +16,60 @@ it('redirects guests to login for every member route', function () {
     $this->put(route('admin.members.update', $member), [])->assertRedirect(route('admin.login'));
 });
 
+it('redirects guests away from the create and store member routes', function () {
+    $this->get(route('admin.members.create'))->assertRedirect(route('admin.login'));
+    $this->post(route('admin.members.store'), [])->assertRedirect(route('admin.login'));
+});
+
+it('creates a member from the admin panel', function () {
+    $response = $this->actingAs(User::factory()->create())
+        ->post(route('admin.members.store'), [
+            'title_id' => Title::where('name', 'Rotary')->sole()->id,
+            'position_id' => Title::where('name', 'Rotary')->sole()->positions()->where('name', 'Membre')->sole()->id,
+            'name' => 'Awa Bello',
+            'club' => 'RC Cotonou Ife',
+            'phone' => '+229 90 11 22 33',
+            'email' => 'awa.bello@example.com',
+            'is_club_member' => '1',
+        ]);
+
+    $member = Member::where('email', 'awa.bello@example.com')->sole();
+
+    $response->assertRedirect(route('admin.members.show', $member));
+    expect($member->name)->toBe('Awa Bello')
+        ->and($member->is_club_member)->toBeTrue();
+});
+
+it('creating a member without checking the club member box leaves it false', function () {
+    $this->actingAs(User::factory()->create())
+        ->post(route('admin.members.store'), [
+            'title_id' => Title::where('name', 'Rotary')->sole()->id,
+            'position_id' => Title::where('name', 'Rotary')->sole()->positions()->where('name', 'Membre')->sole()->id,
+            'name' => 'Jean Dupont',
+            'club' => 'RC Cotonou Ife',
+            'phone' => '+229 90 00 00 00',
+            'email' => 'jean.new@example.com',
+        ]);
+
+    expect(Member::where('email', 'jean.new@example.com')->sole()->is_club_member)->toBeFalse();
+});
+
+it('rejects creating a member with an email that already exists', function () {
+    Member::factory()->create(['email' => 'existing@example.com']);
+
+    $this->actingAs(User::factory()->create())
+        ->post(route('admin.members.store'), [
+            'title_id' => Title::where('name', 'Rotary')->sole()->id,
+            'position_id' => Title::where('name', 'Rotary')->sole()->positions()->where('name', 'Membre')->sole()->id,
+            'name' => 'Duplicate',
+            'club' => 'RC Cotonou Ife',
+            'phone' => '+229 90 00 00 00',
+            'email' => 'existing@example.com',
+        ])->assertSessionHasErrors(['email']);
+
+    expect(Member::where('email', 'existing@example.com')->count())->toBe(1);
+});
+
 it('lists members to an authenticated admin', function () {
     Member::factory()->create(['name' => 'Jean Dupont', 'email' => 'jean@example.com']);
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreMemberRequest;
 use App\Http\Requests\UpdateMemberRequest;
 use App\Models\Attendance;
 use App\Models\Member;
@@ -34,6 +35,26 @@ class MemberController extends Controller
         ]);
     }
 
+    public function create(): View
+    {
+        return view('admin.members.create', [
+            'titles' => Title::activeOrId(null)
+                ->with(['positions' => fn ($query) => $query->activeOrId(null)])
+                ->orderBy('name')
+                ->get(),
+        ]);
+    }
+
+    public function store(StoreMemberRequest $request): RedirectResponse
+    {
+        $member = Member::create([
+            ...$request->safe()->except('is_club_member'),
+            'is_club_member' => $request->boolean('is_club_member'),
+        ]);
+
+        return redirect()->route('admin.members.show', $member);
+    }
+
     public function show(Member $member): View
     {
         $attendances = $member->attendances()
@@ -60,7 +81,10 @@ class MemberController extends Controller
 
     public function update(UpdateMemberRequest $request, Member $member): RedirectResponse
     {
-        $member->update($request->validated());
+        $member->update([
+            ...$request->safe()->except('is_club_member'),
+            'is_club_member' => $request->boolean('is_club_member'),
+        ]);
 
         return redirect()->route('admin.members.show', $member);
     }
