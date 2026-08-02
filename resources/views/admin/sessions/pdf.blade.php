@@ -30,6 +30,7 @@
                         <th>Organisation</th>
                         <th>Club</th>
                         <th>Téléphone</th>
+                        <th>Email</th>
                         <th>Présent</th>
                     </tr>
                 </thead>
@@ -40,6 +41,7 @@
                             <td>{{ $attendance->title->name }}{{ $attendance->position ? ' — '.$attendance->position->name : '' }}</td>
                             <td>{{ $attendance->club }}</td>
                             <td>{{ $attendance->phone }}</td>
+                            <td>{{ $attendance->email }}</td>
                             <td>{{ $attendance->present ? 'Oui' : 'Non' }}{{ $attendance->is_late ? ' (retard)' : '' }}</td>
                         </tr>
                     @endforeach

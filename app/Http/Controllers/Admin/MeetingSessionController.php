@@ -100,9 +100,14 @@ class MeetingSessionController extends Controller
 
     public function exportPdf(MeetingSession $meetingSession): Response
     {
+        $attendances = $meetingSession->attendances()->with(['title', 'position', 'member'])
+            ->get()
+            ->reject(fn (Attendance $attendance) => $attendance->member?->is_club_member === true)
+            ->values();
+
         $pdf = Pdf::loadView('admin.sessions.pdf', [
             'meetingSession' => $meetingSession,
-            'attendances' => $meetingSession->attendances()->with(['title', 'position'])->get(),
+            'attendances' => $attendances,
             'groupLabels' => [...$this->principalTitles()->pluck('name')->all(), Title::OTHER_ORGANIZATIONS_LABEL],
         ]);
 
