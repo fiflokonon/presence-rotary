@@ -12,6 +12,7 @@
             'present' => $attendance->present,
             'isLate' => $attendance->is_late,
             'hasMisc' => $attendance->has_misc,
+            'isClubMember' => $attendance->member?->is_club_member ?? false,
         ])), @js(collect($groups)->pluck('label')))"
         class="rounded-2xl bg-white shadow-[0_2px_10px_rgba(20,30,50,.06)]"
     >
@@ -116,11 +117,11 @@
 
         <div class="grid grid-cols-2 gap-3 px-4 py-5 md:grid-cols-5 md:px-8">
             <div class="rounded-lg bg-navy p-3 text-white">
-                <p class="text-lg font-extrabold">{{ $attendances->where('present', true)->count() }}/{{ $attendances->count() }}</p>
-                <p class="text-xs">Présents ({{ $attendances->count() > 0 ? round($attendances->where('present', true)->count() / $attendances->count() * 100) : 0 }}%)</p>
+                <p class="text-lg font-extrabold">{{ $visibleAttendances->where('present', true)->count() }}/{{ $visibleAttendances->count() }}</p>
+                <p class="text-xs">Présents ({{ $visibleAttendances->count() > 0 ? round($visibleAttendances->where('present', true)->count() / $visibleAttendances->count() * 100) : 0 }}%)</p>
             </div>
             @foreach ($groups as $group)
-                @php $groupCount = $attendances->filter(fn ($attendance) => $attendance->groupLabel === $group['label'])->count(); @endphp
+                @php $groupCount = $visibleAttendances->filter(fn ($attendance) => $attendance->groupLabel === $group['label'])->count(); @endphp
                 <div class="rounded-lg p-3" style="background-color: {{ $group['colors']['bg'] }}; color: {{ $group['colors']['accent'] }}">
                     <p class="text-lg font-extrabold">{{ $groupCount }}</p>
                     <p class="text-xs">{{ $group['label'] }}</p>
@@ -161,6 +162,11 @@
                 class="cursor-pointer rounded-full border border-border px-3 py-2 text-xs font-semibold text-navy">
                 <span x-text="sortMode === 'grouped' ? 'Trier par poste' : 'Grouper par organisation'"></span>
             </button>
+            <span class="h-6 w-px bg-divider md:mx-1"></span>
+            <label class="flex cursor-pointer items-center gap-2 text-xs font-semibold text-navy">
+                <input type="checkbox" x-model="showClubMembers">
+                Afficher les membres du club
+            </label>
         </div>
 
         <div class="max-h-[520px] overflow-y-auto px-4 pb-8 md:px-8">

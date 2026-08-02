@@ -11,14 +11,18 @@ Alpine.data('attendanceDashboard', (records, groupOrder) => ({
     activeGroup: 'all',
     activeTitle: 'all',
     activeMiscFilter: 'all',
+    showClubMembers: false,
     sortMode: 'grouped',
     get titleOptions() {
         return [...new Set(this.records.map((record) => record.title))].sort();
     },
+    get visibleRecords() {
+        return this.records.filter((record) => this.showClubMembers || !record.isClubMember);
+    },
     get filtered() {
         const search = this.search.toLowerCase();
 
-        return this.records.filter((record) => {
+        return this.visibleRecords.filter((record) => {
             const matchesGroup = this.activeGroup === 'all' || record.groupLabel === this.activeGroup;
             const matchesTitle = this.activeTitle === 'all' || record.title === this.activeTitle;
             const matchesSearch = record.name.toLowerCase().includes(search);

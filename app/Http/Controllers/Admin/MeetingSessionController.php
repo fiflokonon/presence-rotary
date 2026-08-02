@@ -84,9 +84,12 @@ class MeetingSessionController extends Controller
 
     public function show(MeetingSession $meetingSession): View
     {
+        $attendances = $meetingSession->attendances()->with(['title', 'position', 'member'])->get();
+
         return view('admin.sessions.show', [
             'meetingSession' => $meetingSession,
-            'attendances' => $meetingSession->attendances()->with(['title', 'position'])->get(),
+            'attendances' => $attendances,
+            'visibleAttendances' => $attendances->reject(fn (Attendance $attendance) => $attendance->member?->is_club_member === true),
             'upcomingSessions' => MeetingSession::where('id', '!=', $meetingSession->id)
                 ->where('date', '>=', now()->toDateString())
                 ->orderBy('date')

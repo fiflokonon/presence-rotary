@@ -2,6 +2,7 @@
 
 use App\Models\Attendance;
 use App\Models\MeetingSession;
+use App\Models\Member;
 use App\Models\Title;
 use App\Models\User;
 
@@ -31,6 +32,51 @@ it('shows counters and the roster to an authenticated admin', function () {
         ->assertSee('Jean Dupont')
         ->assertSee('Awa Bello')
         ->assertSee('1/2');
+});
+
+it('excludes club members from the summary tile counts by default', function () {
+    $meetingSession = MeetingSession::factory()->create();
+    $clubMember = Member::factory()->create(['is_club_member' => true]);
+
+    Attendance::factory()->for($meetingSession)->create([
+        'title_id' => Title::where('name', 'Rotary')->sole()->id,
+        'present' => true,
+    ]);
+    Attendance::factory()->for($meetingSession)->create([
+        'title_id' => Title::where('name', 'Rotary')->sole()->id,
+        'member_id' => $clubMember->id,
+        'present' => true,
+    ]);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.sessions.show', $meetingSession))
+        ->assertOk()
+        ->assertSee('1/1');
+});
+
+it('flags club member attendances in the JSON payload and exposes the toggle', function () {
+    $meetingSession = MeetingSession::factory()->create();
+    $clubMember = Member::factory()->create(['is_club_member' => true]);
+    $regular = Member::factory()->create(['is_club_member' => false]);
+
+    Attendance::factory()->for($meetingSession)->create([
+        'title_id' => Title::where('name', 'Rotary')->sole()->id,
+        'member_id' => $clubMember->id,
+    ]);
+    Attendance::factory()->for($meetingSession)->create([
+        'title_id' => Title::where('name', 'Rotary')->sole()->id,
+        'member_id' => $regular->id,
+    ]);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.sessions.show', $meetingSession))
+        ->assertOk()
+        ->assertViewHas('attendances', function ($attendances) use ($clubMember, $regular) {
+            return $attendances->firstWhere('member_id', $clubMember->id)->member->is_club_member === true
+                && $attendances->firstWhere('member_id', $regular->id)->member->is_club_member === false;
+        })
+        ->assertSee('x-model="showClubMembers"', false)
+        ->assertSee('Afficher les membres du club');
 });
 
 it('toggles an attendance present flag', function () {
