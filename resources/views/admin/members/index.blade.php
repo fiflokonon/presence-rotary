@@ -21,6 +21,32 @@
             <i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i> Télécharger le gabarit
         </a>
 
+        <form method="POST" action="{{ route('admin.members.import') }}" enctype="multipart/form-data" class="mt-4 ml-2 inline-flex items-center gap-2">
+            @csrf
+            <input type="file" name="file" accept=".xlsx" required class="text-sm">
+            <button type="submit"
+                class="cursor-pointer rounded-lg border border-border px-4 py-2.5 text-sm font-bold text-navy hover:bg-cream">
+                <i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i> Importer des membres du club
+            </button>
+        </form>
+
+        @if (session('membersImported') !== null)
+            <div class="mt-4 rounded-lg bg-success-bg px-4 py-3 text-sm text-success">
+                {{ session('membersImported') }} membre(s) importé(s).
+            </div>
+        @endif
+
+        @if (session('membersImportErrors') && count(session('membersImportErrors')) > 0)
+            <div class="mt-4 rounded-lg bg-error-bg px-4 py-3 text-sm text-error">
+                <p class="font-semibold">{{ count(session('membersImportErrors')) }} ligne(s) en erreur :</p>
+                <ul class="mt-1 list-disc pl-5">
+                    @foreach (session('membersImportErrors') as $error)
+                        <li>Ligne {{ $error['row'] }} : {{ $error['message'] }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <div class="mt-6 overflow-x-auto">
             <table class="w-full text-left text-sm">
                 <thead>

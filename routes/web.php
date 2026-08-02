@@ -72,6 +72,7 @@ Route::middleware(ResolveTenant::class)->group(function () {
             Route::get('members/create', [MemberController::class, 'create'])->name('members.create');
             Route::post('members', [MemberController::class, 'store'])->name('members.store');
             Route::get('members/import-template', [MemberController::class, 'importTemplate'])->name('members.import-template');
+            Route::post('members/import', [MemberController::class, 'import'])->name('members.import');
             Route::get('members/{member}', [MemberController::class, 'show'])->name('members.show');
             Route::get('members/{member}/edit', [MemberController::class, 'edit'])->name('members.edit');
             Route::put('members/{member}', [MemberController::class, 'update'])->name('members.update');
