@@ -153,6 +153,61 @@ it('does not offer an inactive title when looking up an unknown email', function
         ->assertDontSee('Ancien Titre');
 });
 
+it('immediately checks in a club member from step 1 with no details form', function () {
+    $meetingSession = MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
+    $rotary = Title::where('name', 'Rotary')->sole();
+    $member = Member::factory()->create([
+        'email' => 'club.member@example.com',
+        'name' => 'Club Membre',
+        'club' => 'RC Cotonou Ife',
+        'phone' => '+229 90 00 00 01',
+        'title_id' => $rotary->id,
+        'is_club_member' => true,
+    ]);
+
+    $this->post(route('attendance.lookup'), ['email' => 'club.member@example.com'])
+        ->assertRedirect(route('attendance.show'))
+        ->assertSessionHas('attendanceSubmitted', true);
+
+    $attendance = Attendance::where('member_id', $member->id)->sole();
+
+    expect($attendance->meeting_session_id)->toBe($meetingSession->id)
+        ->and($attendance->present)->toBeTrue()
+        ->and($attendance->name)->toBe('Club Membre')
+        ->and($attendance->club)->toBe('RC Cotonou Ife')
+        ->and($attendance->title_id)->toBe($rotary->id);
+
+    $this->get(route('attendance.show'))
+        ->assertOk()
+        ->assertSee('Merci, votre présence a bien été enregistrée.')
+        ->assertDontSee('Nom et prénoms');
+});
+
+it('rejects a second check-in from the same club member on the same session', function () {
+    $meetingSession = MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
+    $member = Member::factory()->create(['email' => 'club.member@example.com', 'is_club_member' => true]);
+    Attendance::factory()->create([
+        'meeting_session_id' => $meetingSession->id,
+        'member_id' => $member->id,
+        'email' => 'club.member@example.com',
+    ]);
+
+    $this->post(route('attendance.lookup'), ['email' => 'club.member@example.com'])
+        ->assertRedirect(route('attendance.show'))
+        ->assertSessionHas('attendanceAlreadyCheckedIn', true);
+
+    expect(Attendance::where('member_id', $member->id)->count())->toBe(1);
+});
+
+it('still shows the details form for a non-club-member lookup', function () {
+    MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
+    Member::factory()->create(['email' => 'regular@example.com', 'is_club_member' => false]);
+
+    $this->post(route('attendance.lookup'), ['email' => 'regular@example.com'])
+        ->assertOk()
+        ->assertSee('Nom et prénoms');
+});
+
 it('still shows a returning members inactive title and position, marked inactive', function () {
     MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
     $title = Title::factory()->create(['name' => 'Titre Retraité', 'is_active' => false]);

@@ -30,7 +30,7 @@ class AttendanceFormController extends Controller
         ]);
     }
 
-    public function lookup(LookupAttendanceEmailRequest $request): View
+    public function lookup(LookupAttendanceEmailRequest $request): View|RedirectResponse
     {
         $meetingSession = MeetingSession::active();
 
@@ -38,6 +38,10 @@ class AttendanceFormController extends Controller
 
         $email = Member::normalizeEmail($request->validated('email'));
         $member = Member::firstWhere('email', $email);
+
+        if ($member?->is_club_member) {
+            return $this->checkInClubMember($member, $meetingSession);
+        }
 
         return view('attendance.show', [
             'meetingSession' => $meetingSession,
@@ -57,16 +61,10 @@ class AttendanceFormController extends Controller
 
         $existingMember = Member::firstWhere('email', $email);
 
-        if ($existingMember !== null) {
-            $alreadyCheckedIn = Attendance::where('member_id', $existingMember->id)
-                ->where('meeting_session_id', $meetingSession->id)
-                ->exists();
-
-            if ($alreadyCheckedIn) {
-                return redirect()
-                    ->route('attendance.show')
-                    ->with('attendanceAlreadyCheckedIn', true);
-            }
+        if ($existingMember !== null && $this->alreadyCheckedIn($existingMember, $meetingSession)) {
+            return redirect()
+                ->route('attendance.show')
+                ->with('attendanceAlreadyCheckedIn', true);
         }
 
         $member = Member::updateOrCreate(
@@ -87,6 +85,41 @@ class AttendanceFormController extends Controller
             ->route('attendance.show')
             ->with('attendanceSubmitted', true)
             ->with('attendanceWasLate', ! $meetingSession->is_open);
+    }
+
+    private function checkInClubMember(Member $member, MeetingSession $meetingSession): RedirectResponse
+    {
+        if ($this->alreadyCheckedIn($member, $meetingSession)) {
+            return redirect()
+                ->route('attendance.show')
+                ->with('attendanceAlreadyCheckedIn', true);
+        }
+
+        Attendance::create([
+            'meeting_session_id' => $meetingSession->id,
+            'member_id' => $member->id,
+            'title_id' => $member->title_id,
+            'position_id' => $member->position_id,
+            'name' => $member->name,
+            'club' => $member->club,
+            'phone' => $member->phone,
+            'classification' => $member->classification,
+            'email' => $member->email,
+            'present' => true,
+            'is_late' => ! $meetingSession->is_open,
+        ]);
+
+        return redirect()
+            ->route('attendance.show')
+            ->with('attendanceSubmitted', true)
+            ->with('attendanceWasLate', ! $meetingSession->is_open);
+    }
+
+    private function alreadyCheckedIn(Member $member, MeetingSession $meetingSession): bool
+    {
+        return Attendance::where('member_id', $member->id)
+            ->where('meeting_session_id', $meetingSession->id)
+            ->exists();
     }
 
     /**
