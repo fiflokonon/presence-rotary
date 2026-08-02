@@ -218,14 +218,24 @@ both of which assume a title is always present, matching today's invariant.
 ### 4. Session attendance list & PDF filtering
 
 `MeetingSessionController::show()` and `exportPdf()` both eager-load `member`
-alongside `title`/`position`. `show()` keeps passing the **full** attendance
-set to the Alpine payload (club members included, flagged) so the on-screen
-toggle can reveal them without a round trip; `exportPdf()` filters club
-members out server-side, since the PDF has no interactivity:
+alongside `title`/`position`. `show()` computes two collections: the
+**full** set (club members included, flagged) for the Alpine payload so the
+on-screen toggle can reveal them without a round trip, and a **default
+(club-members-excluded)** set for the server-rendered summary tiles.
+`exportPdf()` only ever needs the excluded set, since the PDF has no
+interactivity:
 
 ```php
 // show()
-'attendances' => $meetingSession->attendances()->with(['title', 'position', 'member'])->get(),
+$attendances = $meetingSession->attendances()->with(['title', 'position', 'member'])->get();
+$visibleAttendances = $attendances->reject(fn (Attendance $a) => $a->member?->is_club_member === true);
+
+return view('admin.sessions.show', [
+    'meetingSession' => $meetingSession,
+    'attendances' => $attendances,
+    'visibleAttendances' => $visibleAttendances,
+    // ...unchanged (upcomingSessions, groups)
+]);
 
 // exportPdf()
 'attendances' => $meetingSession->attendances()->with(['title', 'position', 'member'])
@@ -234,9 +244,21 @@ members out server-side, since the PDF has no interactivity:
     ->values(),
 ```
 
-`admin/sessions/show.blade.php`'s `@js(...)` payload gains `'isClubMember' =>
-$attendance->member?->is_club_member ?? false` per record, and a new filter
-control next to the existing search/group/misc pills:
+`admin/sessions/show.blade.php` keeps its top summary tiles exactly as they
+are today — still static Blade values, still ignoring every filter — except
+they now read from `$visibleAttendances` instead of `$attendances`:
+
+```blade
+<p class="text-lg font-extrabold">{{ $visibleAttendances->where('present', true)->count() }}/{{ $visibleAttendances->count() }}</p>
+...
+@php $groupCount = $visibleAttendances->filter(fn ($attendance) => $attendance->groupLabel === $group['label'])->count(); @endphp
+```
+
+The `@js(...)` payload driving the Alpine `attendanceDashboard` component
+keeps using the **full** `$attendances` (so the toggle has data to reveal),
+with `'isClubMember' => $attendance->member?->is_club_member ?? false` added
+per record. A new filter control sits next to the existing search/group/misc
+pills:
 
 ```blade
 <label class="flex cursor-pointer items-center gap-2 text-xs font-semibold text-navy">
@@ -245,9 +267,10 @@ control next to the existing search/group/misc pills:
 </label>
 ```
 
-`resources/js/app.js`'s `attendanceDashboard` gets `showClubMembers: false`
-state, and both the row-list `filtered` getter and the top summary tiles
-respect it:
+`resources/js/app.js`'s `attendanceDashboard` gains `showClubMembers: false`
+state and a `visibleRecords` getter that the existing `filtered` getter
+filters through first (its `matchesGroup`/`matchesTitle`/`matchesSearch`/
+`matchesMisc` body is otherwise unchanged):
 
 ```js
 Alpine.data('attendanceDashboard', (records, groupOrder) => ({
@@ -276,30 +299,17 @@ Alpine.data('attendanceDashboard', (records, groupOrder) => ({
             return matchesGroup && matchesTitle && matchesSearch && matchesMisc;
         });
     },
-    get presentCount() { return this.visibleRecords.filter((r) => r.present).length; },
-    get totalCount() { return this.visibleRecords.length; },
-    groupCount(label) { return this.visibleRecords.filter((r) => r.groupLabel === label).length; },
-    get groups() {
-        return this.groupOrder
-            .map((label) => ({
-                category: label,
-                records: this.sortByPosition(this.filtered.filter((record) => record.groupLabel === label)),
-            }))
-            .filter((group) => group.records.length > 0);
-    },
-    get flatSorted() {
-        return this.sortByPosition(this.filtered);
-    },
-    // sortByPosition/initials unchanged
+    // groups/flatSorted/sortByPosition/initials unchanged, still built from `filtered`
 }));
 ```
 
-The top summary tiles in `show.blade.php` switch from static Blade values
-(`{{ $attendances->where(...)->count() }}`) to Alpine bindings
-(`x-text="presentCount + '/' + totalCount"`, `x-text="groupCount('...')"`),
-so they react to `showClubMembers` exactly like the row list — but, matching
-today's behavior, stay unaffected by search/title/misc, since those never
-touched the tiles either.
+This keeps the summary tiles testable exactly like today (plain
+`assertSee()` on server-rendered HTML — this project has no browser-test
+infrastructure and every other filter already leaves the tiles alone too),
+while the toggle only changes the interactive row list below, which is
+already only verifiable through the embedded JSON payload
+(`assertSee('"isClubMember":true', false)`-style assertions), consistent
+with how the other Alpine filters are tested today.
 
 Dashboard stats (`Admin\DashboardController`) are unchanged — they keep
 including club members, per the earlier decision.
@@ -502,20 +512,30 @@ Extend `tests/Feature/AttendanceMemberCheckInTest.php` (or a new
 - A non-club member (or unknown email) still gets the step-2 form
   (unchanged behavior).
 
-Extend `tests/Feature/Admin/MeetingSessionTest.php` (or equivalent):
+Extend `tests/Feature/Admin/AttendanceDashboardTest.php`:
 
-- `exportPdf()` excludes attendances belonging to club members from the
-  rendered attendances (assert via the controller/view data, not by
-  parsing the PDF binary).
-- The PDF table includes the attendee's email.
+- The summary tile count (e.g. `assertSee('1/2')`) excludes a club-member
+  attendance by default, matching this file's existing assertion style.
+- The `@js(...)` payload includes `"isClubMember":true` for a club member's
+  record and `"isClubMember":false` for a regular one
+  (`assertSee('"isClubMember":true', false)`), and the "Afficher les
+  membres du club" checkbox/`x-model="showClubMembers"` markup is present —
+  this project has no browser-test infrastructure, so, consistent with how
+  every other Alpine filter here is already tested, the toggle's *reactive*
+  behavior isn't exercised in a real browser; only that the correct data
+  and control reach the page.
 
-New Pest browser test (per this project's `pest-testing` conventions) for
-the on-screen toggle, since it's pure Alpine-side reactivity that a
-non-browser feature test can't exercise: visit a session's `admin.sessions.show`
-page seeded with one regular and one club-member attendance, assert the
-club member's row is hidden and the summary tile count excludes them,
-check "Afficher les membres du club", assert the row appears and the tile
-count updates.
+Extend `tests/Feature/Admin/AttendancePdfExportTest.php`:
+
+- A controller-level test mocking the `Pdf` facade
+  (`Pdf::shouldReceive('loadView')->once()->with('admin.sessions.pdf',
+  Mockery::on(fn (array $data) => ...))`) asserts a club member's attendance
+  is absent from the `attendances` passed to the view while a regular
+  member's is present — following this file's existing split between
+  controller-level tests (auth, response headers) and view-level tests
+  (rendering, via `view('admin.sessions.pdf', [...])->render()`).
+- A view-level test (like the existing grouping/footer tests) asserts the
+  rendered PDF HTML contains the attendee's email in a `<td>`.
 
 New `tests/Feature/Admin/MembersImportTest.php`:
 
