@@ -16,6 +16,11 @@
             <i class="fa-solid fa-plus" aria-hidden="true"></i> Ajouter un membre
         </a>
 
+        <a href="{{ route('admin.members.import-template') }}"
+            class="mt-4 ml-2 inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-bold text-navy hover:bg-cream">
+            <i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i> Télécharger le gabarit
+        </a>
+
         <div class="mt-6 overflow-x-auto">
             <table class="w-full text-left text-sm">
                 <thead>

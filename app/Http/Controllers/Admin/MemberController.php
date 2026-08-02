@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\MembersImportTemplateExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreMemberRequest;
 use App\Http\Requests\UpdateMemberRequest;
@@ -11,6 +12,8 @@ use App\Models\Title;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class MemberController extends Controller
 {
@@ -53,6 +56,11 @@ class MemberController extends Controller
         ]);
 
         return redirect()->route('admin.members.show', $member);
+    }
+
+    public function importTemplate(): BinaryFileResponse
+    {
+        return Excel::download(new MembersImportTemplateExport, 'gabarit-membres-du-club.xlsx');
     }
 
     public function show(Member $member): View
