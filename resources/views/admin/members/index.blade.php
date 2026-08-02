@@ -11,6 +11,11 @@
             </button>
         </form>
 
+        <a href="{{ route('admin.members.create') }}"
+            class="mt-4 inline-flex items-center gap-2 rounded-lg bg-navy px-4 py-2.5 text-sm font-bold text-white hover:bg-navy-hover">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i> Ajouter un membre
+        </a>
+
         <div class="mt-6 overflow-x-auto">
             <table class="w-full text-left text-sm">
                 <thead>
@@ -24,7 +29,12 @@
                 <tbody class="divide-y divide-divider">
                     @foreach ($members as $member)
                         <tr>
-                            <td class="py-3 pr-4 font-semibold text-navy">{{ $member->name }}</td>
+                            <td class="py-3 pr-4 font-semibold text-navy">
+                                {{ $member->name }}
+                                @if ($member->is_club_member)
+                                    <span class="ml-2 rounded-full bg-gold/20 px-2 py-0.5 text-[11px] font-semibold text-gold">Membre du club</span>
+                                @endif
+                            </td>
                             <td class="py-3 pr-4">{{ $member->email }}</td>
                             <td class="py-3 pr-4">{{ $member->club }}</td>
                             <td class="py-3 pr-4 text-right">

@@ -28,6 +28,7 @@ class UpdateMemberRequest extends FormRequest
             'phone' => ['required', 'string', 'max:50'],
             'classification' => ['nullable', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('members', 'email')->ignore($this->route('member'))],
+            'is_club_member' => ['sometimes', 'boolean'],
         ];
     }
 

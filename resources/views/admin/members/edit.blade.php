@@ -72,6 +72,11 @@
                     class="rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy">
             </div>
 
+            <label class="flex items-center gap-2 text-sm font-semibold">
+                <input type="checkbox" id="is_club_member" name="is_club_member" value="1" {{ old('is_club_member', $member->is_club_member) ? 'checked' : '' }}>
+                Membre du club
+            </label>
+
             <button type="submit"
                 class="mt-2 cursor-pointer self-start rounded-lg bg-navy px-4 py-2.5 text-sm font-bold text-white hover:bg-navy-hover">
                 Enregistrer
