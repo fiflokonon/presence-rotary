@@ -4,19 +4,14 @@ namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SuperAdmin\StoreTenantRequest;
-use App\Jobs\SendNewAdminCredentialsMailJob;
-use App\Models\ClubSetting;
 use App\Models\Tenant;
-use App\Models\User;
-use App\Services\TenantContext;
+use App\Services\TenantProvisioningService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class TenantController extends Controller
 {
-    public function __construct(private readonly TenantContext $tenantContext) {}
+    public function __construct(private readonly TenantProvisioningService $provisioningService) {}
 
     public function index(): View
     {
@@ -32,50 +27,12 @@ class TenantController extends Controller
 
     public function store(StoreTenantRequest $request): RedirectResponse
     {
-        $previousTenant = $this->tenantContext->current();
-
-        $directory = database_path('data/tenants');
-
-        if (! is_dir($directory)) {
-            mkdir($directory, recursive: true);
-        }
-
-        $sqlitePath = $directory.'/'.Str::uuid().'.sqlite';
-        touch($sqlitePath);
-
-        $this->tenantContext->use(new Tenant([
-            'name' => $request->validated('name'),
-            'host' => $request->validated('host'),
-            'sqlite_path' => $sqlitePath,
-        ]));
-        Artisan::call('migrate', ['--database' => 'sqlite', '--force' => true]);
-
-        ClubSetting::current()?->update([
-            'name' => $request->validated('name'),
-            'tagline' => null,
-        ]);
-
-        $tenant = Tenant::create([
-            'name' => $request->validated('name'),
-            'host' => $request->validated('host'),
-            'sqlite_path' => $sqlitePath,
-        ]);
-
-        $password = Str::password(16);
-
-        $admin = User::create([
-            'name' => $request->validated('admin_name'),
-            'email' => $request->validated('admin_email'),
-            'password' => $password,
-        ]);
-
-        SendNewAdminCredentialsMailJob::dispatch($tenant->id, $admin->id, $password);
-
-        if ($previousTenant !== null) {
-            $this->tenantContext->use($previousTenant);
-        } else {
-            $this->tenantContext->clear();
-        }
+        $this->provisioningService->provision(
+            $request->validated('name'),
+            $request->validated('host'),
+            $request->validated('admin_name'),
+            $request->validated('admin_email'),
+        );
 
         return redirect()->route('super-admin.tenants.index')->with('status', 'Club créé.');
     }
