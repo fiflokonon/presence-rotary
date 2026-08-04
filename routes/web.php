@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\MeetingSessionController;
 use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\PasswordController;
 use App\Http\Controllers\Admin\PositionController;
+use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\TitleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AttendanceFormController;
@@ -73,7 +74,8 @@ Route::middleware(ResolveTenant::class)->group(function () {
         Route::middleware(['auth:web,super_admin', 'auth.session.guard:web'])->group(function () {
             Route::post('logout', [AuthController::class, 'destroy'])->name('logout');
 
-            Route::get('subscription', fn () => response('ok'))->name('subscription.index');
+            Route::get('subscription', [SubscriptionController::class, 'index'])->name('subscription.index');
+            Route::post('subscription/checkout', fn () => response('ok'))->name('subscription.checkout');
 
             Route::middleware(CheckTenantSubscription::class)->group(function () {
                 Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');

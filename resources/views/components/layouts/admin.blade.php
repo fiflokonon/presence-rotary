@@ -83,6 +83,10 @@
                     class="cursor-pointer flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.club-settings.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
                     <i class="fa-solid fa-palette w-4 text-center" aria-hidden="true"></i> Identité du club
                 </a>
+                <a href="{{ route('admin.subscription.index') }}" @click="close()"
+                    class="cursor-pointer flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.subscription.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
+                    <i class="fa-solid fa-credit-card w-4 text-center" aria-hidden="true"></i> Souscription
+                </a>
                 <a href="{{ route('admin.mail-settings.edit') }}" @click="close()"
                     class="cursor-pointer flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold {{ request()->routeIs('admin.mail-settings.*') ? 'bg-navy text-white' : 'text-navy hover:bg-cream' }}">
                     <i class="fa-solid fa-envelope w-4 text-center" aria-hidden="true"></i> Paramètres mail
