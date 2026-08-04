@@ -47,3 +47,20 @@ it('provisions a migrated tenant database with a first admin user', function () 
     unset(RefreshDatabaseState::$inMemoryConnections['sqlite']);
     RefreshDatabaseState::$migrated = false;
 });
+
+it('slugs the club name against the configured base domain', function () {
+    config(['tenancy.base_domain' => 'example.test']);
+
+    $host = app(TenantProvisioningService::class)->generateUniqueHost('Rotary Club Nouveau');
+
+    expect($host)->toBe('rotary-club-nouveau.example.test');
+});
+
+it('de-duplicates the slug when the host already exists', function () {
+    config(['tenancy.base_domain' => 'example.test']);
+    Tenant::factory()->create(['host' => 'rotary-club-doublon.example.test']);
+
+    $host = app(TenantProvisioningService::class)->generateUniqueHost('Rotary Club Doublon');
+
+    expect($host)->toBe('rotary-club-doublon-2.example.test');
+});

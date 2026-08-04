@@ -62,4 +62,20 @@ class TenantProvisioningService
 
         return $tenant;
     }
+
+    public function generateUniqueHost(string $clubName): string
+    {
+        $baseSlug = Str::slug($clubName);
+        $baseDomain = config('tenancy.base_domain');
+
+        $host = "{$baseSlug}.{$baseDomain}";
+        $suffix = 2;
+
+        while (Tenant::where('host', $host)->exists()) {
+            $host = "{$baseSlug}-{$suffix}.{$baseDomain}";
+            $suffix++;
+        }
+
+        return $host;
+    }
 }
