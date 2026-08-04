@@ -1,4 +1,4 @@
-@props(['late' => false, 'email', 'member' => null, 'titles', 'guestTitleId' => null])
+@props(['late' => false, 'email', 'member' => null, 'titles', 'guestTitleId' => null, 'clubFieldEnabledForGuests' => false])
 
 <form method="POST" action="{{ route('attendance.store') }}" class="flex flex-col gap-4 px-6 pb-6 pt-4">
     @csrf
@@ -33,8 +33,10 @@
                     'name' => $p->is_active ? $p->name : $p->name.' (inactif)',
                 ])->values(),
             ])) }},
+            clubFieldEnabledForGuests: {{ Illuminate\Support\Js::from($clubFieldEnabledForGuests) }},
             get availablePositions() { return this.positionsByTitle[this.titleId] ?? [] },
             get isGuest() { return this.titleId !== '' && this.titleId == '{{ $guestTitleId }}' },
+            get clubRequired() { return !this.isGuest || this.clubFieldEnabledForGuests },
         }"
         class="contents"
     >
@@ -67,18 +69,18 @@
                     class="rounded-lg border border-[#DEDAD0] px-3 py-2 text-sm">
             </div>
         @endif
-    </div>
 
-    <div class="flex flex-col gap-1.5">
-        <label for="name" class="text-sm font-semibold text-[#12213D]">Nom et prénoms*</label>
-        <input type="text" id="name" name="name" value="{{ old('name', $member?->name) }}" required
-            class="rounded-lg border border-[#DEDAD0] px-3 py-2 text-sm">
-    </div>
+        <div class="flex flex-col gap-1.5">
+            <label for="name" class="text-sm font-semibold text-[#12213D]">Nom et prénoms*</label>
+            <input type="text" id="name" name="name" value="{{ old('name', $member?->name) }}" required
+                class="rounded-lg border border-[#DEDAD0] px-3 py-2 text-sm">
+        </div>
 
-    <div class="flex flex-col gap-1.5">
-        <label for="club" class="text-sm font-semibold text-[#12213D]">Nom de votre club*</label>
-        <input type="text" id="club" name="club" value="{{ old('club', $member?->club) }}" required
-            class="rounded-lg border border-[#DEDAD0] px-3 py-2 text-sm">
+        <div class="flex flex-col gap-1.5" x-show="clubRequired">
+            <label for="club" class="text-sm font-semibold text-[#12213D]">Nom de votre club*</label>
+            <input type="text" id="club" name="club" value="{{ old('club', $member?->club) }}" :required="clubRequired"
+                class="rounded-lg border border-[#DEDAD0] px-3 py-2 text-sm">
+        </div>
     </div>
 
     <div class="flex flex-col gap-1.5">

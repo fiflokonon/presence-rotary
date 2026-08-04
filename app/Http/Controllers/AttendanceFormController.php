@@ -123,7 +123,7 @@ class AttendanceFormController extends Controller
     }
 
     /**
-     * @return array{titles: Collection<int, Title>, guestTitleId: ?int}
+     * @return array{titles: Collection<int, Title>, guestTitleId: ?int, clubFieldEnabledForGuests: bool}
      */
     private function attendanceFormData(?Member $member): array
     {
@@ -149,6 +149,7 @@ class AttendanceFormController extends Controller
         return [
             'titles' => $titles,
             'guestTitleId' => $guestTitle?->id,
+            'clubFieldEnabledForGuests' => CheckinSetting::clubFieldEnabledForGuests(),
         ];
     }
 }

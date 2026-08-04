@@ -279,3 +279,22 @@ it('still requires a club name for a non-guest submission regardless of the sett
 
     expect(Attendance::count())->toBe(0);
 });
+
+it('marks the club field as conditionally required for guests by default', function () {
+    MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
+
+    $this->post(route('attendance.lookup'), ['email' => 'nouveau@example.com'])
+        ->assertOk()
+        ->assertSee('x-show="clubRequired"', false)
+        ->assertSee(':required="clubRequired"', false)
+        ->assertSee('clubFieldEnabledForGuests: false', false);
+});
+
+it('passes the club field as enabled for guests when the setting is on', function () {
+    MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
+    CheckinSetting::create(['show_club_field_for_guests' => true]);
+
+    $this->post(route('attendance.lookup'), ['email' => 'nouveau@example.com'])
+        ->assertOk()
+        ->assertSee('clubFieldEnabledForGuests: true', false);
+});
