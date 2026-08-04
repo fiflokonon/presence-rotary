@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1abe53db422e566e0490195ab9c60f86",
+    "content-hash": "34508b30a85cfe46264c3219a3c84b86",
     "packages": [
         {
             "name": "barryvdh/laravel-dompdf",
@@ -3317,6 +3317,77 @@
                 }
             ],
             "time": "2026-02-16T23:10:27+00:00"
+        },
+        {
+            "name": "payplus-africa/payplus",
+            "version": "dev-main",
+            "source": {
+                "type": "git",
+                "url": "https://gitlab.com/payplus-africa/plugins-laravel-and-native-php.git",
+                "reference": "be93b3e3cc111acae7643487fecf3c547235a7f1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://gitlab.com/api/v4/projects/payplus-africa%2Fplugins-laravel-and-native-php/repository/archive.zip?sha=be93b3e3cc111acae7643487fecf3c547235a7f1",
+                "reference": "be93b3e3cc111acae7643487fecf3c547235a7f1",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/support": ">=7.0",
+                "php": ">=7.4"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^6.0",
+                "phpunit/phpunit": "^9.3",
+                "spatie/laravel-ray": "^1.9",
+                "vimeo/psalm": "^4.4"
+            },
+            "default-branch": true,
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "Payplus": "Payplus\\PayplusFacade"
+                    },
+                    "providers": [
+                        "Payplus\\PayplusServiceProvider"
+                    ]
+                },
+                "branch-alias": {
+                    "dev-main": "1.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Payplus\\": "src",
+                    "Payplus\\Database\\Factories\\": "database/factories"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Payplus africa",
+                    "email": "info@payplus.africa",
+                    "role": "Organisation"
+                }
+            ],
+            "description": "Payplus is the easier plateform to perform online paiement with assurance",
+            "homepage": "https://payplus.africa/",
+            "keywords": [
+                "onlign paiement",
+                "paiement",
+                "pay",
+                "payplus",
+                "plus"
+            ],
+            "support": {
+                "issues": "https://gitlab.com/payplus-africa/plugins-laravel-and-native-php/-/issues",
+                "source": "https://gitlab.com/payplus-africa/plugins-laravel-and-native-php/-/tree/main"
+            },
+            "time": "2025-02-14T12:52:08+00:00"
         },
         {
             "name": "phpoffice/phpspreadsheet",
@@ -10811,7 +10882,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "payplus-africa/payplus": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
