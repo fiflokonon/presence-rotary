@@ -15,3 +15,9 @@ it('redirects an authenticated super admin to the dashboard', function () {
         ->get(superAdminUrl('/'))
         ->assertRedirect(route('super-admin.dashboard'));
 });
+
+it('links to the self-service signup page', function () {
+    $this->get(superAdminUrl('/'))
+        ->assertOk()
+        ->assertSee(route('signup.show'), escape: false);
+});

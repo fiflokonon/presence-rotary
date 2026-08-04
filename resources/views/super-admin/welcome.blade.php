@@ -6,5 +6,9 @@
             class="mt-4 inline-block cursor-pointer rounded-lg bg-navy px-4 py-2.5 text-sm font-bold text-white hover:bg-navy-hover">
             Se connecter
         </a>
+        <a href="{{ route('signup.show') }}"
+            class="mt-3 block cursor-pointer text-sm font-semibold text-navy hover:text-navy-hover">
+            Inscrire mon club
+        </a>
     </div>
 </x-layouts.super-admin>
