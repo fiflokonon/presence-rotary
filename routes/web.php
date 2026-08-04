@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\TitleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AttendanceFormController;
+use App\Http\Controllers\PayPlusCallbackController;
 use App\Http\Controllers\SuperAdmin\AuthController as SuperAdminAuthController;
 use App\Http\Controllers\SuperAdmin\DashboardController as SuperAdminDashboardController;
 use App\Http\Controllers\SuperAdmin\ImpersonationController;
@@ -130,3 +131,5 @@ Route::middleware(ResolveTenant::class)->group(function () {
         });
     });
 });
+
+Route::post('/payplus/callback', [PayPlusCallbackController::class, 'handle'])->name('payplus.callback');
