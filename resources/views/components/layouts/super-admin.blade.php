@@ -14,6 +14,7 @@
                 <div class="flex items-center gap-4 text-sm font-semibold">
                     <a href="{{ route('super-admin.tenants.index') }}" class="text-navy hover:text-navy-hover">Clubs</a>
                     <a href="{{ route('super-admin.plans.index') }}" class="text-navy hover:text-navy-hover">Plans</a>
+                    <a href="{{ route('super-admin.settings.edit') }}" class="text-navy hover:text-navy-hover">Réglages</a>
                     <a href="{{ route('super-admin.dashboard') }}" class="text-navy hover:text-navy-hover">Tableau de bord</a>
                     <a href="{{ route('super-admin.password.edit') }}" class="text-navy hover:text-navy-hover">Mon mot de passe</a>
                 </div>

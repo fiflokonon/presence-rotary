@@ -18,6 +18,7 @@ use App\Http\Controllers\SuperAdmin\DashboardController as SuperAdminDashboardCo
 use App\Http\Controllers\SuperAdmin\ImpersonationController;
 use App\Http\Controllers\SuperAdmin\PasswordController as SuperAdminPasswordController;
 use App\Http\Controllers\SuperAdmin\PlanController;
+use App\Http\Controllers\SuperAdmin\PlatformSettingController;
 use App\Http\Controllers\SuperAdmin\TenantController;
 use App\Http\Controllers\SuperAdmin\WelcomeController;
 use App\Http\Middleware\CheckTenantSubscription;
@@ -47,6 +48,8 @@ Route::domain(config('tenancy.super_admin_host'))->group(function () {
             Route::get('plans/{plan}/edit', [PlanController::class, 'edit'])->name('plans.edit');
             Route::put('plans/{plan}', [PlanController::class, 'update'])->name('plans.update');
             Route::patch('plans/{plan}/toggle-active', [PlanController::class, 'toggleActive'])->name('plans.toggle-active');
+            Route::get('settings', [PlatformSettingController::class, 'edit'])->name('settings.edit');
+            Route::put('settings', [PlatformSettingController::class, 'update'])->name('settings.update');
             Route::get('password', [SuperAdminPasswordController::class, 'edit'])->name('password.edit');
             Route::put('password', [SuperAdminPasswordController::class, 'update'])->name('password.update');
         });
