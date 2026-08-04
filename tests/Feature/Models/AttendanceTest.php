@@ -39,3 +39,21 @@ it('derives its group label as Autres organisations for a non-principal title', 
 
     expect($attendance->groupLabel)->toBe(Title::OTHER_ORGANIZATIONS_LABEL);
 });
+
+it('allows a null club', function () {
+    $meetingSession = MeetingSession::factory()->create();
+    $title = Title::where('name', 'Invité')->sole();
+
+    $attendance = Attendance::create([
+        'meeting_session_id' => $meetingSession->id,
+        'title_id' => $title->id,
+        'name' => 'Awa Bello',
+        'club' => null,
+        'phone' => '+229 91 00 00 00',
+        'email' => 'awa.bello@example.com',
+        'present' => true,
+        'is_late' => false,
+    ]);
+
+    expect($attendance->fresh()->club)->toBeNull();
+});
