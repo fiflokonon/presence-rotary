@@ -15,6 +15,7 @@ class UpdateCheckinSettingRequest extends FormRequest
     {
         $this->merge([
             'show_guest_option' => $this->boolean('show_guest_option'),
+            'show_club_field_for_guests' => $this->boolean('show_club_field_for_guests'),
         ]);
     }
 
@@ -25,6 +26,7 @@ class UpdateCheckinSettingRequest extends FormRequest
     {
         return [
             'show_guest_option' => ['boolean'],
+            'show_club_field_for_guests' => ['boolean'],
         ];
     }
 }

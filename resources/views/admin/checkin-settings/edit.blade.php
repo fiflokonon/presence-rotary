@@ -19,6 +19,11 @@
                     @checked(old('show_guest_option', $checkinSetting?->show_guest_option ?? true))>
                 Afficher l'option « Invité » sur le formulaire de présence
             </label>
+            <label class="flex items-center gap-2 text-sm font-semibold">
+                <input type="checkbox" name="show_club_field_for_guests" value="1"
+                    @checked(old('show_club_field_for_guests', $checkinSetting?->show_club_field_for_guests ?? false))>
+                Afficher le champ « Nom de club » pour les invités
+            </label>
             <button type="submit"
                 class="mt-2 cursor-pointer self-start rounded-lg bg-navy px-4 py-2.5 text-sm font-bold text-white hover:bg-navy-hover">
                 Enregistrer
