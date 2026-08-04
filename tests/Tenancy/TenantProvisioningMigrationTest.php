@@ -2,6 +2,7 @@
 
 use App\Jobs\SendNewAdminCredentialsMailJob;
 use App\Models\ClubSetting;
+use App\Models\Plan;
 use App\Models\SuperAdmin;
 use App\Models\Tenant;
 use App\Models\User;
@@ -12,12 +13,15 @@ use Illuminate\Support\Facades\Schema;
 it('provisions a new tenant with a migrated database and its first admin user', function () {
     Queue::fake();
 
+    $plan = Plan::factory()->create();
+
     $this->actingAs(SuperAdmin::factory()->create(), 'super_admin')
         ->post(superAdminUrl('superadmin/tenants'), [
             'name' => 'Rotary Club Nouveau',
             'host' => 'nouveau.example.test',
             'admin_name' => 'Première Admin',
             'admin_email' => 'premiere.admin@example.test',
+            'plan_id' => $plan->id,
         ])->assertRedirect(superAdminUrl('superadmin/tenants'));
 
     $tenant = Tenant::where('host', 'nouveau.example.test')->firstOrFail();

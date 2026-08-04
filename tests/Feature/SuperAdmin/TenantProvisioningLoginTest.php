@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\SendNewAdminCredentialsMailJob;
+use App\Models\Plan;
 use App\Models\SuperAdmin;
 use App\Models\Tenant;
 use Illuminate\Foundation\Testing\RefreshDatabaseState;
@@ -14,12 +15,15 @@ it('logs in the freshly provisioned tenant admin', function () {
 
     Queue::fake();
 
+    $plan = Plan::factory()->create();
+
     $this->actingAs(SuperAdmin::factory()->create(), 'super_admin')
         ->post(superAdminUrl('superadmin/tenants'), [
             'name' => 'Rotary Club Nouveau',
             'host' => 'nouveau.example.test',
             'admin_name' => 'Première Admin',
             'admin_email' => 'premiere.admin@example.test',
+            'plan_id' => $plan->id,
         ])->assertRedirect(superAdminUrl('superadmin/tenants'));
 
     $tenant = Tenant::where('host', 'nouveau.example.test')->firstOrFail();

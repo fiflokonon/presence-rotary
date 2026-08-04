@@ -30,6 +30,16 @@
                 <input type="email" id="admin_email" name="admin_email" value="{{ old('admin_email') }}" required
                     class="rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy">
             </div>
+            <div class="flex flex-col gap-1.5">
+                <label for="plan_id" class="text-sm font-semibold">Plan offert</label>
+                <select id="plan_id" name="plan_id" required
+                    class="rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy">
+                    <option value="">— Choisir —</option>
+                    @foreach ($plans as $plan)
+                        <option value="{{ $plan->id }}" @selected(old('plan_id') == $plan->id)>{{ $plan->name }} ({{ $plan->duration_months }} mois)</option>
+                    @endforeach
+                </select>
+            </div>
             <p class="text-sm text-muted">
                 Un mot de passe sera généré automatiquement et envoyé par email au premier admin du club.
             </p>

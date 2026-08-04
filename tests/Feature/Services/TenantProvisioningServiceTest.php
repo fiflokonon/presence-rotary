@@ -5,6 +5,7 @@ use App\Models\ClubSetting;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\TenantProvisioningService;
+use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
@@ -37,4 +38,12 @@ it('provisions a migrated tenant database with a first admin user', function () 
     );
 
     @unlink($tenant->sqlite_path);
+
+    // Switching the sqlite connection to a real file mid-test leaves
+    // RefreshDatabase's cached in-memory PDO out of sync with its own
+    // bookkeeping. Drop the stale cache so the next test re-migrates a
+    // clean connection instead of colliding with it (see TenantContextTest
+    // for the same workaround).
+    unset(RefreshDatabaseState::$inMemoryConnections['sqlite']);
+    RefreshDatabaseState::$migrated = false;
 });

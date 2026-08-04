@@ -21,6 +21,7 @@ class StoreTenantRequest extends FormRequest
             'host' => ['required', 'string', 'max:255', 'unique:central.tenants,host'],
             'admin_name' => ['required', 'string', 'max:255'],
             'admin_email' => ['required', 'string', 'email', 'max:255'],
+            'plan_id' => ['required', 'integer', 'exists:central.plans,id'],
         ];
     }
 }
