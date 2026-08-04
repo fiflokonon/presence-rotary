@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\TitleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AttendanceFormController;
 use App\Http\Controllers\PayPlusCallbackController;
+use App\Http\Controllers\SignupController;
 use App\Http\Controllers\SuperAdmin\AuthController as SuperAdminAuthController;
 use App\Http\Controllers\SuperAdmin\DashboardController as SuperAdminDashboardController;
 use App\Http\Controllers\SuperAdmin\ImpersonationController;
@@ -29,6 +30,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::domain(config('tenancy.super_admin_host'))->group(function () {
     Route::get('/', [WelcomeController::class, 'show'])->name('super-admin.welcome');
+
+    Route::get('inscription', [SignupController::class, 'show'])->name('signup.show');
+    Route::post('inscription', [SignupController::class, 'store'])->name('signup.store');
+    Route::get('inscription/pending', [SignupController::class, 'pending'])->name('signup.pending');
+    Route::get('inscription/status', [SignupController::class, 'checkPaymentStatus'])->name('signup.status');
 
     Route::prefix('superadmin')->name('super-admin.')->group(function () {
         Route::middleware('guest:super_admin')->group(function () {
