@@ -4,6 +4,7 @@ namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SuperAdmin\StoreTenantRequest;
+use App\Http\Requests\SuperAdmin\UpdateGracePeriodRequest;
 use App\Models\Plan;
 use App\Models\Subscription;
 use App\Models\Tenant;
@@ -51,5 +52,13 @@ class TenantController extends Controller
         ]);
 
         return redirect()->route('super-admin.tenants.index')->with('status', 'Club créé.');
+    }
+
+    public function updateGracePeriod(UpdateGracePeriodRequest $request): RedirectResponse
+    {
+        Tenant::whereIn('id', $request->validated('tenant_ids'))
+            ->update(['grace_period_days' => $request->validated('grace_period_days')]);
+
+        return redirect()->route('super-admin.tenants.index')->with('status', 'Délai de grâce mis à jour.');
     }
 }
