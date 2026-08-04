@@ -2,10 +2,12 @@
 
 namespace App\Http\Requests;
 
+use App\Models\CheckinSetting;
 use App\Models\Title;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreAttendanceRequest extends FormRequest
 {
@@ -24,12 +26,28 @@ class StoreAttendanceRequest extends FormRequest
             'position_id' => ['nullable', 'integer', 'exists:positions,id', $this->positionBelongsToTitle()],
             'invited_by' => ['nullable', 'string', 'max:255'],
             'name' => ['required', 'string', 'max:255'],
-            'club' => ['required', 'string', 'max:255'],
+            'club' => ['nullable', 'string', 'max:255', Rule::requiredIf(fn () => $this->clubRequiredForSubmission())],
             'phone' => ['required', 'string', 'max:50'],
             'classification' => ['nullable', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
             'has_misc' => ['nullable', 'boolean'],
         ];
+    }
+
+    /**
+     * `club` is only optional when the submitted title is "Invité" and the
+     * admin has left the guest club field disabled — every other title
+     * always requires it, matching the pre-existing behavior.
+     */
+    private function clubRequiredForSubmission(): bool
+    {
+        if (CheckinSetting::clubFieldEnabledForGuests()) {
+            return true;
+        }
+
+        $title = Title::find($this->input('title_id'));
+
+        return $title?->name !== Title::GUEST_NAME;
     }
 
     /**

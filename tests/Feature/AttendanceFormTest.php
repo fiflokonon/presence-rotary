@@ -233,3 +233,49 @@ it('still offers a returning guest members Invité title even when the guest opt
         ->assertOk()
         ->assertSee('Invité');
 });
+
+it('allows a guest submission without a club name by default', function () {
+    MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
+    $invite = Title::where('name', 'Invité')->sole();
+
+    $this->post(route('attendance.store'), [
+        'title_id' => $invite->id,
+        'name' => 'Awa Bello',
+        'phone' => '+229 91 00 00 00',
+        'email' => 'awa.bello@example.com',
+    ])->assertRedirect(route('attendance.show'))
+        ->assertSessionDoesntHaveErrors();
+
+    expect(Attendance::first()->club)->toBeNull();
+});
+
+it('requires a club name for a guest submission when the setting is enabled', function () {
+    MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
+    CheckinSetting::create(['show_club_field_for_guests' => true]);
+    $invite = Title::where('name', 'Invité')->sole();
+
+    $this->post(route('attendance.store'), [
+        'title_id' => $invite->id,
+        'name' => 'Awa Bello',
+        'phone' => '+229 91 00 00 00',
+        'email' => 'awa.bello@example.com',
+    ])->assertSessionHasErrors(['club']);
+
+    expect(Attendance::count())->toBe(0);
+});
+
+it('still requires a club name for a non-guest submission regardless of the setting', function () {
+    MeetingSession::factory()->create(['is_active' => true, 'is_open' => true]);
+    $rotary = Title::where('name', 'Rotary')->sole();
+    $president = $rotary->positions()->where('name', 'Président')->sole();
+
+    $this->post(route('attendance.store'), [
+        'title_id' => $rotary->id,
+        'position_id' => $president->id,
+        'name' => 'Jean Dupont',
+        'phone' => '+229 90 00 00 00',
+        'email' => 'jean.dupont@example.com',
+    ])->assertSessionHasErrors(['club']);
+
+    expect(Attendance::count())->toBe(0);
+});
