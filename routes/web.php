@@ -75,7 +75,9 @@ Route::middleware(ResolveTenant::class)->group(function () {
             Route::post('logout', [AuthController::class, 'destroy'])->name('logout');
 
             Route::get('subscription', [SubscriptionController::class, 'index'])->name('subscription.index');
-            Route::post('subscription/checkout', fn () => response('ok'))->name('subscription.checkout');
+            Route::post('subscription/checkout', [SubscriptionController::class, 'checkout'])->name('subscription.checkout');
+            Route::get('subscription/pending', [SubscriptionController::class, 'pending'])->name('subscription.pending');
+            Route::get('subscription/status', fn () => response()->json(['status' => 'pending']))->name('subscription.status');
 
             Route::middleware(CheckTenantSubscription::class)->group(function () {
                 Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
