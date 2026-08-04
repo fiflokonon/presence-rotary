@@ -77,7 +77,7 @@ Route::middleware(ResolveTenant::class)->group(function () {
             Route::get('subscription', [SubscriptionController::class, 'index'])->name('subscription.index');
             Route::post('subscription/checkout', [SubscriptionController::class, 'checkout'])->name('subscription.checkout');
             Route::get('subscription/pending', [SubscriptionController::class, 'pending'])->name('subscription.pending');
-            Route::get('subscription/status', fn () => response()->json(['status' => 'pending']))->name('subscription.status');
+            Route::get('subscription/status', [SubscriptionController::class, 'checkPaymentStatus'])->name('subscription.status');
 
             Route::middleware(CheckTenantSubscription::class)->group(function () {
                 Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');

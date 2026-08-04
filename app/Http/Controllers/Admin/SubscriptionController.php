@@ -7,7 +7,9 @@ use App\Http\Requests\Admin\CheckoutSubscriptionRequest;
 use App\Models\Plan;
 use App\Models\Transaction;
 use App\Services\PayPlusGateway;
+use App\Services\SubscriptionActivationService;
 use App\Services\TenantContext;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -17,6 +19,7 @@ class SubscriptionController extends Controller
     public function __construct(
         private readonly TenantContext $tenantContext,
         private readonly PayPlusGateway $gateway,
+        private readonly SubscriptionActivationService $activationService,
     ) {}
 
     public function index(): View
@@ -70,5 +73,12 @@ class SubscriptionController extends Controller
         return view('admin.subscription.pending', [
             'token' => request()->query('token'),
         ]);
+    }
+
+    public function checkPaymentStatus(): JsonResponse
+    {
+        $result = $this->activationService->activateFromToken(request()->query('token'));
+
+        return response()->json($result);
     }
 }
