@@ -4,7 +4,7 @@
         <div>
             <p class="text-[14.5px] font-semibold text-navy" x-text="record.name"></p>
             <p class="text-[12.5px] text-muted-strong">
-                <span x-text="record.title + (record.position ? ' — ' + record.position : '') + ' · ' + record.club"></span>
+                <span x-text="record.title + (record.position ? ' — ' + record.position : '') + ' · ' + (record.club ?? '')"></span>
                 <span x-show="record.isLate" class="font-bold text-gold"> · marqué en retard</span>
                 <span x-show="record.hasMisc" class="font-bold text-navy"> · divers</span>
             </p>

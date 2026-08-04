@@ -34,6 +34,19 @@ it('shows counters and the roster to an authenticated admin', function () {
         ->assertSee('1/2');
 });
 
+it('renders a null club as an empty string instead of the literal "null"', function () {
+    $meetingSession = MeetingSession::factory()->create();
+    Attendance::factory()->create([
+        'meeting_session_id' => $meetingSession->id,
+        'club' => null,
+    ]);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.sessions.show', $meetingSession))
+        ->assertOk()
+        ->assertSee("(record.club ?? '')", false);
+});
+
 it('excludes club members from the summary tile counts by default', function () {
     $meetingSession = MeetingSession::factory()->create();
     $clubMember = Member::factory()->create(['is_club_member' => true]);
