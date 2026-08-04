@@ -19,6 +19,12 @@
             </form>
         </div>
     @endif
+    @isset($subscriptionGraceWarning)
+        <div class="bg-gold px-4 py-2 text-center text-sm font-semibold text-navy">
+            Votre souscription a expiré le {{ $subscriptionGraceWarning['expiredAt']->format('d/m/Y') }}. Renouvelez avant le {{ $subscriptionGraceWarning['graceEndsAt']->format('d/m/Y') }} pour ne pas perdre l'accès.
+            <a href="{{ route('admin.subscription.index') }}" class="underline">Renouveler</a>
+        </div>
+    @endisset
     <x-page-loading-overlay />
     <div x-data="adminShell()" class="flex min-h-full flex-col md:flex-row">
         <div class="flex items-center justify-between border-b border-divider bg-white px-4 py-3 md:hidden">
