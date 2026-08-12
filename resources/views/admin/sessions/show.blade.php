@@ -57,6 +57,15 @@
                         class="cursor-pointer flex w-full items-center justify-center gap-2 rounded-lg bg-navy px-4 py-2 text-center text-sm font-bold text-white hover:bg-navy-hover md:w-auto">
                         <i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Exporter en PDF
                     </a>
+                    @if (! $meetingSession->is_active || $meetingSession->is_hidden)
+                        <form method="POST" action="{{ route('admin.sessions.toggle-hidden', $meetingSession) }}" class="w-full md:w-auto">
+                            @csrf
+                            <button type="submit"
+                                class="cursor-pointer flex w-full items-center justify-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-bold text-navy hover:bg-cream md:w-auto">
+                                {{ $meetingSession->is_hidden ? 'Afficher la séance' : 'Masquer' }}
+                            </button>
+                        </form>
+                    @endif
                     <span class="w-full rounded-full {{ $meetingSession->is_open ? 'bg-success-bg text-success' : 'bg-divider text-muted' }} px-3 py-1 text-center text-xs font-semibold md:w-auto">
                         ● {{ $meetingSession->is_open ? 'Séance ouverte' : 'Séance clôturée' }}
                     </span>

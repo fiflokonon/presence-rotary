@@ -124,3 +124,30 @@ it('includes hidden sessions in the index payload for client-side filtering', fu
         ->assertSee('Séance masquée liste')
         ->assertSee('Afficher les séances masquées');
 });
+
+it('shows a hide button on the detail page of a non-active session', function () {
+    $meetingSession = MeetingSession::factory()->create(['is_active' => false, 'is_hidden' => false]);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.sessions.show', $meetingSession))
+        ->assertOk()
+        ->assertSee('Masquer');
+});
+
+it('hides the hide button for the active session on the detail page', function () {
+    $meetingSession = MeetingSession::factory()->create(['is_active' => true, 'is_hidden' => false]);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.sessions.show', $meetingSession))
+        ->assertOk()
+        ->assertDontSee('>Masquer<', false);
+});
+
+it('shows a "show" button on the detail page of a hidden session', function () {
+    $meetingSession = MeetingSession::factory()->create(['is_active' => false, 'is_hidden' => true]);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.sessions.show', $meetingSession))
+        ->assertOk()
+        ->assertSee('Afficher la séance');
+});
