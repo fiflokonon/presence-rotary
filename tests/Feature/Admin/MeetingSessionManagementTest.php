@@ -114,3 +114,13 @@ it('excludes hidden sessions from the upcoming sessions selector on the show pag
         ->assertSee('Séance visible')
         ->assertDontSee('Séance masquée');
 });
+
+it('includes hidden sessions in the index payload for client-side filtering', function () {
+    MeetingSession::factory()->create(['title' => 'Séance masquée liste', 'is_hidden' => true]);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.sessions.index'))
+        ->assertOk()
+        ->assertSee('Séance masquée liste')
+        ->assertSee('Afficher les séances masquées');
+});

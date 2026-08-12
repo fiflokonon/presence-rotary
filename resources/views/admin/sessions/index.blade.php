@@ -37,31 +37,41 @@
                 'title' => $meetingSession->title,
                 'date' => $meetingSession->date->format('d/m/Y'),
                 'url' => route('admin.sessions.show', $meetingSession),
+                'toggleHiddenUrl' => route('admin.sessions.toggle-hidden', $meetingSession),
                 'isActive' => $meetingSession->is_active,
                 'isOpen' => $meetingSession->is_open,
+                'isHidden' => $meetingSession->is_hidden,
             ])))"
         >
             <input type="text" x-model="search" placeholder="Rechercher un titre…"
                 class="mt-6 w-full max-w-[280px] rounded-full border border-border px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy">
 
+            <label class="mt-3 flex items-center gap-2 text-sm text-muted-strong">
+                <input type="checkbox" x-model="showHidden" class="rounded border-border text-navy focus:ring-navy">
+                Afficher les séances masquées
+            </label>
+
             <ul class="mt-4 divide-y divide-divider">
                 <template x-for="session in filtered" :key="session.id">
                     <li>
-                        <a :href="session.url"
-                            class="flex cursor-pointer items-center justify-between gap-3 rounded-lg py-3 pl-2 pr-2 hover:bg-cream">
-                            <span class="min-w-0 truncate text-sm font-semibold text-navy">
-                                <span x-text="session.title"></span> — <span x-text="session.date"></span>
-                            </span>
+                        <div class="flex items-center justify-between gap-3 rounded-lg py-3 pl-2 pr-2 hover:bg-cream">
+                            <a :href="session.url" class="flex min-w-0 flex-1 items-center gap-2">
+                                <span class="min-w-0 truncate text-sm font-semibold text-navy">
+                                    <span x-text="session.title"></span> — <span x-text="session.date"></span>
+                                </span>
+                            </a>
                             <span class="flex shrink-0 items-center gap-2">
+                                <span x-show="session.isHidden" class="rounded-full bg-divider px-2 py-0.5 text-[11px] font-semibold uppercase text-muted">Masquée</span>
                                 <span x-show="session.isActive" class="rounded-full bg-success-bg px-2 py-0.5 text-[11px] font-semibold uppercase text-success">Active</span>
                                 <span :class="session.isOpen ? 'bg-success-bg text-success' : 'bg-divider text-muted'" class="rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase" x-text="session.isOpen ? 'Ouverte' : 'Clôturée'"></span>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-muted-strong" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                                <span class="sr-only">Voir les détails</span>
+                                <template x-if="!session.isActive || session.isHidden">
+                                    <form :action="session.toggleHiddenUrl" method="POST">
+                                        @csrf
+                                        <button type="submit" class="cursor-pointer text-xs font-semibold text-muted-strong hover:text-navy" x-text="session.isHidden ? 'Afficher' : 'Masquer'"></button>
+                                    </form>
+                                </template>
                             </span>
-                        </a>
+                        </div>
                     </li>
                 </template>
             </ul>

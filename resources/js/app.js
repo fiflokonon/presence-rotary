@@ -68,10 +68,17 @@ Alpine.data('attendanceDashboard', (records, groupOrder) => ({
 Alpine.data('sessionsList', (sessions) => ({
     sessions,
     search: '',
+    showHidden: false,
     get filtered() {
         const search = this.search.toLowerCase();
 
-        return this.sessions.filter((session) => session.title.toLowerCase().includes(search));
+        return this.sessions.filter((session) => {
+            if (session.isHidden && !this.showHidden) {
+                return false;
+            }
+
+            return session.title.toLowerCase().includes(search);
+        });
     },
 }));
 
