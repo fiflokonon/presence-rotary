@@ -13,7 +13,7 @@ class MeetingSession extends Model
     /** @use HasFactory<MeetingSessionFactory> */
     use HasFactory;
 
-    protected $fillable = ['title', 'date', 'time', 'is_open', 'is_active'];
+    protected $fillable = ['title', 'date', 'time', 'is_open', 'is_active', 'is_hidden'];
 
     /**
      * @return array<string, string>
@@ -24,6 +24,7 @@ class MeetingSession extends Model
             'date' => 'date',
             'is_open' => 'boolean',
             'is_active' => 'boolean',
+            'is_hidden' => 'boolean',
         ];
     }
 

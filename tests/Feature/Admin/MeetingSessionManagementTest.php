@@ -70,3 +70,9 @@ it('exposes a title filter with every session in the client-side payload', funct
         ->assertSee('Réunion hebdomadaire')
         ->assertSee('Assemblée annuelle');
 });
+
+it('defaults is_hidden to false and casts it to a boolean', function () {
+    $meetingSession = MeetingSession::factory()->create();
+
+    expect($meetingSession->fresh()->is_hidden)->toBeFalse();
+});
