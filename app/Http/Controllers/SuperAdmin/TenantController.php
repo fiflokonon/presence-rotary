@@ -5,6 +5,7 @@ namespace App\Http\Controllers\SuperAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SuperAdmin\StoreTenantRequest;
 use App\Http\Requests\SuperAdmin\UpdateGracePeriodRequest;
+use App\Http\Requests\SuperAdmin\UpdateTenantRequest;
 use App\Models\Plan;
 use App\Models\Subscription;
 use App\Models\Tenant;
@@ -52,6 +53,20 @@ class TenantController extends Controller
         ]);
 
         return redirect()->route('super-admin.tenants.index')->with('status', 'Club créé.');
+    }
+
+    public function edit(Tenant $tenant): View
+    {
+        return view('super-admin.tenants.edit', [
+            'tenant' => $tenant,
+        ]);
+    }
+
+    public function update(UpdateTenantRequest $request, Tenant $tenant): RedirectResponse
+    {
+        $tenant->update(['host' => $request->validated('host')]);
+
+        return redirect()->route('super-admin.tenants.index')->with('status', 'Sous-domaine mis à jour.');
     }
 
     public function updateGracePeriod(UpdateGracePeriodRequest $request): RedirectResponse

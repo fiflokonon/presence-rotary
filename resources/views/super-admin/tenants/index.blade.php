@@ -43,12 +43,18 @@
                             <td class="py-3 pr-4 text-muted">{{ $tenant->host }}</td>
                             <td class="py-3 pr-4 text-muted">{{ $tenant->grace_period_days ?? 'Défaut plateforme' }}</td>
                             <td class="py-3 pr-4">
-                                <form method="POST" action="{{ route('super-admin.impersonate.start', $tenant) }}">
-                                    @csrf
-                                    <button type="submit" class="cursor-pointer text-sm font-semibold text-navy hover:text-navy-hover">
-                                        Voir en tant que
-                                    </button>
-                                </form>
+                                <div class="flex items-center gap-4">
+                                    <a href="{{ route('super-admin.tenants.edit', $tenant) }}"
+                                        class="cursor-pointer text-sm font-semibold text-navy hover:text-navy-hover">
+                                        Modifier
+                                    </a>
+                                    <form method="POST" action="{{ route('super-admin.impersonate.start', $tenant) }}">
+                                        @csrf
+                                        <button type="submit" class="cursor-pointer text-sm font-semibold text-navy hover:text-navy-hover">
+                                            Voir en tant que
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     @endforeach

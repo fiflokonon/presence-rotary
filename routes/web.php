@@ -47,6 +47,8 @@ Route::domain(config('tenancy.super_admin_host'))->group(function () {
             Route::get('dashboard', [SuperAdminDashboardController::class, 'index'])->name('dashboard');
             Route::get('tenants', [TenantController::class, 'index'])->name('tenants.index');
             Route::get('tenants/create', [TenantController::class, 'create'])->name('tenants.create');
+            Route::get('tenants/{tenant}/edit', [TenantController::class, 'edit'])->name('tenants.edit');
+            Route::patch('tenants/{tenant}', [TenantController::class, 'update'])->name('tenants.update');
             Route::post('tenants', [TenantController::class, 'store'])->name('tenants.store');
             Route::patch('tenants/grace-period', [TenantController::class, 'updateGracePeriod'])->name('tenants.grace-period');
             Route::post('tenants/{tenant}/impersonate', [ImpersonationController::class, 'start'])->name('impersonate.start');
