@@ -93,6 +93,7 @@ Route::middleware(ResolveTenant::class)->group(function () {
                 Route::get('sessions', [MeetingSessionController::class, 'index'])->name('sessions.index');
                 Route::post('sessions', [MeetingSessionController::class, 'store'])->name('sessions.store');
                 Route::post('sessions/{meetingSession}/toggle-open', [MeetingSessionController::class, 'toggleOpen'])->name('sessions.toggle-open');
+                Route::post('sessions/{meetingSession}/toggle-hidden', [MeetingSessionController::class, 'toggleHidden'])->name('sessions.toggle-hidden');
                 Route::get('sessions/{meetingSession}', [MeetingSessionController::class, 'show'])->name('sessions.show');
                 Route::get('sessions/{meetingSession}/export-pdf', [MeetingSessionController::class, 'exportPdf'])->name('sessions.export-pdf');
                 Route::patch('attendances/{attendance}/toggle-present', [AttendanceController::class, 'togglePresent'])->name('attendances.toggle-present');

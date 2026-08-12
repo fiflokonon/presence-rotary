@@ -76,3 +76,41 @@ it('defaults is_hidden to false and casts it to a boolean', function () {
 
     expect($meetingSession->fresh()->is_hidden)->toBeFalse();
 });
+
+it('hides a non-active session and shows it again', function () {
+    $meetingSession = MeetingSession::factory()->create(['is_active' => false, 'is_hidden' => false]);
+
+    $this->actingAs(User::factory()->create())
+        ->post(route('admin.sessions.toggle-hidden', $meetingSession))
+        ->assertRedirect();
+
+    expect($meetingSession->fresh()->is_hidden)->toBeTrue();
+
+    $this->actingAs(User::factory()->create())
+        ->post(route('admin.sessions.toggle-hidden', $meetingSession))
+        ->assertRedirect();
+
+    expect($meetingSession->fresh()->is_hidden)->toBeFalse();
+});
+
+it('refuses to hide the active session', function () {
+    $meetingSession = MeetingSession::factory()->create(['is_active' => true, 'is_hidden' => false]);
+
+    $this->actingAs(User::factory()->create())
+        ->post(route('admin.sessions.toggle-hidden', $meetingSession))
+        ->assertSessionHasErrors();
+
+    expect($meetingSession->fresh()->is_hidden)->toBeFalse();
+});
+
+it('excludes hidden sessions from the upcoming sessions selector on the show page', function () {
+    $current = MeetingSession::factory()->create(['date' => now()->toDateString()]);
+    $visibleUpcoming = MeetingSession::factory()->create(['title' => 'Séance visible', 'date' => now()->addWeek()->toDateString(), 'is_hidden' => false]);
+    $hiddenUpcoming = MeetingSession::factory()->create(['title' => 'Séance masquée', 'date' => now()->addWeeks(2)->toDateString(), 'is_hidden' => true]);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.sessions.show', $current))
+        ->assertOk()
+        ->assertSee('Séance visible')
+        ->assertDontSee('Séance masquée');
+});

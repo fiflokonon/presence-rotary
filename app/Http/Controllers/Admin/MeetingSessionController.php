@@ -53,6 +53,17 @@ class MeetingSessionController extends Controller
         return redirect()->route('admin.sessions.show', $meetingSession);
     }
 
+    public function toggleHidden(MeetingSession $meetingSession): RedirectResponse
+    {
+        if (! $meetingSession->is_hidden && $meetingSession->is_active) {
+            return redirect()->back()->withErrors(['is_hidden' => 'Impossible de masquer la séance active.']);
+        }
+
+        $meetingSession->update(['is_hidden' => ! $meetingSession->is_hidden]);
+
+        return redirect()->back();
+    }
+
     private function sendThankYouEmails(ToggleMeetingSessionOpenRequest $request, MeetingSession $meetingSession): void
     {
         $nextSessionTitle = null;
@@ -91,6 +102,7 @@ class MeetingSessionController extends Controller
             'attendances' => $attendances,
             'visibleAttendances' => $attendances->reject(fn (Attendance $attendance) => $attendance->member?->is_club_member === true),
             'upcomingSessions' => MeetingSession::where('id', '!=', $meetingSession->id)
+                ->where('is_hidden', false)
                 ->where('date', '>=', now()->toDateString())
                 ->orderBy('date')
                 ->get(),
