@@ -19,6 +19,16 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.session.guard' => AuthenticateSessionForGuard::class,
         ]);
 
+        // PayPlus posts the payment callback server-to-server, so it carries
+        // neither a CSRF token nor the Sec-Fetch-Site header that would let
+        // PreventRequestForgery accept it — without this exclusion every
+        // callback is rejected with a 419 in production. The handler
+        // re-confirms the payment against the PayPlus API before activating
+        // anything, so the request is never trusted on its own.
+        $middleware->preventRequestForgery(except: [
+            'payplus/callback',
+        ]);
+
         $middleware->redirectGuestsTo(fn (Request $request) => $request->getHost() === config('tenancy.super_admin_host')
             ? route('super-admin.login')
             : route('admin.login'));
